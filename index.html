@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GlobalPrep High | Traveling Homeschool & Transcript Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://jsdelivr.net"></script>
+</head>
+<body>
+  <header class="topbar no-print">
+    <div class="brand">
+      <span class="crest">🎓</span>
+      <div>
+        <h1>GlobalPrep High</h1>
+        <small>College-Prep Worldschooling & Transcript Portal</small>
+      </div>
+    </div>
+    <button id="logoutBtn" class="btn-outline hidden" onclick="logout()">Sign Out</button>
+  </header>
+
+  <main class="container">
+    <!-- AUTH SECTION -->
+    <section id="authSection" class="card auth-card">
+      <div class="tabs">
+        <button id="tabParent" class="tab active" onclick="switchAuthTab('parent')">Parent / Admin</button>
+        <button id="tabStudent" class="tab" onclick="switchAuthTab('student')">High School Student</button>
+      </div>
+
+      <!-- Parent Login / Signup -->
+      <div id="parentAuthForm">
+        <h2 id="parentAuthTitle">Parent / Administrator Login</h2>
+        <div id="signupExtraFields" class="hidden">
+          <label>Your Full Name</label>
+          <input type="text" id="parentName" placeholder="e.g., Sarah Jenkins" />
+          <label>Homeschool / Academy Name (Appears on Transcript & Diploma)</label>
+          <input type="text" id="academyName" placeholder="e.g., Jenkins Global Academy" />
+        </div>
+        <label>Email Address</label>
+        <input type="email" id="parentEmail" placeholder="parent@example.com" />
+        <label>Password</label>
+        <input type="password" id="parentPassword" placeholder="••••••••" />
+        <button class="btn-primary full" onclick="handleParentAuth()" id="parentSubmitBtn">Sign In</button>
+        <p class="switch-text">
+          <span id="toggleAuthText">New traveling family?</span>
+          <a href="#" onclick="toggleParentMode(event)" id="toggleAuthLink">Create Free Academy Account</a>
+        </p>
+      </div>
+
+      <!-- Student Login -->
+      <div id="studentAuthForm" class="hidden">
+        <h2>Student Portal Login</h2>
+        <p class="muted">Enter your 6-character Academy Invite Code, Username, and 4-digit PIN.</p>
+        <label>Academy Invite Code</label>
+        <input type="text" id="stuInviteCode" placeholder="e.g., TRVL88" maxlength="6" style="text-transform:uppercase" />
+        <label>Student Username</label>
+        <input type="text" id="stuUsername" placeholder="e.g., alex_j" />
+        <label>4-Digit PIN</label>
+        <input type="password" id="stuPin" placeholder="••••" maxlength="4" inputmode="numeric" />
+        <button class="btn-primary full" onclick="handleStudentLogin()">Enter Student Portal</button>
+      </div>
+      <p id="authError" class="error-msg"></p>
+    </section>
+
+    <!-- PARENT DASHBOARD -->
+    <section id="parentDashboard" class="hidden">
+      <div class="banner no-print">
+        <div>
+          <h2 id="dashAcademyName">Academy Dashboard</h2>
+          <p>Share this Academy Invite Code with your high schooler(s): <strong id="dashInviteCode" class="code-badge">------</strong></p>
+        </div>
+        <div class="nav-pills">
+          <button class="pill active" onclick="showParentView('overview', this)">Overview & Students</button>
+          <button class="pill" onclick="showParentView('assignments', this)">AP / Courses & Grading</button>
+          <button class="pill" onclick="showParentView('achievements', this)">Travel, Certs & Service</button>
+          <button class="pill" onclick="showParentView('transcript', this)">Transcript & Diploma</button>
+        </div>
+      </div>
+
+      <!-- View 1: Students & Calendar -->
+      <div id="pView-overview" class="p-view grid-2">
+        <div class="card">
+          <h3>Add High School Student</h3>
+          <label>Student Full Legal Name (for Transcript & Diploma)</label>
+          <input type="text" id="newStuName" placeholder="e.g., Alexander James Jenkins" />
+          <div class="row-2">
+            <div>
+              <label>Grade Level</label>
+              <select id="newStuGrade">
+                <option value="9th">9th (Freshman)</option>
+                <option value="10th">10th (Sophomore)</option>
+                <option value="11th">11th (Junior)</option>
+                <option value="12th">12th (Senior)</option>
+              </select>
+            </div>
+            <div>
+              <label>Expected Grad Year</label>
+              <input type="number" id="newStuGradYear" placeholder="2028" />
+            </div>
+          </div>
+          <div class="row-2">
+            <div>
+              <label>Login Username</label>
+              <input type="text" id="newStuUser" placeholder="alex_j" />
+            </div>
+            <div>
+              <label>4-Digit PIN</label>
+              <input type="text" id="newStuPin" placeholder="1234" maxlength="4" />
+            </div>
+          </div>
+          <button class="btn-primary" onclick="addStudent()">+ Add Student</button>
+          <div id="studentList" class="list-box"></div>
+        </div>
+
+        <div class="card">
+          <h3>Custom Travel Academic Quarters</h3>
+          <p class="muted">Set flexible quarter dates that fit your family's travel schedule.</p>
+          <div class="row-2"><label>Q1 Start <input type="date" id="q1s"></label><label>Q1 End <input type="date" id="q1e"></label></div>
+          <div class="row-2"><label>Q2 Start <input type="date" id="q2s"></label><label>Q2 End <input type="date" id="q2e"></label></div>
+          <div class="row-2"><label>Q3 Start <input type="date" id="q3s"></label><label>Q3 End <input type="date" id="q3e"></label></div>
+          <div class="row-2"><label>Q4 Start <input type="date" id="q4s"></label><label>Q4 End <input type="date" id="q4e"></label></div>
+          <button class="btn-primary" onclick="saveQuarters()">Save Quarter Dates</button>
+        </div>
+      </div>
+
+      <!-- View 2: Assignments & Grading -->
+      <div id="pView-assignments" class="p-view hidden grid-2">
+        <div class="card">
+          <h3>Assign High School / AP Coursework</h3>
+          <label>Select Student</label>
+          <select id="assignStudentSelect"></select>
+          <div class="row-2">
+            <div>
+              <label>Subject</label>
+              <input type="text" id="assignSubject" placeholder="e.g., AP Calculus AB, World History" />
+            </div>
+            <div>
+              <label>Course Level (GPA Weight)</label>
+              <select id="assignLevel">
+                <option value="Regular">Regular (4.0 Scale)</option>
+                <option value="Honors">Honors (4.5 Scale)</option>
+                <option value="AP / Dual Enrollment">AP / Dual Enrollment (5.0 Scale)</option>
+              </select>
+            </div>
+          </div>
+          <div class="row-2">
+            <div>
+              <label>Quarter</label>
+              <select id="assignQuarter">
+                <option value="Q1">Quarter 1</option>
+                <option value="Q2">Quarter 2</option>
+                <option value="Q3">Quarter 3</option>
+                <option value="Q4">Quarter 4</option>
+              </select>
+            </div>
+            <div>
+              <label>Credit Value</label>
+              <select id="assignCredits">
+                <option value="1.0">1.0 Full Credit</option>
+                <option value="0.5">0.5 Half Credit</option>
+              </select>
+            </div>
+          </div>
+          <label>Assignment / Exam Title</label>
+          <input type="text" id="assignTitle" placeholder="e.g., Unit 3 Derivatives Exam" />
+          <label>Instructions / AP Resource Links</label>
+          <textarea id="assignDesc" rows="2" placeholder="Complete College Board practice set & upload work..."></textarea>
+          <label>Travel Location Tag (Optional)</label>
+          <input type="text" id="assignLocation" placeholder="e.g., Cha-am / Bangkok Marine Study" />
+          <button class="btn-primary" onclick="createAssignment()">+ Post Assignment</button>
+        </div>
+
+        <div class="card">
+          <h3>Student Submissions & Grading Queue</h3>
+          <div id="gradingQueue" class="list-box"></div>
+        </div>
+      </div>
+
+      <!-- View 3: Travel, Certifications & Volunteer Hours -->
+      <div id="pView-achievements" class="p-view hidden grid-2">
+        <div class="card">
+          <h3>Log Travel, Certification or Volunteer Credit</h3>
+          <label>Select Student</label>
+          <select id="achStudentSelect"></select>
+          <label>Category</label>
+          <select id="achCategory">
+            <option value="Certification">Certification (e.g., PADI SCUBA, First Aid)</option>
+            <option value="Volunteer / Service">Volunteer / Community Service</option>
+            <option value="Travel / Field Study">Global Travel / Field Study</option>
+            <option value="Extracurricular">Extracurricular / Leadership</option>
+          </select>
+          <label>Title / Credential Name</label>
+          <input type="text" id="achTitle" placeholder="e.g., PADI Open Water Diver Certification" />
+          <div class="row-2">
+            <div>
+              <label>Organization / Country</label>
+              <input type="text" id="achOrg" placeholder="e.g., Koh Tao, Thailand" />
+            </div>
+            <div>
+              <label>Hours or Credit Earned</label>
+              <input type="text" id="achHours" placeholder="e.g., 25 Hours / 0.5 PE Credit" />
+            </div>
+          </div>
+          <label>Date Completed</label>
+          <input type="date" id="achDate" />
+          <label>Description for College Resume</label>
+          <textarea id="achNotes" rows="2" placeholder="Completed open-water dives, navigation & marine conservation brief..."></textarea>
