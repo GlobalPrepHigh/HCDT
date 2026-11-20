@@ -1,6 +1,6 @@
 // ⚠️ PASTE YOUR TWO SUPABASE KEYS INSIDE THE QUOTES BELOW:
-const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL_HERE";
-const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+const SUPABASE_URL = "https://supabase.co";
+const SUPABASE_KEY = "sb_publishable_llm2wWoQpOl3oj1xJFkRfA_Fd69Aj8J";
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
