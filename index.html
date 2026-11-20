@@ -19,14 +19,12 @@
   </header>
 
   <main class="container">
-    <!-- AUTH SECTION -->
     <section id="authSection" class="card auth-card">
       <div class="tabs">
         <button id="tabParent" class="tab active" onclick="switchAuthTab('parent')">Parent / Admin</button>
         <button id="tabStudent" class="tab" onclick="switchAuthTab('student')">High School Student</button>
       </div>
 
-      <!-- Parent Login / Signup -->
       <div id="parentAuthForm">
         <h2 id="parentAuthTitle">Parent / Administrator Login</h2>
         <div id="signupExtraFields" class="hidden">
@@ -46,7 +44,6 @@
         </p>
       </div>
 
-      <!-- Student Login -->
       <div id="studentAuthForm" class="hidden">
         <h2>Student Portal Login</h2>
         <p class="muted">Enter your 6-character Academy Invite Code, Username, and 4-digit PIN.</p>
@@ -61,7 +58,6 @@
       <p id="authError" class="error-msg"></p>
     </section>
 
-    <!-- PARENT DASHBOARD -->
     <section id="parentDashboard" class="hidden">
       <div class="banner no-print">
         <div>
@@ -76,7 +72,6 @@
         </div>
       </div>
 
-      <!-- View 1: Students & Calendar -->
       <div id="pView-overview" class="p-view grid-2">
         <div class="card">
           <h3>Add High School Student</h3>
@@ -122,7 +117,6 @@
         </div>
       </div>
 
-      <!-- View 2: Assignments & Grading -->
       <div id="pView-assignments" class="p-view hidden grid-2">
         <div class="card">
           <h3>Assign High School / AP Coursework</h3>
@@ -175,7 +169,6 @@
         </div>
       </div>
 
-      <!-- View 3: Travel, Certs & Service -->
       <div id="pView-achievements" class="p-view hidden grid-2">
         <div class="card">
           <h3>Log Worldschooling, Certifications & Service</h3>
@@ -208,7 +201,11 @@
         </div>
       </div>
 
-      <!-- View 4: Transcript & Diploma -->
-      <script src="app.js?v=2"></script>
-
+      <div id="pView-transcript" class="p-view hidden">
         <div class="card no-print">
+          <div class="row-2">
+            <div>
+              <h3>Official High School Transcript & Diploma Generator</h3>
+              <label>Select Student</label>
+              <select id="transStudentSelect" onchange="renderOfficialRecords()"></select>
+            </div>
