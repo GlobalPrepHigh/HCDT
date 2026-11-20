@@ -1,9 +1,7 @@
-// ⚠️ PASTE YOUR TWO SUPABASE KEYS INSIDE THE QUOTES BELOW:
-const SUPABASE_URL = "https://supabase.co";
+const SUPABASE_URL = "https://cnjgoixunkygvwbuifiy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_llm2wWoQpOl3oj1xJFkRfA_Fd69Aj8J";
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+let authToken = null;
 let isSignupMode = false;
 let currentFamily = null;
 let currentUser = null;
@@ -11,6 +9,46 @@ let studentsCache = [];
 let assignmentsCache = [];
 let submissionsCache = [];
 let achievementsCache = [];
+
+// Direct Supabase REST & Auth Helper (Zero external CDN needed)
+async function sbAuth(endpoint, body) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.msg || data.error_description || data.message || "Authentication failed");
+  return data;
+}
+
+async function sbQuery(table, { method = "GET", query = "", body = null, single = false } = {}) {
+  const headers = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": `Bearer ${authToken || SUPABASE_KEY}`,
+    "Content-Type": "application/json"
+  };
+  if (method === "POST" || method === "PATCH") {
+    headers["Prefer"] = single ? "return=representation,plurality=singular" : "return=representation";
+  } else if (single) {
+    headers["Accept"] = "application/vnd.pgrst.object+json";
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query ? "?" + query : ""}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : null
+  });
+
+  if (res.status === 406 && single) return null;
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!res.ok) throw new Error((data && data.message) || "Database error");
+  return data;
+}
 
 // --- AUTH UI ---
 function switchAuthTab(role) {
@@ -41,48 +79,67 @@ function generateInviteCode() {
 // --- PARENT LOGIN / SIGNUP ---
 async function handleParentAuth() {
   const errEl = document.getElementById("authError");
+  const btn = document.getElementById("parentSubmitBtn");
   errEl.innerText = "";
   const email = document.getElementById("parentEmail").value.trim();
   const password = document.getElementById("parentPassword").value;
 
   if (!email || !password) return (errEl.innerText = "Please enter email and password.");
 
-  if (isSignupMode) {
-    const fullName = document.getElementById("parentName").value.trim();
-    const academyName = document.getElementById("academyName").value.trim();
-    if (!fullName || !academyName) return (errEl.innerText = "Please enter your name and Academy name.");
+  try {
+    btn.disabled = true;
+    btn.innerText = "Connecting...";
 
-    const { data: authData, error: authErr } = await db.auth.signUp({ email, password });
-    if (authErr) return (errEl.innerText = authErr.message);
+    if (isSignupMode) {
+      const fullName = document.getElementById("parentName").value.trim();
+      const academyName = document.getElementById("academyName").value.trim();
+      if (!fullName || !academyName) throw new Error("Please enter your name and Academy name.");
 
-    const inviteCode = generateInviteCode();
-    const { data: famData, error: famErr } = await db
-      .from("families")
-      .insert([{ family_name: academyName, invite_code: inviteCode }])
-      .select()
-      .single();
-    if (famErr) return (errEl.innerText = famErr.message);
+      const authData = await sbAuth("signup", { email, password });
+      const userObj = authData.user || authData;
+      if (!userObj || !userObj.id) throw new Error("Check your email to confirm your account, or disable Email Confirmation in Supabase Auth settings.");
+      if (authData.access_token) authToken = authData.access_token;
 
-    const { data: profData, error: profErr } = await db
-      .from("profiles")
-      .insert([{ id: authData.user.id, family_id: famData.id, full_name: fullName, role: "parent" }])
-      .select()
-      .single();
-    if (profErr) return (errEl.innerText = profErr.message);
+      const inviteCode = generateInviteCode();
+      const famData = await sbQuery("families", {
+        method: "POST",
+        body: { family_name: academyName, invite_code: inviteCode },
+        single: true
+      });
 
-    currentFamily = famData;
-    currentUser = profData;
-    loadParentDashboard();
-  } else {
-    const { data: authData, error: authErr } = await db.auth.signInWithPassword({ email, password });
-    if (authErr) return (errEl.innerText = authErr.message);
+      const profData = await sbQuery("profiles", {
+        method: "POST",
+        body: { id: userObj.id, family_id: famData.id, full_name: fullName, role: "parent" },
+        single: true
+      });
 
-    const { data: profData } = await db.from("profiles").select("*").eq("id", authData.user.id).single();
-    const { data: famData } = await db.from("families").select("*").eq("id", profData.family_id).single();
+      currentFamily = famData;
+      currentUser = profData;
+      await loadParentDashboard();
+    } else {
+      const authData = await sbAuth("token?grant_type=password", { email, password });
+      authToken = authData.access_token;
 
-    currentUser = profData;
-    currentFamily = famData;
-    loadParentDashboard();
+      const profData = await sbQuery("profiles", {
+        query: `id=eq.${authData.user.id}&select=*`,
+        single: true
+      });
+      if (!profData) throw new Error("Profile not found for this account.");
+
+      const famData = await sbQuery("families", {
+        query: `id=eq.${profData.family_id}&select=*`,
+        single: true
+      });
+
+      currentUser = profData;
+      currentFamily = famData;
+      await loadParentDashboard();
+    }
+  } catch (err) {
+    errEl.innerText = err.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerText = isSignupMode ? "Create Academy & Sign In" : "Sign In";
   }
 }
 
@@ -96,27 +153,28 @@ async function handleStudentLogin() {
 
   if (!code || !username || !pin) return (errEl.innerText = "Fill in Invite Code, Username, and PIN.");
 
-  const { data: fam } = await db.from("families").select("*").eq("invite_code", code).single();
-  if (!fam) return (errEl.innerText = "Invalid Academy Invite Code.");
+  try {
+    const fam = await sbQuery("families", {
+      query: `invite_code=eq.${encodeURIComponent(code)}&select=*`,
+      single: true
+    });
+    if (!fam) return (errEl.innerText = "Invalid Academy Invite Code.");
 
-  const { data: stu } = await db
-    .from("profiles")
-    .select("*")
-    .eq("family_id", fam.id)
-    .eq("username", username)
-    .eq("pin", pin)
-    .eq("role", "student")
-    .single();
+    const stu = await sbQuery("profiles", {
+      query: `family_id=eq.${fam.id}&username=eq.${encodeURIComponent(username)}&pin=eq.${encodeURIComponent(pin)}&role=eq.student&select=*`,
+      single: true
+    });
+    if (!stu) return (errEl.innerText = "Incorrect Username or PIN.");
 
-  if (!stu) return (errEl.innerText = "Incorrect Username or PIN.");
-
-  currentFamily = fam;
-  currentUser = stu;
-  loadStudentDashboard();
+    currentFamily = fam;
+    currentUser = stu;
+    await loadStudentDashboard();
+  } catch (err) {
+    errEl.innerText = err.message;
+  }
 }
 
 function logout() {
-  db.auth.signOut();
   location.reload();
 }
 
@@ -146,17 +204,19 @@ function showParentView(viewName, btn) {
 }
 
 async function refreshFamilyData() {
-  const { data: profs } = await db.from("profiles").select("*").eq("family_id", currentFamily.id).eq("role", "student");
-  studentsCache = profs || [];
+  studentsCache = (await sbQuery("profiles", {
+    query: `family_id=eq.${currentFamily.id}&role=eq.student&select=*`
+  })) || [];
 
-  const { data: assigns } = await db.from("assignments").select("*").eq("family_id", currentFamily.id).order("created_at", { ascending: false });
-  assignmentsCache = assigns || [];
+  assignmentsCache = (await sbQuery("assignments", {
+    query: `family_id=eq.${currentFamily.id}&select=*&order=created_at.desc`
+  })) || [];
 
-  const { data: subs } = await db.from("submissions").select("*");
-  submissionsCache = subs || [];
+  submissionsCache = (await sbQuery("submissions", { query: `select=*` })) || [];
 
-  const { data: achs } = await db.from("achievements").select("*").eq("family_id", currentFamily.id).order("date_completed", { ascending: false });
-  achievementsCache = achs || [];
+  achievementsCache = (await sbQuery("achievements", {
+    query: `family_id=eq.${currentFamily.id}&select=*&order=date_completed.desc`
+  })) || [];
 
   renderStudents();
   renderGradingQueue();
@@ -172,14 +232,18 @@ async function addStudent() {
 
   if (!full_name || !username || pin.length !== 4) return alert("Enter full name, username, and a 4-digit PIN.");
 
-  await db.from("profiles").insert([{
-    family_id: currentFamily.id, full_name, grade_level, expected_grad_year, username, pin, role: "student"
-  }]);
-
-  document.getElementById("newStuName").value = "";
-  document.getElementById("newStuUser").value = "";
-  document.getElementById("newStuPin").value = "";
-  await refreshFamilyData();
+  try {
+    await sbQuery("profiles", {
+      method: "POST",
+      body: { family_id: currentFamily.id, full_name, grade_level, expected_grad_year, username, pin, role: "student" }
+    });
+    document.getElementById("newStuName").value = "";
+    document.getElementById("newStuUser").value = "";
+    document.getElementById("newStuPin").value = "";
+    await refreshFamilyData();
+  } catch (err) {
+    alert(err.message);
+  }
 }
 
 function renderStudents() {
@@ -192,41 +256,3 @@ function renderStudents() {
     </div>
   `).join("") || "<p class='muted'>No students added yet.</p>";
 
-  const options = studentsCache.map(s => `<option value="${s.id}">${s.full_name} (${s.grade_level})</option>`).join("");
-  selects.forEach(id => (document.getElementById(id).innerHTML = options));
-}
-
-async function saveQuarters() {
-  await db.from("families").update({
-    q1_start: document.getElementById("q1s").value || null, q1_end: document.getElementById("q1e").value || null,
-    q2_start: document.getElementById("q2s").value || null, q2_end: document.getElementById("q2e").value || null,
-    q3_start: document.getElementById("q3s").value || null, q3_end: document.getElementById("q3e").value || null,
-    q4_start: document.getElementById("q4s").value || null, q4_end: document.getElementById("q4e").value || null
-  }).eq("id", currentFamily.id);
-  alert("Quarter dates saved!");
-}
-
-async function createAssignment() {
-  const student_id = document.getElementById("assignStudentSelect").value;
-  const subject = document.getElementById("assignSubject").value.trim();
-  const course_level = document.getElementById("assignLevel").value;
-  const quarter = document.getElementById("assignQuarter").value;
-  const credits = parseFloat(document.getElementById("assignCredits").value);
-  const title = document.getElementById("assignTitle").value.trim();
-  const description = document.getElementById("assignDesc").value.trim();
-  const location_tag = document.getElementById("assignLocation").value.trim();
-
-  if (!student_id || !subject || !title) return alert("Select a student and enter Subject & Title.");
-
-  await db.from("assignments").insert([{
-    family_id: currentFamily.id, student_id, subject, course_level, quarter, credits, title, description, location_tag
-  }]);
-
-  document.getElementById("assignTitle").value = "";
-  document.getElementById("assignDesc").value = "";
-  alert("Assignment posted to student portal!");
-  await refreshFamilyData();
-}
-
-function renderGradingQueue() {
-  const queue = document.getElementById("gradingQueue");
