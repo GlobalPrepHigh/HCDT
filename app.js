@@ -32,9 +32,7 @@ async function sbQuery(table, { method = "GET", query = "", body = null, single 
     "Content-Type": "application/json"
   };
   if (method === "POST" || method === "PATCH") {
-    headers["Prefer"] = single ? "return=representation,plurality=singular" : "return=representation";
-  } else if (single) {
-    headers["Accept"] = "application/vnd.pgrst.object+json";
+    headers["Prefer"] = "return=representation";
   }
 
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query ? "?" + query : ""}`, {
@@ -43,12 +41,13 @@ async function sbQuery(table, { method = "GET", query = "", body = null, single 
     body: body ? JSON.stringify(body) : null
   });
 
-  if (res.status === 406 && single) return null;
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = text ? JSON.parse(text) : null;
   if (!res.ok) throw new Error((data && data.message) || "Database error");
+  if (single && Array.isArray(data)) return data[0] || null;
   return data;
 }
+
 
 // --- AUTH UI ---
 function switchAuthTab(role) {
