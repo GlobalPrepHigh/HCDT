@@ -293,20 +293,24 @@ async function createAssignment() {
   const course_level = document.getElementById("assignLevel").value;
   const quarter = document.getElementById("assignQuarter").value;
   const credits = parseFloat(document.getElementById("assignCredits").value);
+  const due_date = document.getElementById("assignDueDate").value || null;
+  const grading_scale = document.getElementById("assignGradingScale").value.trim();
   const title = document.getElementById("assignTitle").value.trim();
+  const resource_url = document.getElementById("assignResourceUrl").value.trim();
   const description = document.getElementById("assignDesc").value.trim();
+  const answer_key = document.getElementById("assignAnswerKey").value.trim();
   const travel_location = document.getElementById("assignLocation").value.trim();
 
-  if (!student_id || !subject || !title) return alert("Select a student and enter Subject and Title.");
+  if (!student_id || !subject || !title) return alert("Select a student and enter Course/Subject and Title.");
 
   try {
     await sbQuery("assignments", {
       method: "POST",
-      body: { family_id: currentFamily.id, student_id, subject, course_level, quarter, credits, title, description, travel_location }
+      body: { family_id: currentFamily.id, student_id, subject, course_level, quarter, credits, due_date, grading_scale, title, resource_url, description, answer_key, travel_location }
     });
-    document.getElementById("assignTitle").value = "";
-    document.getElementById("assignDesc").value = "";
+    ["assignTitle", "assignResourceUrl", "assignDesc", "assignAnswerKey", "assignLocation"].forEach(id => (document.getElementById(id).value = ""));
     await refreshFamilyData();
+    alert("Course module posted to student portal!");
   } catch (err) {
     alert(err.message);
   }
@@ -322,14 +326,20 @@ function renderGradingQueue() {
     const stu = studentsCache.find(s => s.id === a.student_id);
     const sub = submissionsCache.find(s => s.assignment_id === a.id);
     const gradeVal = sub && sub.grade ? sub.grade : "";
-    const locText = a.travel_location ? " • 📍 " + a.travel_location : "";
-    const noteHtml = sub && sub.student_notes ? "<p><small>Student Note: " + sub.student_notes + "</small></p>" : "";
-    return '<div class="item-card"><strong>' + a.subject + ': ' + a.title + '</strong> (' + a.course_level + ' • ' + a.credits + ' cr • ' + a.quarter + ')<br><small class="muted">Student: ' + (stu ? stu.full_name : "Student") + locText + '</small>' + noteHtml + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" placeholder="Letter Grade (A, B+, 95)" value="' + gradeVal + '" /><button class="btn-outline" onclick="saveGrade(\'' + a.id + '\', \'' + a.student_id + '\')">Save Grade</button></div></div>';
+    const fbVal = sub && sub.parent_feedback ? sub.parent_feedback : "";
+    const dueText = a.due_date ? " • Due: <b>" + a.due_date + "</b>" : "";
+    const keyBox = a.answer_key ? '<div style="background:#fef9c3; padding:8px; border-radius:6px; margin-top:6px;"><small><b>🔒 Parent Answer Key:</b> ' + a.answer_key + '</small></div>' : "";
+    const subWork = sub && (sub.student_notes || sub.submission_link)
+      ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">[Open Attached Work/Math Link]</a>' : '') + '</small></div>'
+      : '<small class="muted">Awaiting student submission</small>';
+
+    return '<div class="item-card"><strong>' + a.subject + ': ' + a.title + '</strong> (' + a.course_level + ' • ' + a.credits + ' cr • ' + a.quarter + ')<br><small class="muted">Student: ' + (stu ? stu.full_name : "Student") + dueText + '</small>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" placeholder="Grade (A, 96%, etc.)" value="' + gradeVal + '" /><input type="text" id="fb-' + a.id + '" placeholder="Professor Feedback..." value="' + fbVal + '" /></div><button class="btn-outline" style="margin-top:6px;" onclick="saveGrade(\'' + a.id + '\', \'' + a.student_id + '\')">Save Grade & Feedback</button></div>';
   }).join("");
 }
 
 async function saveGrade(assignment_id, student_id) {
   const grade = document.getElementById("grade-" + assignment_id).value.trim().toUpperCase();
+  const parent_feedback = document.getElementById("fb-" + assignment_id).value.trim();
   if (!grade) return alert("Enter a grade first.");
   try {
     const existing = submissionsCache.find(s => s.assignment_id === assignment_id);
@@ -337,16 +347,16 @@ async function saveGrade(assignment_id, student_id) {
       await sbQuery("submissions", {
         method: "PATCH",
         query: `id=eq.${existing.id}`,
-        body: { grade, status: "Graded" }
+        body: { grade, parent_feedback, status: "Graded" }
       });
     } else {
       await sbQuery("submissions", {
         method: "POST",
-        body: { assignment_id, student_id, grade, status: "Graded" }
+        body: { assignment_id, student_id, grade, parent_feedback, status: "Graded" }
       });
     }
     await refreshFamilyData();
-    alert("Grade saved!");
+    alert("Grade & feedback saved!");
   } catch (err) {
     alert(err.message);
   }
