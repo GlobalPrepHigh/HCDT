@@ -113,3 +113,9 @@ input, select, textarea {
   .card { box-shadow: none; margin: 0; }
   .print-hide { display: none !important; }
 }
+
+.item-card, .item-card p, .item-card small, .item-card a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
