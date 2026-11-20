@@ -256,3 +256,233 @@ function renderStudents() {
     </div>
   `).join("") || "<p class='muted'>No students added yet.</p>";
 
+    const options = studentsCache.map(s => `<option value="${s.id}">${s.full_name} (${s.grade_level})</option>`).join("");
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = options;
+  });
+}
+
+async function saveQuarters() {
+  try {
+    const updates = {
+      q1_start: document.getElementById("q1s").value || null,
+      q1_end: document.getElementById("q1e").value || null,
+      q2_start: document.getElementById("q2s").value || null,
+      q2_end: document.getElementById("q2e").value || null,
+      q3_start: document.getElementById("q3s").value || null,
+      q3_end: document.getElementById("q3e").value || null,
+      q4_start: document.getElementById("q4s").value || null,
+      q4_end: document.getElementById("q4e").value || null
+    };
+    const updated = await sbQuery("families", {
+      method: "PATCH",
+      query: `id=eq.${currentFamily.id}`,
+      body: updates,
+      single: true
+    });
+    if (updated) currentFamily = updated;
+    alert("Custom quarter dates saved!");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function createAssignment() {
+  const student_id = document.getElementById("assignStudentSelect").value;
+  const subject = document.getElementById("assignSubject").value.trim();
+  const course_level = document.getElementById("assignLevel").value;
+  const quarter = document.getElementById("assignQuarter").value;
+  const credits = parseFloat(document.getElementById("assignCredits").value);
+  const title = document.getElementById("assignTitle").value.trim();
+  const description = document.getElementById("assignDesc").value.trim();
+  const travel_location = document.getElementById("assignLocation").value.trim();
+
+  if (!student_id || !subject || !title) return alert("Select a student and enter Subject and Title.");
+
+  try {
+    await sbQuery("assignments", {
+      method: "POST",
+      body: { family_id: currentFamily.id, student_id, subject, course_level, quarter, credits, title, description, travel_location }
+    });
+    document.getElementById("assignTitle").value = "";
+    document.getElementById("assignDesc").value = "";
+    await refreshFamilyData();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function renderGradingQueue() {
+  const container = document.getElementById("parentAssignmentList");
+  if (!assignmentsCache.length) {
+    container.innerHTML = "<p class='muted'>No coursework posted yet.</p>";
+    return;
+  }
+  container.innerHTML = assignmentsCache.map(a => {
+    const stu = studentsCache.find(s => s.id === a.student_id);
+    const sub = submissionsCache.find(s => s.assignment_id === a.id);
+    const gradeVal = sub && sub.grade ? sub.grade : "";
+    const locText = a.travel_location ? " • 📍 " + a.travel_location : "";
+    const noteHtml = sub && sub.student_notes ? "<p><small>Student Note: " + sub.student_notes + "</small></p>" : "";
+    return '<div class="item-card"><strong>' + a.subject + ': ' + a.title + '</strong> (' + a.course_level + ' • ' + a.credits + ' cr • ' + a.quarter + ')<br><small class="muted">Student: ' + (stu ? stu.full_name : "Student") + locText + '</small>' + noteHtml + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" placeholder="Letter Grade (A, B+, 95)" value="' + gradeVal + '" /><button class="btn-outline" onclick="saveGrade(\'' + a.id + '\', \'' + a.student_id + '\')">Save Grade</button></div></div>';
+  }).join("");
+}
+
+async function saveGrade(assignment_id, student_id) {
+  const grade = document.getElementById("grade-" + assignment_id).value.trim().toUpperCase();
+  if (!grade) return alert("Enter a grade first.");
+  try {
+    const existing = submissionsCache.find(s => s.assignment_id === assignment_id);
+    if (existing) {
+      await sbQuery("submissions", {
+        method: "PATCH",
+        query: `id=eq.${existing.id}`,
+        body: { grade, status: "Graded" }
+      });
+    } else {
+      await sbQuery("submissions", {
+        method: "POST",
+        body: { assignment_id, student_id, grade, status: "Graded" }
+      });
+    }
+    await refreshFamilyData();
+    alert("Grade saved!");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function addAchievement() {
+  const student_id = document.getElementById("achStudentSelect").value;
+  const type = document.getElementById("achType").value;
+  const title = document.getElementById("achTitle").value.trim();
+  const location = document.getElementById("achLocation").value.trim();
+  const metric = document.getElementById("achMetric").value.trim();
+
+  if (!student_id || !title) return alert("Select a student and enter a title.");
+
+  try {
+    await sbQuery("achievements", {
+      method: "POST",
+      body: {
+        family_id: currentFamily.id,
+        student_id,
+        type,
+        title,
+        location,
+        metric,
+        date_completed: new Date().toISOString().split("T")[0]
+      }
+    });
+    document.getElementById("achTitle").value = "";
+    document.getElementById("achLocation").value = "";
+    document.getElementById("achMetric").value = "";
+    await refreshFamilyData();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function renderAchievements() {
+  const container = document.getElementById("parentAchievementList");
+  container.innerHTML = achievementsCache.map(ac => {
+    const stu = studentsCache.find(s => s.id === ac.student_id);
+    const loc = ac.location ? " • 📍 " + ac.location : "";
+    const met = ac.metric ? " • " + ac.metric : "";
+    return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (stu ? stu.full_name : "") + loc + met + '</small></div>';
+  }).join("") || "<p class='muted'>No travel study, certifications, or service logged yet.</p>";
+}
+
+function renderOfficialRecords() {
+  const stuId = document.getElementById("transStudentSelect").value;
+  const stu = studentsCache.find(s => s.id === stuId);
+  const preview = document.getElementById("officialDocsPreview");
+  if (!stu) {
+    preview.innerHTML = "<p class='muted'>Add a student first to generate their Transcript & Diploma.</p>";
+    return;
+  }
+
+  const stuAssigns = assignmentsCache.filter(a => a.student_id === stu.id);
+  const stuAchs = achievementsCache.filter(a => a.student_id === stu.id);
+  let totalCredits = 0;
+  let totalPoints = 0;
+
+  const gradePoints = { "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7, "C+": 2.3, "C": 2.0, "D": 1.0, "F": 0.0 };
+
+  const rows = stuAssigns.map(a => {
+    const sub = submissionsCache.find(s => s.assignment_id === a.id);
+    const g = sub && sub.grade ? sub.grade : "In Progress";
+    const cr = parseFloat(a.credits) || 1.0;
+    if (gradePoints[g] !== undefined) {
+      const boost = a.course_level.includes("AP") ? 1.0 : a.course_level.includes("Honors") ? 0.5 : 0;
+      totalCredits += cr;
+      totalPoints += (gradePoints[g] + boost) * cr;
+    }
+    return '<tr><td>' + a.quarter + '</td><td>' + a.subject + ' — ' + a.title + '</td><td>' + a.course_level + '</td><td>' + cr.toFixed(1) + '</td><td><strong>' + g + '</strong></td></tr>';
+  }).join("");
+
+  const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "N/A";
+  const achSection = stuAchs.length ? '<h4 style="margin-top:16px;">Worldschooling Field Studies, Certifications & Service</h4><ul>' + stuAchs.map(x => '<li><strong>' + x.type + ':</strong> ' + x.title + (x.location ? ' (' + x.location + ')' : '') + (x.metric ? ' — ' + x.metric : '') + '</li>').join("") + '</ul>' : "";
+
+  preview.innerHTML = '<div style="border:2px solid #1e293b; padding:24px; border-radius:8px; margin-bottom:24px;"><h2 style="text-align:center; margin-bottom:4px;">' + currentFamily.family_name.toUpperCase() + '</h2><p style="text-align:center; margin-top:0;"><strong>OFFICIAL HIGH SCHOOL ACADEMIC TRANSCRIPT</strong></p><hr><p><strong>Student Legal Name:</strong> ' + stu.full_name + ' &nbsp;|&nbsp; <strong>Grade:</strong> ' + stu.grade_level + ' &nbsp;|&nbsp; <strong>Expected Graduation:</strong> ' + stu.expected_grad_year + '</p><p><strong>Cumulative Weighted GPA:</strong> ' + gpa + ' &nbsp;|&nbsp; <strong>Total Credits Earned:</strong> ' + totalCredits.toFixed(1) + '</p><table style="width:100%; border-collapse:collapse; margin-top:12px;" border="1" cellpadding="6"><thead><tr><th>Term</th><th>Course & Title</th><th>Level</th><th>Credits</th><th>Grade</th></tr></thead><tbody>' + (rows || "<tr><td colspan='5'>No courses recorded yet.</td></tr>") + '</tbody></table>' + achSection + '<p style="margin-top:24px;">Administrator Signature: ___________________________ &nbsp;&nbsp; Date: _______________</p></div><div style="border:4px double #1e293b; padding:32px; text-align:center; border-radius:8px;"><h1 style="margin-bottom:8px;">' + currentFamily.family_name + '</h1><p><em>Be it known that</em></p><h2>' + stu.full_name + '</h2><p>has satisfactorily completed the High School Course of Study prescribed for graduation and is hereby awarded this</p><h3>HIGH SCHOOL DIPLOMA</h3><p>Class of ' + stu.expected_grad_year + '</p><p style="margin-top:28px;">___________________________<br><small>Head of School / Parent Administrator</small></p></div>';
+}
+
+async function loadStudentDashboard() {
+  document.getElementById("authSection").classList.add("hidden");
+  document.getElementById("studentDashboard").classList.remove("hidden");
+  document.getElementById("logoutBtn").classList.remove("hidden");
+
+  document.getElementById("stuDashWelcome").innerText = "Welcome, " + currentUser.full_name;
+  document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + currentUser.expected_grad_year;
+
+  const assigns = (await sbQuery("assignments", {
+    query: `student_id=eq.${currentUser.id}&select=*&order=created_at.desc`
+  })) || [];
+  const subs = (await sbQuery("submissions", {
+    query: `student_id=eq.${currentUser.id}&select=*`
+  })) || [];
+  const achs = (await sbQuery("achievements", {
+    query: `student_id=eq.${currentUser.id}&select=*`
+  })) || [];
+
+  document.getElementById("studentAssignmentList").innerHTML = assigns.map(a => {
+    const sub = subs.find(s => s.assignment_id === a.id);
+    const statusText = sub && sub.grade ? "Graded: " + sub.grade : sub ? "Submitted" : "Assigned";
+    const noteVal = sub && sub.student_notes ? sub.student_notes : "";
+    return '<div class="item-card"><strong>' + a.subject + ': ' + a.title + '</strong> (' + a.quarter + ' • ' + a.credits + ' cr)<br><p><small>' + (a.description || "") + '</small></p><small>Status: <b>' + statusText + '</b></small><div class="row-2" style="margin-top:8px;"><input type="text" id="subnote-' + a.id + '" placeholder="Add completion note or link..." value="' + noteVal + '" /><button class="btn-primary" onclick="submitWork(\'' + a.id + '\')">Mark Complete</button></div></div>';
+  }).join("") || "<p class='muted'>No assignments posted yet.</p>";
+
+  document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
+    const met = ac.metric ? " • " + ac.metric : "";
+    return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.location || "") + met + '</small></div>';
+  }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+}
+
+async function submitWork(assignment_id) {
+  const notes = document.getElementById("subnote-" + assignment_id).value.trim();
+  try {
+    const existing = await sbQuery("submissions", {
+      query: `assignment_id=eq.${assignment_id}&student_id=eq.${currentUser.id}&select=*`,
+      single: true
+    });
+    if (existing) {
+      await sbQuery("submissions", {
+        method: "PATCH",
+        query: `id=eq.${existing.id}`,
+        body: { student_notes: notes, status: "Submitted" }
+      });
+    } else {
+      await sbQuery("submissions", {
+        method: "POST",
+        body: { assignment_id, student_id: currentUser.id, student_notes: notes, status: "Submitted" }
+      });
+    }
+    alert("Work submitted to your parent/admin!");
+    await loadStudentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+
