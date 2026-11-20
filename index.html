@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GlobalPrep High | Traveling Homeschool & Transcript Tracker</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://jsdelivr.net"></script>
 </head>
 <body>
   <header class="topbar no-print">
@@ -171,37 +170,44 @@
         </div>
 
         <div class="card">
-          <h3>Student Submissions & Grading Queue</h3>
-          <div id="gradingQueue" class="list-box"></div>
+          <h3>Coursework & Grading Queue</h3>
+          <div id="parentAssignmentList" class="list-box"></div>
         </div>
       </div>
 
-      <!-- View 3: Travel, Certifications & Volunteer Hours -->
+      <!-- View 3: Travel, Certs & Service -->
       <div id="pView-achievements" class="p-view hidden grid-2">
         <div class="card">
-          <h3>Log Travel, Certification or Volunteer Credit</h3>
+          <h3>Log Worldschooling, Certifications & Service</h3>
           <label>Select Student</label>
           <select id="achStudentSelect"></select>
           <label>Category</label>
-          <select id="achCategory">
-            <option value="Certification">Certification (e.g., PADI SCUBA, First Aid)</option>
-            <option value="Volunteer / Service">Volunteer / Community Service</option>
-            <option value="Travel / Field Study">Global Travel / Field Study</option>
-            <option value="Extracurricular">Extracurricular / Leadership</option>
+          <select id="achType">
+            <option value="Travel Study">🌍 Global Field Study / Cultural Immersion</option>
+            <option value="Certification">🏅 Industry / Academic Certification (AP, TOEFL, Scuba, Coding)</option>
+            <option value="Community Service">🤝 Community Service / Volunteer Hours</option>
           </select>
-          <label>Title / Credential Name</label>
-          <input type="text" id="achTitle" placeholder="e.g., PADI Open Water Diver Certification" />
+          <label>Title / Credential</label>
+          <input type="text" id="achTitle" placeholder="e.g., PADI Open Water Diver or Marine Conservation" />
           <div class="row-2">
             <div>
-              <label>Organization / Country</label>
-              <input type="text" id="achOrg" placeholder="e.g., Koh Tao, Thailand" />
+              <label>Location / Organization</label>
+              <input type="text" id="achLocation" placeholder="e.g., Cha-am, Thailand" />
             </div>
             <div>
-              <label>Hours or Credit Earned</label>
-              <input type="text" id="achHours" placeholder="e.g., 25 Hours / 0.5 PE Credit" />
+              <label>Hours / Score (Optional)</label>
+              <input type="text" id="achMetric" placeholder="e.g., 25 hrs or Score: 5" />
             </div>
           </div>
-          <label>Date Completed</label>
-          <input type="date" id="achDate" />
-          <label>Description for College Resume</label>
-          <textarea id="achNotes" rows="2" placeholder="Completed open-water dives, navigation & marine conservation brief..."></textarea>
+          <button class="btn-primary" onclick="addAchievement()">+ Add to Portfolio</button>
+        </div>
+
+        <div class="card">
+          <h3>Verified Honors & Travel Log</h3>
+          <div id="parentAchievementList" class="list-box"></div>
+        </div>
+      </div>
+
+      <!-- View 4: Transcript & Diploma -->
+      <div id="pView-transcript" class="p-view hidden">
+        <div class="card no-print">
