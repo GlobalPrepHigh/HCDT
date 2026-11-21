@@ -783,3 +783,72 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+const BRAIN_BREAKS = [
+  { type: "😂 Clean Nerd Joke", prompt: "Why was the obtuse angle always so frustrated?", reveal: "Because it was never right!" },
+  { type: "😂 Clean Nerd Joke", prompt: "Why did the biologist break up with the physicist?", reveal: "They had no chemistry." },
+  { type: "🧩 60-Second Riddle", prompt: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?", reveal: "An echo!" },
+  { type: "🧩 60-Second Riddle", prompt: "What has cities, but no houses; mountains, but no trees; and water, but no fish?", reveal: "A map (every worldschooler's best friend)!" },
+  { type: "🤔 Traveler's Would You Rather", prompt: "Would you rather have a free lifetime pass to every museum in the world OR a free lifetime rail pass across every continent?", reveal: "No wrong answer—pitch your choice to your parent at lunch!" },
+  { type: "🤔 Traveler's Would You Rather", prompt: "Would you rather time-travel for 24 hours to Ancient Babylon (1750 BCE) OR 100 years into the future?", reveal: "Bonus thought: Which one would be safer without modern Wi-Fi?" },
+  { type: "⚡ Optional 2-Minute Movement Reset", prompt: "Optional Physical Reset (skip or adapt freely for any mobility or health need): Stand up, reach both arms overhead for 10 seconds, roll your shoulders back 5 times, and take 3 slow deep breaths away from your screen.", reveal: "Brain oxygen refilled—you're ready to crush your next step!" }
+];
+
+function triggerBrainBreak() {
+  const box = document.getElementById("brainBreakBox");
+  const item = BRAIN_BREAKS[Math.floor(Math.random() * BRAIN_BREAKS.length)];
+  box.classList.remove("hidden");
+  box.innerHTML =
+    '<div style="display:flex; justify-content:space-between; align-items:center;"><strong>' + item.type + '</strong><button type="button" style="background:none; border:none; font-size:16px; cursor:pointer;" onclick="document.getElementById(\'brainBreakBox\').classList.add(\'hidden\')">✕</button></div>' +
+    '<p style="margin:8px 0;">' + item.prompt + '</p>' +
+    '<button type="button" class="btn-outline" style="width:auto; color:#1e293b; font-size:12px;" onclick="document.getElementById(\'bbReveal\').classList.remove(\'hidden\')">👀 Show Punchline / Answer</button>' +
+    '<p id="bbReveal" class="hidden" style="margin-top:8px; font-weight:700; color:#15803d;">' + item.reveal + '</p>';
+}
+
+function toggleMathToolkit() {
+  const box = document.getElementById("mathToolkitBox");
+  box.classList.toggle("hidden");
+  if (!box.classList.contains("hidden")) drawBackpackLine();
+}
+
+function runBackpackCalc() {
+  const raw = document.getElementById("calcDisplay").value.trim();
+  const out = document.getElementById("calcResult");
+  if (!raw) return;
+  try {
+    const safeExpr = raw.replace(/\^/g, "**");
+    if (!/^[0-9+\-*/().\s*]+$/.test(safeExpr)) throw new Error("Use numbers and + - * / ^ ( ) only.");
+    const val = Function('"use strict"; return (' + safeExpr + ')')();
+    out.innerText = "Result: " + val;
+  } catch (e) {
+    out.innerText = "Check expression: " + e.message;
+  }
+}
+
+function drawBackpackLine() {
+  const canvas = document.getElementById("slopeCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const m = parseFloat(document.getElementById("graphM").value) || 0;
+  const b = parseFloat(document.getElementById("graphB").value) || 0;
+  const w = canvas.width, h = canvas.height, cx = w / 2, cy = h / 2, scale = 15;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= w; x += scale) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y <= h; y += scale) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+  ctx.strokeStyle = "#64748b";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+
+  ctx.strokeStyle = "#2563eb";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  const xMin = -cx / scale, xMax = cx / scale;
+  ctx.moveTo(0, cy - (m * xMin + b) * scale);
+  ctx.lineTo(w, cy - (m * xMax + b) * scale);
+  ctx.stroke();
+}
+
