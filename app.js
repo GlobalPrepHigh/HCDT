@@ -347,7 +347,7 @@ async function assignHonorsModule() {
     });
     document.getElementById("assignLocation").value = "";
     await refreshFamilyData();
-    alert("Honors module assigned with embedded videos, interactive quiz, and parent answer key!");
+  
   } catch (err) {
     alert(err.message);
   }
