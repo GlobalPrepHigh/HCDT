@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://cnjgoixunkygvwbuifiy.supabase.co";
+const SUPABASE_URL = "https://supabase.co";
 const SUPABASE_KEY = "sb_publishable_llm2wWoQpOl3oj1xJFkRfA_Fd69Aj8J";
 
 let authToken = null;
@@ -10,7 +10,6 @@ let assignmentsCache = [];
 let submissionsCache = [];
 let achievementsCache = [];
 
-// Direct Supabase REST & Auth Helper (Zero external CDN needed)
 async function sbAuth(endpoint, body) {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, {
     method: "POST",
@@ -44,12 +43,10 @@ async function sbQuery(table, { method = "GET", query = "", body = null, single 
   const text = await res.text();
   let data = text ? JSON.parse(text) : null;
   if (!res.ok) throw new Error((data && data.message) || "Database error");
-  if (single && Array.isArray(data)) return data[0] || null;
+  if (single && Array.isArray(data)) return data || null;
   return data;
 }
 
-
-// --- AUTH UI ---
 function switchAuthTab(role) {
   document.getElementById("authError").innerText = "";
   document.getElementById("tabParent").classList.toggle("active", role === "parent");
@@ -75,7 +72,6 @@ function generateInviteCode() {
   return code;
 }
 
-// --- PARENT LOGIN / SIGNUP ---
 async function handleParentAuth() {
   const errEl = document.getElementById("authError");
   const btn = document.getElementById("parentSubmitBtn");
@@ -142,7 +138,6 @@ async function handleParentAuth() {
   }
 }
 
-// --- STUDENT PIN LOGIN ---
 async function handleStudentLogin() {
   const errEl = document.getElementById("authError");
   errEl.innerText = "";
@@ -172,6 +167,7 @@ async function handleStudentLogin() {
     errEl.innerText = err.message;
   }
 }
+
 function saveSession(role) {
   localStorage.setItem("gph_session", JSON.stringify({
     role,
@@ -203,9 +199,6 @@ async function loadParentDashboard() {
   await refreshFamilyData();
   populateCurriculumDropdown();
 }
-
-}
-
 
 function showParentView(viewName, btn) {
   document.querySelectorAll(".p-view").forEach(el => el.classList.add("hidden"));
@@ -261,14 +254,9 @@ async function addStudent() {
 function renderStudents() {
   const list = document.getElementById("studentList");
   const selects = ["assignStudentSelect", "achStudentSelect", "transStudentSelect"];
-  list.innerHTML = studentsCache.map(s => `
-    <div class="item-card">
-      <strong>${s.full_name}</strong> (${s.grade_level} Grade • Class of ${s.expected_grad_year})<br>
-      <small class="muted">Student Login: Username <b>${s.username}</b> | PIN <b>${s.pin}</b></small>
-    </div>
-  `).join("") || "<p class='muted'>No students added yet.</p>";
+  list.innerHTML = studentsCache.map(s => '<div class="item-card"><strong>' + s.full_name + '</strong> (' + s.grade_level + ' Grade • Class of ' + s.expected_grad_year + ')<br><small class="muted">Student Login: Username <b>' + s.username + '</b> | PIN <b>' + s.pin + '</b></small></div>').join("") || "<p class='muted'>No students added yet.</p>";
 
-    const options = studentsCache.map(s => `<option value="${s.id}">${s.full_name} (${s.grade_level})</option>`).join("");
+  const options = studentsCache.map(s => '<option value="' + s.id + '">' + s.full_name + ' (' + s.grade_level + ')</option>').join("");
   selects.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = options;
@@ -300,30 +288,86 @@ async function saveQuarters() {
   }
 }
 
-async function createAssignment() {
+function populateCurriculumDropdown() {
+  const sel = document.getElementById("curriculumSelect");
+  if (!sel || typeof HONORS_CURRICULUM === "undefined") return;
+  sel.innerHTML = HONORS_CURRICULUM.map(m => '<option value="' + m.id + '">' + m.subject + ' — ' + m.title + '</option>').join("");
+}
+
+async function assignHonorsModule() {
   const student_id = document.getElementById("assignStudentSelect").value;
-  const subject = document.getElementById("assignSubject").value.trim();
-  const course_level = document.getElementById("assignLevel").value;
-  const quarter = document.getElementById("assignQuarter").value;
-  const credits = parseFloat(document.getElementById("assignCredits").value);
+  const modId = document.getElementById("curriculumSelect").value;
   const due_date = document.getElementById("assignDueDate").value || null;
-  const grading_scale = document.getElementById("assignGradingScale").value.trim();
-  const title = document.getElementById("assignTitle").value.trim();
-  const resource_url = document.getElementById("assignResourceUrl").value.trim();
-  const description = document.getElementById("assignDesc").value.trim();
-  const answer_key = document.getElementById("assignAnswerKey").value.trim();
+  const quarter = document.getElementById("assignQuarter").value;
   const travel_location = document.getElementById("assignLocation").value.trim();
 
-  if (!student_id || !subject || !title) return alert("Select a student and enter Course/Subject and Title.");
+  if (!student_id) return alert("Please add/select a student first.");
+  const mod = HONORS_CURRICULUM.find(m => m.id === modId);
+  if (!mod) return alert("Select a curriculum module.");
 
   try {
     await sbQuery("assignments", {
       method: "POST",
-      body: { family_id: currentFamily.id, student_id, subject, course_level, quarter, credits, due_date, grading_scale, title, resource_url, description, answer_key, travel_location }
+      body: {
+        family_id: currentFamily.id,
+        student_id,
+        subject: mod.subject,
+        course_level: mod.course_level,
+        quarter,
+        credits: mod.credits,
+        due_date,
+        grading_scale: mod.grading_scale,
+        title: '[' + mod.id + '] ' + mod.title,
+        resource_url: mod.resource_url,
+        description: mod.description,
+        answer_key: mod.answer_key,
+        travel_location
+      }
     });
-    ["assignTitle", "assignResourceUrl", "assignDesc", "assignAnswerKey", "assignLocation"].forEach(id => (document.getElementById(id).value = ""));
+    document.getElementById("assignLocation").value = "";
     await refreshFamilyData();
-    alert("Course module posted to student portal!");
+    alert("Honors module assigned with embedded videos, interactive quiz, and parent answer key!");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function assignExtraPractice() {
+  const student_id = document.getElementById("assignStudentSelect").value;
+  const subject = document.getElementById("extraSubject").value.trim();
+  const description = document.getElementById("extraDesc").value.trim();
+  const quarter = document.getElementById("assignQuarter").value;
+  if (!student_id || !subject || !description) return alert("Select a student and enter Subject and Instructions.");
+
+  try {
+    await sbQuery("assignments", {
+      method: "POST",
+      body: {
+        family_id: currentFamily.id,
+        student_id,
+        subject,
+        course_level: "Honors",
+        quarter,
+        credits: 0.0,
+        title: "Extra Practice / Instructor Note",
+        description
+      }
+    });
+    document.getElementById("extraSubject").value = "";
+    document.getElementById("extraDesc").value = "";
+    await refreshFamilyData();
+    alert("Extra practice added!");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function deleteAssignment(id) {
+  if (!confirm("Remove this module from the student's course list?")) return;
+  try {
+    await sbQuery("submissions", { method: "DELETE", query: `assignment_id=eq.${id}` });
+    await sbQuery("assignments", { method: "DELETE", query: `id=eq.${id}` });
+    await refreshFamilyData();
   } catch (err) {
     alert(err.message);
   }
@@ -332,7 +376,7 @@ async function createAssignment() {
 function renderGradingQueue() {
   const container = document.getElementById("parentAssignmentList");
   if (!assignmentsCache.length) {
-    container.innerHTML = "<p class='muted'>No coursework posted yet.</p>";
+    container.innerHTML = "<p class='muted'>No modules assigned yet. Pick a U.S. Honors module on the left to begin!</p>";
     return;
   }
   container.innerHTML = assignmentsCache.map(a => {
@@ -341,12 +385,13 @@ function renderGradingQueue() {
     const gradeVal = sub && sub.grade ? sub.grade : "";
     const fbVal = sub && sub.parent_feedback ? sub.parent_feedback : "";
     const dueText = a.due_date ? " • Due: <b>" + a.due_date + "</b>" : "";
-    const keyBox = a.answer_key ? '<div style="background:#fef9c3; padding:8px; border-radius:6px; margin-top:6px;"><small><b>🔒 Parent Answer Key:</b> ' + a.answer_key + '</small></div>' : "";
+    const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
+    const keyBox = a.answer_key ? '<div style="background:#fef9c3; padding:8px; border-radius:6px; margin-top:6px;"><small><b>🔒 Parent Answer Key:</b><br>' + a.answer_key.replace(/\n/g, "<br>") + '</small></div>' : "";
     const subWork = sub && (sub.student_notes || sub.submission_link)
-      ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">[Open Attached Work/Math Link]</a>' : '') + '</small></div>'
+      ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">[Open Attached Link]</a>' : '') + '</small></div>'
       : '<small class="muted">Awaiting student submission</small>';
 
-    return '<div class="item-card"><strong>' + a.subject + ': ' + a.title + '</strong> (' + a.course_level + ' • ' + a.credits + ' cr • ' + a.quarter + ')<br><small class="muted">Student: ' + (stu ? stu.full_name : "Student") + dueText + '</small>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" placeholder="Grade (A, 96%, etc.)" value="' + gradeVal + '" /><input type="text" id="fb-' + a.id + '" placeholder="Professor Feedback..." value="' + fbVal + '" /></div><button class="btn-outline" style="margin-top:6px;" onclick="saveGrade(\'' + a.id + '\', \'' + a.student_id + '\')">Save Grade & Feedback</button></div>';
+    return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:start;"><div><strong>' + a.subject + ': ' + cleanTitle + '</strong> (' + a.course_level + ' • ' + a.quarter + ')<br><small class="muted">Student: ' + (stu ? stu.full_name : "Student") + dueText + '</small></div><button class="btn-outline" style="padding:4px 8px; font-size:12px;" onclick="deleteAssignment(\'' + a.id + '\')">🗑️ Remove</button></div>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" placeholder="Grade (A, 96%, etc.)" value="' + gradeVal + '" /><input type="text" id="fb-' + a.id + '" placeholder="Professor Feedback..." value="' + fbVal + '" /></div><button class="btn-outline" style="margin-top:6px;" onclick="saveGrade(\'' + a.id + '\', \'' + a.student_id + '\')">Save Grade & Feedback</button></div>';
   }).join("");
 }
 
@@ -415,6 +460,7 @@ function renderAchievements() {
     return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (stu ? stu.full_name : "") + loc + met + '</small></div>';
   }).join("") || "<p class='muted'>No travel study, certifications, or service logged yet.</p>";
 }
+
 function parseGradePercent(g) {
   if (!g) return null;
   const clean = g.trim().toUpperCase().replace("%", "");
@@ -450,7 +496,7 @@ function renderOfficialRecords() {
 
   const courseMap = {};
   stuAssigns.forEach(a => {
-    const key = `${a.quarter}||${a.subject}||${a.course_level}`;
+    const key = a.quarter + "||" + a.subject + "||" + a.course_level;
     if (!courseMap[key]) {
       courseMap[key] = {
         quarter: a.quarter,
@@ -476,22 +522,48 @@ function renderOfficialRecords() {
       const boost = c.course_level.includes("AP") ? 1.0 : c.course_level.includes("Honors") ? 0.5 : 0;
       totalCredits += c.credits;
       totalPoints += (pts + boost) * c.credits;
-      gradeDisplay = `${letter} (${avgPct.toFixed(0)}%)`;
+      gradeDisplay = letter + " (" + avgPct.toFixed(0) + "%)";
     }
-    return `<tr><td>${c.quarter}</td><td>${c.subject}</td><td>${c.course_level}</td><td>${c.credits.toFixed(1)}</td><td><strong>${gradeDisplay}</strong></td></tr>`;
+    return '<tr><td>' + c.quarter + '</td><td>' + c.subject + '</td><td>' + c.course_level + '</td><td>' + c.credits.toFixed(1) + '</td><td><strong>' + gradeDisplay + '</strong></td></tr>';
   }).join("");
 
   const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "N/A";
-  const achSection = stuAchs.length ? `<h4 style="margin-top:16px;">Worldschooling Field Studies, Certifications & Service</h4><ul>${stuAchs.map(x => `<li><strong>${x.type}:</strong> ${x.title}${x.location ? ` (${x.location})` : ""}${x.metric ? ` — ${x.metric}` : ""}</li>`).join("")}</ul>` : "";
+  const achSection = stuAchs.length ? '<h4 style="margin-top:16px;">Worldschooling Field Studies, Certifications & Service</h4><ul>' + stuAchs.map(x => '<li><strong>' + x.type + ':</strong> ' + x.title + (x.location ? ' (' + x.location + ')' : '') + (x.metric ? ' — ' + x.metric : '') + '</li>').join("") + '</ul>' : "";
 
-  preview.innerHTML = `<div style="border:2px solid #1e293b; padding:24px; border-radius:8px; margin-bottom:24px;"><h2 style="text-align:center; margin-bottom:4px;">${currentFamily.family_name.toUpperCase()}</h2><p style="text-align:center; margin-top:0;"><strong>OFFICIAL HIGH SCHOOL ACADEMIC TRANSCRIPT</strong></p><hr><p><strong>Student Legal Name:</strong> ${stu.full_name} &nbsp;|&nbsp; <strong>Grade:</strong> ${stu.grade_level} &nbsp;|&nbsp; <strong>Expected Graduation:</strong> ${stu.expected_grad_year}</p><p><strong>Cumulative Weighted GPA:</strong> ${gpa} &nbsp;|&nbsp; <strong>Total Credits Earned:</strong> ${totalCredits.toFixed(1)}</p><table style="width:100%; border-collapse:collapse; margin-top:12px;" border="1" cellpadding="6"><thead><tr><th>Term</th><th>Course</th><th>Level</th><th>Credits</th><th>Quarter Grade</th></tr></thead><tbody>${rows || "<tr><td colspan='5'>No courses recorded yet.</td></tr>"}</tbody></table>${achSection}<p style="margin-top:24px;">Administrator Signature: ___________________________ &nbsp;&nbsp; Date: _______________</p></div><div style="border:4px double #1e293b; padding:32px; text-align:center; border-radius:8px;"><h1 style="margin-bottom:8px;">${currentFamily.family_name}</h1><p><em>Be it known that</em></p><h2>${stu.full_name}</h2><p>has satisfactorily completed the High School Course of Study prescribed for graduation and is hereby awarded this</p><h3>HIGH SCHOOL DIPLOMA</h3><p>Class of ${stu.expected_grad_year}</p><p style="margin-top:28px;">___________________________<br><small>Head of School / Parent Administrator</small></p></div>`;
+  preview.innerHTML = '<div style="border:2px solid #1e293b; padding:24px; border-radius:8px; margin-bottom:24px;"><h2 style="text-align:center; margin-bottom:4px;">' + currentFamily.family_name.toUpperCase() + '</h2><p style="text-align:center; margin-top:0;"><strong>OFFICIAL HIGH SCHOOL ACADEMIC TRANSCRIPT</strong></p><hr><p><strong>Student Legal Name:</strong> ' + stu.full_name + ' &nbsp;|&nbsp; <strong>Grade:</strong> ' + stu.grade_level + ' &nbsp;|&nbsp; <strong>Expected Graduation:</strong> ' + stu.expected_grad_year + '</p><p><strong>Cumulative Weighted GPA:</strong> ' + gpa + ' &nbsp;|&nbsp; <strong>Total Credits Earned:</strong> ' + totalCredits.toFixed(1) + '</p><table style="width:100%; border-collapse:collapse; margin-top:12px;" border="1" cellpadding="6"><thead><tr><th>Term</th><th>Course</th><th>Level</th><th>Credits</th><th>Quarter Grade</th></tr></thead><tbody>' + (rows || "<tr><td colspan='5'>No courses recorded yet.</td></tr>") + '</tbody></table>' + achSection + '<p style="margin-top:24px;">Administrator Signature: ___________________________ &nbsp;&nbsp; Date: _______________</p></div><div style="border:4px double #1e293b; padding:32px; text-align:center; border-radius:8px;"><h1 style="margin-bottom:8px;">' + currentFamily.family_name + '</h1><p><em>Be it known that</em></p><h2>' + stu.full_name + '</h2><p>has satisfactorily completed the High School Course of Study prescribed for graduation and is hereby awarded this</p><h3>HIGH SCHOOL DIPLOMA</h3><p>Class of ' + stu.expected_grad_year + '</p><p style="margin-top:28px;">___________________________<br><small>Head of School / Parent Administrator</small></p></div>';
 }
 
+function getYouTubeEmbed(url) {
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
+  return m ? "https://youtube.com" + m[1] : null;
+}
+
+function toggleMissionStep(assignId, stepIdx) {
+  const key = "gph_steps_" + assignId;
+  const saved = JSON.parse(localStorage.getItem(key) || "{}");
+  saved[stepIdx] = !saved[stepIdx];
+  localStorage.setItem(key, JSON.stringify(saved));
+  const boxes = document.querySelectorAll(".step-cb-" + assignId);
+  const checked = Array.from(boxes).filter(b => b.checked).length;
+  const pct = Math.round((checked / boxes.length) * 100);
+  const bar = document.getElementById("prog-bar-" + assignId);
+  const lbl = document.getElementById("prog-lbl-" + assignId);
+  if (bar) bar.style.width = pct + "%";
+  if (lbl) lbl.innerText = pct === 100 ? "100% Complete! Ready to Submit 🏆" : pct + "% Mission Progress";
+}
+
+function checkQuizAnswer(assignId, qIdx, chosenIdx, correctIdx) {
+  const resEl = document.getElementById("quiz-res-" + assignId + "-" + qIdx);
+  if (!resEl) return;
+  if (chosenIdx === correctIdx) {
+    resEl.innerHTML = "<span style='color:#15803d; font-weight:600;'>✅ Spot on! +10 Honors XP</span>";
+  } else {
+    resEl.innerHTML = "<span style='color:#b91c1c; font-weight:600;'>❌ Not quite — rewatch/reread and try again!</span>";
+  }
+}
 
 async function loadStudentDashboard() {
-
   saveSession("student");
-
   document.getElementById("authSection").classList.add("hidden");
   document.getElementById("studentDashboard").classList.remove("hidden");
   document.getElementById("logoutBtn").classList.remove("hidden");
@@ -512,60 +584,18 @@ async function loadStudentDashboard() {
   document.getElementById("studentAssignmentList").innerHTML = assigns.map(a => {
     const sub = subs.find(s => s.assignment_id === a.id);
     const statusText = sub && sub.grade ? "Graded: " + sub.grade : sub ? "Submitted" : "Assigned";
-    const noteVal = sub && sub.student_notes ? sub.student_notes : "";
-    return '<div class="item-card"><strong>' + a.subject + ': ' + a.title + '</strong> (' + a.quarter + ' • ' + a.credits + ' cr)<br><p><small>' + (a.description || "") + '</small></p><small>Status: <b>' + statusText + '</b></small><div class="row-2" style="margin-top:8px;"><input type="text" id="subnote-' + a.id + '" placeholder="Add completion note or link..." value="' + noteVal + '" /><button class="btn-primary" onclick="submitWork(\'' + a.id + '\')">Mark Complete</button></div></div>';
-  }).join("") || "<p class='muted'>No assignments posted yet.</p>";
+    const dueBadge = a.due_date ? " • 📅 Due: <b>" + a.due_date + "</b>" : "";
+    const scaleHtml = a.grading_scale ? '<br><small><b>Grading Rubric:</b> ' + a.grading_scale + '</small>' : "";
+    const codeMatch = a.title.match(/^\[([^\]]+)\]\s*(.*)$/);
+    const modCode = codeMatch ? codeMatch[1] : null;
+    const cleanTitle = codeMatch ? codeMatch[2] : a.title;
+    const currMod = (typeof HONORS_CURRICULUM !== "undefined" && modCode) ? HONORS_CURRICULUM.find(m => m.id === modCode) : null;
 
-  document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
-    const met = ac.metric ? " • " + ac.metric : "";
-    return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.location || "") + met + '</small></div>';
-  }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
-}
-
-async function submitWork(assignment_id) {
-  const notes = document.getElementById("subnote-" + assignment_id).value.trim();
-  const linkEl = document.getElementById("sublink-" + assignment_id);
-  const link = linkEl ? linkEl.value.trim() : "";
-  try {
-    const existing = await sbQuery("submissions", {
-      query: `assignment_id=eq.${assignment_id}&student_id=eq.${currentUser.id}&select=*`,
-      single: true
-    });
-    if (existing) {
-      await sbQuery("submissions", {
-        method: "PATCH",
-        query: `id=eq.${existing.id}`,
-        body: { student_notes: notes, submission_link: link, status: "Submitted" }
-      });
-    } else {
-      await sbQuery("submissions", {
-        method: "POST",
-        body: { assignment_id, student_id: currentUser.id, student_notes: notes, submission_link: link, status: "Submitted" }
-      });
-    }
-    alert("Work submitted to your instructor!");
-    await loadStudentDashboard();
-  } catch (err) {
-    alert(err.message);
-  }
-}
-
-window.addEventListener("DOMContentLoaded", async () => {
-  const saved = localStorage.getItem("gph_session");
-  if (!saved) return;
-  try {
-    const session = JSON.parse(saved);
-    authToken = session.authToken || null;
-    currentFamily = session.currentFamily;
-    currentUser = session.currentUser;
-    if (session.role === "parent" && currentFamily && currentUser) {
-      await loadParentDashboard();
-    } else if (session.role === "student" && currentFamily && currentUser) {
-      await loadStudentDashboard();
-    }
-  } catch (e) {
-    localStorage.removeItem("gph_session");
-  }
-});
+    const links = a.resource_url ? a.resource_url.split(/\r?\n/).map(u => u.trim()).filter(Boolean) : [];
+    const mediaHtml = links.map((url, idx) => {
+      const yt = getYouTubeEmbed(url);
+      if (yt) {
+        return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe></div></div>';
+      }
 
 
