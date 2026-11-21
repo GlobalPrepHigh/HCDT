@@ -43,7 +43,8 @@ async function sbQuery(table, { method = "GET", query = "", body = null, single 
   const text = await res.text();
   let data = text ? JSON.parse(text) : null;
   if (!res.ok) throw new Error((data && data.message) || "Database error");
-  if (single && Array.isArray(data)) return data || null;
+  if (single && Array.isArray(data)) return data.at(0) || null;
+
   return data;
 }
 
@@ -535,7 +536,8 @@ function renderOfficialRecords() {
 
 function getYouTubeEmbed(url) {
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
-  return m ? "https://youtube.com" + m[1] : null;
+    return m ? "https://youtube.com/embed/" + m[1] : null;
+
 }
 
 function toggleMissionStep(assignId, stepIdx) {
