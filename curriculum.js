@@ -257,4 +257,30 @@ const HONORS_CURRICULUM = [
     description: "All you need is a single pencil (or pen) and one sheet of paper—today you'll turn a flat circle into a 3D sphere using the 5 zones of light and shadow!\n\n1. WATCH (10 mins): Watch Proko's shading breakdown above to spot Highlight, Midtone, Core Shadow, Reflected Light, and Cast Shadow.\n\n2. SKETCHBOOK LAB (30 mins):\n• Part A: Draw a 5-box Value Scale going smoothly from pure white (#1) to darkest charcoal black (#5).\n• Part B: Sketch one everyday object in front of you (a coffee mug, seashell, fruit, or sneaker) using 3D shading and a cast shadow on the table.\n\n3. TURN IN: Describe how you created contrast between your light source and core shadow (and attach a photo link if desired).",
     answer_key: "• Studio Check: Student correctly identifies light source direction, core shadow on the form, and cast shadow anchored beneath the object.",
     quiz: [
+            { q: "1. What makes a drawn circle look like a three-dimensional sphere?", options: ["Tracing the outline thicker", "Gradual value shading from highlight to core shadow plus a cast shadow", "Coloring it one flat solid shade"], answer: 1 },
+      { q: "2. Where is the 'Core Shadow' located on a round object?", options: ["Directly facing the lamp", "On the curved edge turning away from the light source", "Floating in the background sky"], answer: 1 },
+      { q: "3. What is 'Value' in visual art?", options: ["How expensive the paintbrush is", "The lightness or darkness of a tone or color", "The size of the canvas"], answer: 1 }
+    ]
+  },
+  {
+    id: "elec-mech-101",
+    subject: "Automotive & Applied Mechanics",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Simple Machines, Torque & How a 4-Stroke Engine Works",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts 4-Stroke Cycle Breakdown, 30 pts Mechanical Scavenger Hunt",
+    resource_url: [
+      "https://youtube.com"
+    ].join("\n"),
+    description: "Ever wonder how a tiny spark turns liquid fuel into enough torque to haul a family vehicle up a mountain pass? Every engine on Earth runs on 4 rhythmic beats: Intake, Compression, Power, Exhaust!\n\n1. 3D ENGINE TOUR (15 mins): Watch the Animagraffs 3D Car Engine animation above.\n\n2. THE 4-STROKE CYCLE ('Suck, Squeeze, Bang, Blow'):\n• Stroke 1 (Intake): Piston moves down, pulling air + fuel vapor into the cylinder.\n• Stroke 2 (Compression): Valves close; piston shoots up, squeezing the mixture tightly.\n• Stroke 3 (Power): Spark plug fires! Mini-explosion blasts the piston down, turning the crankshaft.\n• Stroke 4 (Exhaust): Exhaust valve opens; piston pushes burned gases out the tailpipe.\n\n3. MISSION: Explain why longer wrenches give you more Torque (Torque = Force × Lever Arm Length) when loosening a stubborn lug nut, and spot 3 simple machines (lever, pulley, gear, inclined plane, wheel/axle) around you today!",
+    answer_key: "• 4-Stroke Order: 1. Intake → 2. Compression → 3. Power → 4. Exhaust.\n• Torque Principle: Torque = Force × Distance; a longer wrench increases lever-arm distance, multiplying rotational force without extra muscle.",
+    quiz: [
+      { q: "1. What is the correct order of a 4-stroke internal combustion engine?", options: ["Power, Intake, Exhaust, Compression", "Intake, Compression, Power, Exhaust", "Compression, Exhaust, Intake, Power"], answer: 1 },
+      { q: "2. Why does a longer wrench make loosening a tight bolt much easier?", options: ["It increases Torque by multiplying your force across a longer lever arm", "It reduces the weight of the bolt", "It heats up the metal"], answer: 0 },
+      { q: "3. Which component ignites the compressed air-fuel mixture in a gasoline engine?", options: ["The radiator", "The spark plug", "The alternator"], answer: 1 }
+    ]
+  }
+);
+
 
