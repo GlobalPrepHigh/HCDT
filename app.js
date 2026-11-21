@@ -714,9 +714,13 @@ async function loadStudentDashboard(isPreview = false) {
       if (yt) {
         return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px; background:#0f172a;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></div>';
       }
-      const cleanHref = url.startsWith("pdf:") ? url.slice(4).trim() : url;
-      return '<div style="margin:8px 0;"><a href="' + cleanHref + '" target="_blank" class="btn-outline" style="display:inline-block; text-decoration:none;">📖 Open Reading / PDF Book</a></div>';
-    }).join("");
+            const cleanHref = url.startsWith("pdf:") ? url.slice(4).trim() : url;
+      let btnLabel = "🔗 Open Interactive Resource";
+      if (url.startsWith("pdf:")) btnLabel = "📖 Open Reading / PDF Book";
+      else if (cleanHref.includes("desmos.com")) btnLabel = "📐 Open Desmos Graphing Calculator";
+      else if (cleanHref.includes("mathsisfun.com")) btnLabel = "🧮 Open Interactive Visual Lesson";
+      return '<div style="margin:8px 0;"><a href="' + cleanHref + '" target="_blank" class="btn-outline" style="display:inline-block; text-decoration:none;">' + btnLabel + '</a></div>';
+}).join("");
 
     const steps = ["Watch Video Lesson(s)", "Complete Reading & Real-World Activity", "Pass Interactive Quick Check", "Submit Written Reflection"];
     const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
