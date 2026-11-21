@@ -217,11 +217,48 @@
 
     <section id="studentDashboard" class="hidden">
       <div class="banner no-print">
-        <div>
-          <h2 id="stuDashWelcome">Student Portal</h2>
-          <p id="stuDashMeta" class="muted"></p>
+           <div class="card" style="background:#f8fafc; border:1px solid #cbd5e1; margin-bottom:16px;">
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <strong>🎒 Student Backpack Tools &amp; Brain Breaks</strong>
+            <br><small class="muted">Zero heavy supplies needed—built right into your portal.</small>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="triggerBrainBreak()">🎲 2-Min Brain Break</button>
+            <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="toggleMathToolkit()">📐 Backpack Math Tools</button>
+          </div>
+        </div>
+
+        <div id="brainBreakBox" class="hidden" style="margin-top:12px; padding:14px; background:#fefce8; border:1px solid #fde047; border-radius:8px;"></div>
+
+        <div id="mathToolkitBox" class="hidden" style="margin-top:12px; padding:14px; background:#ffffff; border:1px solid #cbd5e1; border-radius:8px;">
+          <div class="grid-2">
+            <div>
+              <h4>🧮 Scientific Calculator</h4>
+              <input type="text" id="calcDisplay" placeholder="e.g., (24 / 3) * 2 + (5 - 8)^2" />
+              <div style="display:flex; gap:8px; margin-top:6px;">
+                <button type="button" class="btn-primary" style="width:auto;" onclick="runBackpackCalc()">= Calculate</button>
+                <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="document.getElementById('calcDisplay').value=''; document.getElementById('calcResult').innerText='';">Clear</button>
+              </div>
+              <p id="calcResult" style="font-weight:700; margin-top:8px; color:#1e293b;"></p>
+              <small class="muted">Tip: Use <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code> (exponents), and parentheses <code>( )</code>.</small>
+            </div>
+            <div>
+              <h4>📈 Live Line Grapher (y = mx + b)</h4>
+              <div class="row-2">
+                <div><label>Slope (m)</label><input type="number" id="graphM" value="2" step="0.5" oninput="drawBackpackLine()" /></div>
+                <div><label>y-intercept (b)</label><input type="number" id="graphB" value="1" step="1" oninput="drawBackpackLine()" /></div>
+              </div>
+              <canvas id="slopeCanvas" width="260" height="200" style="border:1px solid #94a3b8; border-radius:6px; margin-top:8px; background:#ffffff; max-width:100%;"></canvas>
+              <div style="margin-top:6px;">
+                <a href="https://desmos.com" target="_blank" style="font-size:12px;">Open Full Desmos Calculator ↗</a> &bull;
+                <a href="https://geogebra.org" target="_blank" style="font-size:12px;">Open GeoGebra Geometry ↗</a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="grid-2">
         <div class="card">
           <h3>My Assigned Coursework</h3>
