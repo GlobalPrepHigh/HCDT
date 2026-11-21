@@ -73,6 +73,90 @@ const HONORS_CURRICULUM = [
       "https://" + "://youtube.com" + "results?search_query=Crash+Course+World+History+Mesopotamia",
       "https://" + "collections.louvre.fr/" + "en/ark:/53355/cl010174436"
     ].join("\n"),
+        description: "Put on your Mesopotamian judicial robes—today you are presiding over the Royal Court of Babylon in 1750 BCE!\n\n1. ARTIFACT & VIDEO (15 mins): Inspect the actual 7-foot black stone stele of Hammurabi in the Louvre link above and watch Crash Course World History: Mesopotamia.\n\n2. COURTROOM ROLEPLAY — RULE ON TWO CASES:\n• Law 196: If a man put out the eye of another man (a noble), his eye shall be put out.\n• Law 198: If he put out the eye of a freed commoner, he shall pay one gold mina.\n• Law 229: If a builder build a house improperly and it collapses and kills the owner, that builder shall be put to death.\n• YOUR DOCKET: Case A: A wealthy noble injures the eye of a freed artisan. Case B: A negligent builder's roof collapses and kills a homeowner. Hand down your exact sentences under Hammurabi's Code!\n\n3. HISTORICAL DETECTIVE QUESTIONS (HIPP Analysis):\n• Q1: Compare Laws 196 and 198. What do they prove about equality in ancient Babylon?\n• Q2: Why did Babylon punish negligent builders so harshly in Law 229?\n• Q3: Hammurabi claimed his laws existed 'so that the strong should not harm the weak.' Did his actual laws live up to that slogan?",
+    answer_key: "• Courtroom Rulings: Case A (Law 198) = Noble pays 1 gold mina fine (does NOT lose his eye because victim is a commoner); Case B (Law 229) = Builder is put to death.\n• Q1: Justice was strictly class-based ('eye for an eye' applied only between equal nobles).\n• Q2: Without modern building codes, inspections, or insurance, harsh deterrents enforced public safety.\n• Q3: Nuanced—public written laws prevented nobles from harming commoners with zero penalty, yet still protected elites from physical punishment.",
+    quiz: [
+      { q: "1. What does 'P' for Purpose in HIPP historical analysis ask?", options: ["Why the author created the document and what they wanted it to achieve", "The population of the city", "Which museum owns the artifact"], answer: 0 },
+      { q: "2. Under Law 198, what penalty did a noble face for injuring a freed commoner's eye?", options: ["Losing his own eye", "Paying a fine of one gold mina", "Exile from Babylon"], answer: 1 },
+      { q: "3. Hammurabi's original 1750 BCE carved stone stele is what type of source?", options: ["Primary Source", "Secondary Source", "Modern textbook"], answer: 0 }
+    ]
+  },
+  {
+    id: "lang-mandarin-101",
+    subject: "Honors Mandarin Chinese I",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 1.0,
+    title: "W1D1: The 4 Tones, Pinyin & Traveler Survival Greetings",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts Audio/Tone Practice, 30 pts Café Roleplay",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Yoyo+Chinese+4+Tones+Pinyin",
+      "https://" + "://pleco.com"
+    ].join("\n"),
+    description: "Mandarin is spoken by over 1.1 billion people—and here's the fun catch: the syllable 'ma' means 'mom' in a high flat tone, or 'horse' in a dipping tone. Master the 4 tones today so you never accidentally call someone a horse!\n\n1. TONE & PINYIN WORKSHOP (15 mins): Watch Yoyo Chinese's 4 Tones lesson above and practice gliding your voice through Tone 1 (flat ā), Tone 2 (rising á), Tone 3 (dipping ǎ), and Tone 4 (sharp falling à).\n\n2. TRAVELER SURVIVAL PHRASES:\n• Nǐ hǎo (你好) = Hello\n• Xièxie (谢谢) = Thank you\n• Bù kèqi (不客气) = You're welcome\n• Duōshao qián? (多少钱?) = How much does this cost?\n• Wǒ yào zhège (我要这个) = I would like this one\n\n3. MISSION: Record a 20-second voice note (or perform live for your parent) introducing yourself with 'Nǐ hǎo' and bargaining for a street-food snack using 'Duōshao qián?'",
+    answer_key: "• Tone Check: Tone 1 = high level (mā = mother); Tone 2 = rising like 'huh?' (má = hemp); Tone 3 = low dip-and-rise (mǎ = horse); Tone 4 = sharp downward command (mà = scold).\n• Oral Rubric: Clear distinction between rising/falling tones on Nǐ hǎo and Xièxie.",
+    quiz: [
+      { q: "1. Why are tones essential in Mandarin Chinese?", options: ["Changing pitch changes the actual meaning of a word", "Tones are only used in songs", "Tones indicate past vs. future tense"], answer: 0 },
+      { q: "2. Which phrase asks 'How much does this cost?' at a market?", options: ["Xièxie", "Duōshao qián?", "Bù kèqi"], answer: 1 },
+      { q: "3. What does 'Nǐ hǎo' mean?", options: ["Goodbye", "Hello", "Excuse me"], answer: 1 }
+    ]
+  },
+  {
+    id: "lang-hindi-101",
+    subject: "Honors Hindi I",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 1.0,
+    title: "W1D1: Devanagari Script Basics & Everyday Conversation",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts Script & Pronunciation, 30 pts Dialogue",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Learn+Hindi+Basics+Greetings+Pronunciation",
+      "https://" + "://omniglot.com" + "writing/hindi.htm"
+    ].join("\n"),
+    description: "Spoken by over 600 million people, Hindi is phonetic—meaning once you learn the Devanagari alphabet (notice that cool horizontal line connecting letters across the top!), every word is pronounced exactly as spelled.\n\n1. SCRIPT & SOUNDS (15 mins): Explore the Omniglot Devanagari guide and Hindi greeting video above.\n\n2. TRAVELER ESSENTIALS:\n• Namaste (नमस्ते) = Hello / Respectful greeting\n• Dhanyavaad (धन्यवाद) / Shukriya = Thank you\n• Aap kaise hain? (आप कैसे हैं?) = How are you?\n• Mera naam ___ hai (मेरा नाम ___ है) = My name is ___\n• Kitne paise? (कितने पैसे?) = How much money?\n\n3. MISSION: Write 'Namaste' in Devanagari script on paper, practice a 4-line introduction with your parent, and submit your written reflection below.",
+    answer_key: "• Script Check: Devanagari is written left-to-right with a signature top horizontal bar (shirorekha).\n• Dialogue Check: Student accurately pairs Namaste + Mera naam + Aap kaise hain?",
+    quiz: [
+      { q: "1. What visual feature connects letters at the top of Hindi Devanagari words?", options: ["A horizontal top line (shirorekha)", "Dots underneath every letter", "Right-to-left cursive loops"], answer: 0 },
+      { q: "2. How do you say 'My name is...' in Hindi?", options: ["Dhanyavaad", "Mera naam ___ hai", "Kitne paise"], answer: 1 },
+      { q: "3. Which word means 'Thank you' in Hindi?", options: ["Namaste", "Dhanyavaad", "Kaise"], answer: 1 }
+    ]
+  },
+  {
+    id: "lang-spanish-101",
+    subject: "Honors Spanish I",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 1.0,
+    title: "W1D1: Spanish Pronunciation, Ser vs. Estar & Café Ordering",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts Menu Ordering Challenge, 30 pts Grammar Check",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Butterfly+Spanish+Greetings+Basics",
+      "https://" + "://spanishdict.com"
+    ].join("\n"),
+    description: "With 500+ million native speakers across 20+ countries, Spanish is the ultimate passport booster—and because its 5 vowels (A-E-I-O-U) never change sound, you can already read almost any Spanish menu out loud!\n\n1. VOWELS & GREETINGS (15 mins): Watch Butterfly Spanish's beginner lesson above.\n\n2. TRAVELER TOOLKIT:\n• Hola, buenos días = Hello, good morning\n• Quisiera pedir... = I would like to order...\n• ¿Dónde está la estación? = Where is the station?\n• La cuenta, por favor = The check, please\n• Soy de... (permanent origin) vs. Estoy en... (current travel location!)\n\n3. MISSION: Write a 5-line café order in Spanish including a greeting, two food/drink items, where you are traveling ('Estoy en...'), and asking for the check.",
+    answer_key: "• Grammar Key: 'Soy' (from ser) = permanent identity/origin ('Soy de Estados Unidos'); 'Estoy' (from estar) = temporary location/state ('Estoy en Tailandia / México').\n• Café Dialogue: Must include greeting, 'Quisiera...', 'Estoy en...', and 'La cuenta, por favor.'",
+    quiz: [
+      { q: "1. Which verb do you use to say where you are currently traveling ('I am in Spain')?", options: ["Soy en España", "Estoy en España", "Tengo en España"], answer: 1 },
+      { q: "2. How do you politely ask for the bill at a restaurant?", options: ["¿Dónde está el baño?", "La cuenta, por favor", "Mucho gusto"], answer: 1 },
+      { q: "3. Why is Spanish spelling so consistent to pronounce?", options: ["Its 5 vowels (A, E, I, O, U) always make the exact same pure sound", "Every word has silent letters", "It uses no accent marks"], answer: 0 }
+    ]
+  },
+  {
+    id: "lang-french-101",
+    subject: "Honors French I",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 1.0,
+    title: "W1D1: French Politeness Rules, Nasal Sounds & Boulangerie Roleplay",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts Bakery Dialogue, 30 pts Cultural Etiquette",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Learn+French+with+Alexa+Greetings+Basics",
+      "https://" + "://wordreference.com" + "fren/"
+    ].join("\n"),
+    description: "Golden rule of French travel: NEVER ask a question in France without saying 'Bonjour' first—it's the magic key that turns grumpy service into warm hospitality across 5 continents!\n\n1. SOUNDS & ETIQUETTE (15 mins): Watch Learn French with Alexa's greetings video above.\n\n2. BOULANGERIE SURVIVAL KIT:\n• Bonjour, Madame / Monsieur = Hello, Ma'am / Sir\n• Je voudrais un croissant, s'il vous plaît = I would like a croissant, please\n• C'est combien? = How much is it?\n• Merci beaucoup, bonne journée! = Thank you very much, have a nice day!\n\n3. MISSION: Write a polite 5-line bakery conversation starting with 'Bonjour', ordering two items with 'Je voudrais...', asking the price, and saying goodbye.",
+    answer_key: "• Cultural Rule: Always open with 'Bonjour' before making any request.\n• Dialogue Rubric: Includes Bonjour, Je voudrais + item + s'il vous plaît, C'est combien, and Merci / Bonne journée.",
+    quiz: [
+
     HONORS_CURRICULUM.push(
   {
     id: "elec-finlit-101",
