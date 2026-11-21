@@ -159,50 +159,43 @@
         </div>
       </div>
 
-      <div id="pView-achievements" class="p-view hidden grid-2">
-        <div class="card">
-          <h3>Log Worldschooling, Certifications & Service</h3>
-          <label>Select Student</label>
-          <select id="achStudentSelect"></select>
-          <label>Category</label>
-          <select id="achType">
-            <option value="Travel Study">🌍 Global Field Study / Cultural Immersion</option>
-            <option value="Certification">🏅 Industry / Academic Certification (AP, TOEFL, Scuba, Coding)</option>
-            <option value="Community Service">🤝 Community Service / Volunteer Hours</option>
-          </select>
-          <label>Title / Credential</label>
-          <input type="text" id="achTitle" placeholder="e.g., PADI Open Water Diver or Marine Conservation" />
-          <div class="row-2">
-            <div>
-              <label>Location / Organization</label>
-              <input type="text" id="achLocation" placeholder="e.g., Cha-am, Thailand" />
+          <div id="pView-transcript" class="p-view hidden">
+        <div class="grid-2 no-print" style="margin-bottom:16px;">
+          <div class="card">
+            <h3>Log PADI Certifications, Field Studies &amp; Service</h3>
+            <label>Select Student</label>
+            <select id="achStudentSelect"></select>
+            <label>Category</label>
+            <select id="achType">
+              <option value="Certification">🏅 Industry / Academic Certification (PADI Scuba, AP, TOEFL, CPR)</option>
+              <option value="Travel Study">🌍 Global Field Study / Cultural Immersion</option>
+              <option value="Community Service">🤝 Community Service / Volunteer Hours</option>
+            </select>
+            <label>Title / Credential</label>
+            <input type="text" id="achTitle" placeholder="e.g., PADI Open Water Diver or Marine Conservation" />
+            <div class="row-2">
+              <div>
+                <label>Location / Organization</label>
+                <input type="text" id="achLocation" placeholder="e.g., Cha-am, Thailand" />
+              </div>
+              <div>
+                <label>Hours / Score (Optional)</label>
+                <input type="text" id="achMetric" placeholder="e.g., 25 hrs or Cert #12345" />
+              </div>
             </div>
-            <div>
-              <label>Hours / Score (Optional)</label>
-              <input type="text" id="achMetric" placeholder="e.g., 25 hrs or Score: 5" />
-            </div>
+            <button class="btn-primary" onclick="addAchievement()">+ Add to Transcript &amp; Portfolio</button>
           </div>
-          <button class="btn-primary" onclick="addAchievement()">+ Add to Portfolio</button>
+
+          <div class="card">
+            <h3>Verified Certifications &amp; Honors Log</h3>
+            <div id="parentAchievementList" class="list-box"></div>
+          </div>
         </div>
 
-        <div class="card">
-          <h3>Verified Honors & Travel Log</h3>
-          <div id="parentAchievementList" class="list-box"></div>
-        </div>
-      </div>
-
-      <div id="pView-transcript" class="p-view hidden">
         <div class="card no-print">
           <div class="row-2">
             <div>
-              <h3>Official High School Transcript & Diploma Generator</h3>
-              <label>Select Student</label>
-              <select id="transStudentSelect" onchange="renderOfficialRecords()"></select>
-            </div>
-                    <div class="card no-print">
-          <div class="row-2">
-            <div>
-              <h3>Official High School Transcript & Diploma Generator</h3>
+              <h3>Official High School Transcript &amp; Diploma Generator</h3>
               <label>Select Student</label>
               <select id="transStudentSelect" onchange="renderOfficialRecords()"></select>
             </div>
@@ -211,8 +204,10 @@
             </div>
           </div>
         </div>
+
         <div id="officialDocsPreview" class="card"></div>
       </div>
+
     </section>
 
     <section id="studentDashboard" class="hidden">
