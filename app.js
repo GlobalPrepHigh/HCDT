@@ -793,16 +793,22 @@ const BRAIN_BREAKS = [
   { type: "⚡ Optional 2-Minute Movement Reset", prompt: "Optional Physical Reset (skip or adapt freely for any mobility or health need): Stand up, reach both arms overhead for 10 seconds, roll your shoulders back 5 times, and take 3 slow deep breaths away from your screen.", reveal: "Brain oxygen refilled—you're ready to crush your next step!" }
 ];
 
+function revealBrainBreak() {
+  const el = document.getElementById("bbReveal");
+  if (el) el.classList.remove("hidden");
+}
+
 function triggerBrainBreak() {
   const box = document.getElementById("brainBreakBox");
   const item = BRAIN_BREAKS[Math.floor(Math.random() * BRAIN_BREAKS.length)];
   box.classList.remove("hidden");
   box.innerHTML =
-    '<div style="display:flex; justify-content:space-between; align-items:center;"><strong>' + item.type + '</strong><button type="button" style="background:none; border:none; font-size:16px; cursor:pointer;" onclick="document.getElementById(\'brainBreakBox\').classList.add(\'hidden\')">✕</button></div>' +
+    '<div style="display:flex; justify-content:space-between; align-items:center;"><strong>' + item.type + '</strong><button type="button" style="background:none; border:none; font-size:16px; cursor:pointer;" onclick="this.closest(\'#brainBreakBox\').classList.add(\'hidden\')">✕</button></div>' +
     '<p style="margin:8px 0;">' + item.prompt + '</p>' +
-    '<button type="button" class="btn-outline" style="width:auto; color:#1e293b; font-size:12px;" onclick="document.getElementById(\'bbReveal\').classList.remove(\'hidden\')">👀 Show Punchline / Answer</button>' +
+    '<button type="button" class="btn-outline" style="width:auto; color:#1e293b; font-size:12px;" onclick="revealBrainBreak()">👀 Show Punchline / Answer</button>' +
     '<p id="bbReveal" class="hidden" style="margin-top:8px; font-weight:700; color:#15803d;">' + item.reveal + '</p>';
 }
+
 
 function toggleMathToolkit() {
   const box = document.getElementById("mathToolkitBox");
