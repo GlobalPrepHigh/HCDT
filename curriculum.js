@@ -73,9 +73,8 @@ const HONORS_CURRICULUM = [
       "https://" + "://youtube.com" + "results?search_query=Crash+Course+World+History+Mesopotamia",
       "https://" + "collections.louvre.fr/" + "en/ark:/53355/cl010174436"
     ].join("\n"),
-  }
-
-    {
+    HONORS_CURRICULUM.push(
+  {
     id: "elec-finlit-101",
     subject: "Personal Financial Literacy",
     course_level: "Honors",
@@ -168,4 +167,4 @@ const HONORS_CURRICULUM = [
     description: "All you need is a single pencil (or pen) and one sheet of paper—today you'll turn a flat circle into a 3D sphere using the 5 zones of light and shadow!\n\n1. WATCH (10 mins): Watch Proko's shading breakdown above to spot Highlight, Midtone, Core Shadow, Reflected Light, and Cast Shadow.\n\n2. SKETCHBOOK LAB (30 mins):\n• Part A: Draw a 5-box Value Scale going smoothly from pure white (#1) to darkest charcoal black (#5).\n• Part B: Sketch one everyday object in front of you (a coffee mug, seashell, fruit, or sneaker) using 3D shading and a cast shadow on the table.\n\n3. TURN IN: Describe how you created contrast between your light source and core shadow (and attach a photo link if desired).",
     answer_key: "• Studio Check: Student correctly identifies light source direction, core shadow on the form, and cast shadow anchored beneath the object.",
     quiz: [
-  }
+
