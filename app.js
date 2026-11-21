@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://supabase.co";
+const SUPABASE_URL = ["https://", "cnjgoixunkygvwbuifiy", ".supabase.co"].join("");
 const SUPABASE_KEY = "sb_publishable_llm2wWoQpOl3oj1xJFkRfA_Fd69Aj8J";
 
 let authToken = null;
