@@ -627,6 +627,7 @@ async function loadStudentDashboard(isPreview = false) {
     const modCode = codeMatch ? codeMatch[1] : null;
     const cleanTitle = codeMatch ? codeMatch[2] : a.title;
     const currMod = (typeof HONORS_CURRICULUM !== "undefined" && modCode) ? HONORS_CURRICULUM.find(m => m.id === modCode) : null;
+    const links = a.resource_url ? a.resource_url.split(/\r?\n/).map(u => u.trim()).filter(Boolean) : [];
 
         const mediaHtml = links.map((url, idx) => {
       const yt = getYouTubeEmbed(url);
