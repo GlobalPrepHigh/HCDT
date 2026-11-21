@@ -73,3 +73,99 @@ const HONORS_CURRICULUM = [
       "https://" + "://youtube.com" + "results?search_query=Crash+Course+World+History+Mesopotamia",
       "https://" + "collections.louvre.fr/" + "en/ark:/53355/cl010174436"
     ].join("\n"),
+  }
+
+    {
+    id: "elec-finlit-101",
+    subject: "Personal Financial Literacy",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Compound Interest Superpower & Traveler Budget Challenge",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts Compound Growth Calculation, 30 pts 50/30/20 Budget",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Two+Cents+PBS+Compound+Interest",
+      "https://" + "www.investor.gov/" + "financial-tools-calculators/calculators/compound-interest-calculator"
+    ].join("\n"),
+    description: "Albert Einstein supposedly called compound interest the eighth wonder of the world—because starting at age 15 instead of 35 can literally double your wealth with half the money!\n\n1. WATCH & CALCULATE (15 mins): Watch PBS Two Cents on Compound Interest and open the Investor.gov calculator above.\n\n2. THE TEEN INVESTOR EXPERIMENT: Compare Teen A (invests $100/month from age 16 to 26, then stops forever—total $12,000 put in) vs. Adult B (starts at age 26 and invests $100/month for 39 years until age 65—total $46,800 put in) at 8% annual return. Who ends up with more at age 65?\n\n3. MISSION: Design a monthly 50/30/20 budget (50% Needs, 30% Wants, 20% Savings/Investing) for a teen earning $400/month from remote freelance work.",
+    answer_key: "• Compound Experiment: Teen A ($12,000 invested over 10 yrs) grows to ~$378,000 by age 65; Adult B ($46,800 invested over 39 yrs) grows to ~$310,000—Teen A wins by ~$68,000 despite investing $34,800 LESS because of 10 extra years of compounding!\n• 50/30/20 Budget on $400: $200 Needs, $120 Wants, $80 Savings/Investments.",
+    quiz: [
+      { q: "1. What makes compound interest different from simple interest?", options: ["You earn interest on both your original money AND past interest", "The bank charges double fees", "It only works for 1 year"], answer: 0 },
+      { q: "2. In the 50/30/20 budgeting rule, what does the 20% go toward?", options: ["Video games and dining out", "Savings and investments", "Monthly rent"], answer: 1 },
+      { q: "3. What is the single biggest advantage a 15-year-old investor has over a 35-year-old?", options: ["Higher starting salary", "Time (more decades for compounding to multiply)", "Zero taxes forever"], answer: 1 }
+    ]
+  },
+  {
+    id: "elec-econ-101",
+    subject: "Honors Economics",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Scarcity, Opportunity Cost & Global Currency Exchange",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts Opportunity Cost Analysis, 30 pts Currency Lab",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Crash+Course+Economics+1+Intro+to+Economics",
+      "https://" + "://xe.com" + "currencyconverter/"
+    ].join("\n"),
+    description: "Every choice has a hidden price tag—even 'free' activities cost the next-best thing you gave up to do them. Economists call that Opportunity Cost!\n\n1. WATCH (12 mins): Watch Crash Course Economics #1 above.\n\n2. WORLDSCHOOLER CURRENCY LAB: Open XE Currency Converter above. Convert $50 USD into Thai Baht (THB), Euros (EUR), and Japanese Yen (JPY). If a street meal costs 120 THB, how many meals does $50 buy?\n\n3. MISSION: Identify a major decision you made this month (time or money) and write out its explicit cost, its Opportunity Cost (next-best alternative forgone), and why your choice was rational.",
+    answer_key: "• Currency Lab: ~$50 USD ≈ 1,700–1,800 THB (varies daily); at 120 THB/meal, $50 buys ~14–15 meals.\n• Opportunity Cost Rubric: Must clearly name the NEXT-BEST alternative given up (not just 'everything else').",
+    quiz: [
+      { q: "1. What is 'Opportunity Cost' in economics?", options: ["The total sticker price in dollars", "The value of the next-best alternative you give up when making a choice", "Sales tax on imported goods"], answer: 1 },
+      { q: "2. Why does scarcity exist in every society?", options: ["Human wants are unlimited while resources (time, money, land) are limited", "Stores run out of inventory on weekends", "Governments print too few coins"], answer: 0 },
+      { q: "3. If $1 USD equals 35 Thai Baht, how much is a 350 Baht train ticket in USD?", options: ["$3.50", "$10.00", "$35.00"], answer: 1 }
+    ]
+  },
+  {
+    id: "elec-coding-101",
+    subject: "Computer Science & Web Coding",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 1.0,
+    title: "W1D1: How the Web Works & Build Your First Live HTML Page",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts Live HTML Travel Dispatch Page",
+    resource_url: [
+      "https://" + "://w3schools.com" + "html/tryit.asp?filename=tryhtml_default",
+      "https://" + "://youtube.com" + "results?search_query=Code.org+How+the+Internet+Works"
+    ].join("\n"),
+    description: "Fun fact: You are literally using a custom web app built with HTML, CSS, and JavaScript right now! Today you write your own live webpage right in your browser—no downloads needed.\n\n1. SANDBOX LAB (20 mins): Open the W3Schools TryIt Editor above. Change the <h1> heading and <p> paragraph to introduce your current travel city and tap 'Run' to see your live webpage appear on the right.\n\n2. TAG TOOLKIT:\n• <h1>Big Title</h1> & <h2>Subheading</h2>\n• <p>Paragraph text with <strong>bold</strong> words</p>\n• <ul><li>Bullet item 1</li><li>Bullet item 2</li></ul>\n\n3. MISSION: Build a mini 'Travel Field Dispatch' HTML page with an <h1> title, a short <p> story about something cool you saw recently, and a <ul> list of 3 favorite local foods—then paste your HTML code into the submission box below!",
+    answer_key: "• Code Check: Student HTML properly opens and closes <h1>, <p>, and <ul><li>...</li></ul> tags without syntax errors.",
+    quiz: [
+      { q: "1. What does HTML stand for?", options: ["HyperText Markup Language", "High-Tech Machine Logic", "Home Tool Modeling Link"], answer: 0 },
+      { q: "2. Which HTML tag creates the largest main page heading?", options: ["<h6>", "<p>", "<h1>"], answer: 2 },
+      { q: "3. Which tag creates a bulleted (unordered) list?", options: ["<ul>", "<ol>", "<br>"], answer: 0 }
+    ]
+  },
+  {
+    id: "elec-photo-101",
+    subject: "Digital Photography & Visual Storytelling",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Rule of Thirds, Leading Lines & Golden Hour Shoot",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts 3-Photo Portfolio Challenge",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Peter+McKinnon+Rule+of+Thirds+Composition"
+    ].join("\n"),
+    description: "The best camera is the one in your pocket—turn on the 3x3 Grid in your iPad/phone Camera settings today and instantly level up your travel photos!\n\n1. COMPOSITION SECRET (10 mins): Watch the Rule of Thirds composition video above. Instead of placing your subject dead-center every time, align eyes, horizons, or buildings along the grid intersections.\n\n2. 3-SHOT FIELD MISSION (30 mins): Capture 3 original photos around your neighborhood, beach, market, or cafe:\n• Shot 1 (Rule of Thirds): Subject placed on a left or right grid intersection.\n• Shot 2 (Leading Lines): Use a path, railing, shoreline, or hallway to draw the viewer's eye straight to your subject.\n• Shot 3 (Low-Angle Perspective): Crouch down low and shoot upward to make an ordinary object look epic.\n\n3. TURN IN: Describe your 3 shots (and optionally paste a Google Drive/Photos link) explaining how each composition technique changed the mood.",
+    answer_key: "• Portfolio Rubric: Must demonstrate intentional off-center placement (Rule of Thirds), directional lines guiding the eye (Leading Lines), and a dramatic low camera angle.",
+    quiz: [
+      { q: "1. Where should you place your main subject when using the Rule of Thirds?", options: ["Dead center in every photo", "Along the 3x3 grid lines or their intersections", "Cut off at the very bottom corner"], answer: 1 },
+      { q: "2. What are 'Leading Lines' in photography?", options: ["Natural lines like roads, fences, or shorelines that guide the viewer's eye into the photo", "Scratch marks on the lens", "The border around a printed photo"], answer: 0 },
+      { q: "3. When is 'Golden Hour' for warm, soft natural lighting?", options: ["High noon at 12:00 PM", "Shortly after sunrise and just before sunset", "Midnight"], answer: 1 }
+    ]
+  },
+  {
+    id: "elec-art-101",
+    subject: "Studio Art & Design",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Value Shading, Contour Drawing & Travel Sketchbook",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts 5-Value Sphere & Object Sketch",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Proko+How+to+Shade+a+Drawing+Light+and+Shadow"
+    ].join("\n"),
+    description: "All you need is a single pencil (or pen) and one sheet of paper—today you'll turn a flat circle into a 3D sphere using the 5 zones of light and shadow!\n\n1. WATCH (10 mins): Watch Proko's shading breakdown above to spot Highlight, Midtone, Core Shadow, Reflected Light, and Cast Shadow.\n\n2. SKETCHBOOK LAB (30 mins):\n• Part A: Draw a 5-box Value Scale going smoothly from pure white (#1) to darkest charcoal black (#5).\n• Part B: Sketch one everyday object in front of you (a coffee mug, seashell, fruit, or sneaker) using 3D shading and a cast shadow on the table.\n\n3. TURN IN: Describe how you created contrast between your light source and core shadow (and attach a photo link if desired).",
+    answer_key: "• Studio Check: Student correctly identifies light source direction, core shadow on the form, and cast shadow anchored beneath the object.",
+    quiz: [
+  }
