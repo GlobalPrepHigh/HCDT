@@ -600,4 +600,70 @@ async function loadStudentDashboard() {
         return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe></div></div>';
       }
 
+    }).join("");
+
+    const steps = ["Watch Video Lesson(s)", "Complete Reading & Real-World Activity", "Pass Interactive Quick Check", "Submit Written Reflection"];
+    const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
+    const doneCount = steps.filter((_, i) => savedSteps[i]).length;
+    const pct = Math.round((doneCount / steps.length) * 100);
+    const checklistHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin:10px 0;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><small><b id="prog-lbl-' + a.id + '">' + (pct === 100 ? "100% Complete! Ready to Submit 🏆" : pct + "% Mission Progress") + '</b></small></div><div style="background:#e2e8f0; height:8px; border-radius:99px; overflow:hidden; margin-bottom:8px;"><div id="prog-bar-' + a.id + '" style="background:#2563eb; width:' + pct + '%; height:100%; transition:width 0.3s;"></div></div>' + steps.map((st, i) => '<label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin:4px 0; cursor:pointer;"><input type="checkbox" class="step-cb-' + a.id + '" style="width:auto; margin:0;" ' + (savedSteps[i] ? "checked" : "") + ' onchange="toggleMissionStep(\'' + a.id + '\', ' + i + ')" /> <span>' + st + '</span></label>').join("") + '</div>';
+
+    const quizHtml = (currMod && currMod.quiz) ? '<div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px; border-radius:8px; margin:10px 0;"><small><b>⚡ Interactive Quick Check (Test Your Knowledge!)</b></small>' + currMod.quiz.map((qObj, qi) => '<div style="margin-top:8px;"><small><b>' + qObj.q + '</b></small><div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">' + qObj.options.map((opt, oi) => '<button type="button" class="btn-outline" style="text-align:left; font-size:12px; padding:6px 10px;" onclick="checkQuizAnswer(\'' + a.id + '\', ' + qi + ', ' + oi + ', ' + qObj.answer + ')">' + opt + '</button>').join("") + '</div><div id="quiz-res-' + a.id + '-' + qi + '" style="margin-top:4px; font-size:12px;"></div></div>').join("") + '</div>' : "";
+
+    const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:6px; border-radius:6px; margin-top:6px;"><small><b>Instructor Feedback:</b> ' + sub.parent_feedback + '</small></div>' : "";
+
+    return '<div class="item-card"><strong>' + a.subject + ' (' + a.course_level + '): ' + cleanTitle + '</strong><br><small class="muted">' + a.quarter + ' • ' + a.credits + ' cr' + dueBadge + '</small>' + scaleHtml + mediaHtml + '<p style="margin:8px 0;"><small>' + (a.description || "").replace(/\n/g, "<br>") + '</small></p>' + checklistHtml + quizHtml + '<small>Status: <b>' + statusText + '</b></small>' + fbHtml + '<div style="margin-top:8px;"><textarea id="subnote-' + a.id + '" rows="3" placeholder="Type your reflection, math solutions, or lab observations...">' + (sub && sub.student_notes ? sub.student_notes : "") + '</textarea><input type="url" id="sublink-' + a.id + '" placeholder="Paste Google Drive / Photo / Video link (optional)..." value="' + (sub && sub.submission_link ? sub.submission_link : "") + '" style="margin-top:6px;" /><button class="btn-primary" style="margin-top:6px;" onclick="submitWork(\'' + a.id + '\')">Submit Assignment</button></div></div>';
+  }).join("") || "<p class='muted'>No assignments posted yet.</p>";
+
+  document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
+    const met = ac.metric ? " • " + ac.metric : "";
+    return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.location || "") + met + '</small></div>';
+  }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+}
+
+async function submitWork(assignment_id) {
+  const notes = document.getElementById("subnote-" + assignment_id).value.trim();
+  const linkEl = document.getElementById("sublink-" + assignment_id);
+  const link = linkEl ? linkEl.value.trim() : "";
+  try {
+    const existing = await sbQuery("submissions", {
+      query: `assignment_id=eq.${assignment_id}&student_id=eq.${currentUser.id}&select=*`,
+      single: true
+    });
+    if (existing) {
+      await sbQuery("submissions", {
+        method: "PATCH",
+        query: `id=eq.${existing.id}`,
+        body: { student_notes: notes, submission_link: link, status: "Submitted" }
+      });
+    } else {
+      await sbQuery("submissions", {
+        method: "POST",
+        body: { assignment_id, student_id: currentUser.id, student_notes: notes, submission_link: link, status: "Submitted" }
+      });
+    }
+    alert("Work submitted to your instructor!");
+    await loadStudentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  const saved = localStorage.getItem("gph_session");
+  if (!saved) return;
+  try {
+    const session = JSON.parse(saved);
+    authToken = session.authToken || null;
+    currentFamily = session.currentFamily;
+    currentUser = session.currentUser;
+    if (session.role === "parent" && currentFamily && currentUser) {
+      await loadParentDashboard();
+    } else if (session.role === "student" && currentFamily && currentUser) {
+      await loadStudentDashboard();
+    }
+  } catch (e) {
+    localStorage.removeItem("gph_session");
+  }
+});
 
