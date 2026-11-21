@@ -613,10 +613,10 @@ function renderOfficialRecords() {
       '</div>' +
     '</div>';
 
-  const diplomaHtml =
+    const diplomaHtml =
     '<div style="font-family: Georgia, \'Times New Roman\', serif; color:#0f172a; background:#fffdf9; border:6px double #1e293b; padding:40px 32px; text-align:center; border-radius:4px; box-shadow:0 2px 10px rgba(0,0,0,0.06);">' +
       '<div style="border:1px solid #94a3b8; padding:28px 24px;">' +
-        '<div style="font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#475569; margin-bottom:6px;">By Authority of the Board of Secondary Education</div>' +
+        '<div style="font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#475569; margin-bottom:6px;">In Recognition of Academic Achievement</div>' +
         '<div style="font-size:26px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#0f172a;">' + currentFamily.family_name + '</div>' +
         '<div style="width:120px; height:2px; background:#b45309; margin:14px auto;"></div>' +
         '<p style="font-size:15px; font-style:italic; color:#334155; margin:12px 0;">This certifies that</p>' +
@@ -624,9 +624,8 @@ function renderOfficialRecords() {
         '<p style="font-size:14px; line-height:1.7; max-width:540px; margin:0 auto; color:#1e293b;">has satisfactorily completed the prescribed Course of Study required for Secondary Graduation and is hereby awarded this</p>' +
         '<div style="font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#1e293b; margin:18px 0 6px 0;">High School Diploma</div>' +
         '<div style="font-size:14px; letter-spacing:1px; color:#334155;">Class of ' + stu.expected_grad_year + ' &bull; Conferred ' + todayStr + '</div>' +
-        '<div style="display:flex; justify-content:space-around; align-items:center; margin-top:36px; gap:16px;">' +
-          '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#475569;">Head of School</span></div>' +
-          '<div style="width:74px; height:74px; border-radius:50%; border:2px solid #b45309; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#92400e; background:#fef3c7; line-height:1.2;">Official<br>Academic<br>Seal</div>' +
+        '<div style="display:flex; justify-content:space-around; align-items:flex-end; margin-top:44px; gap:24px;">' +
+          '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#475569;">Head of School / Administrator</span></div>' +
           '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#475569;">Academic Registrar</span></div>' +
         '</div>' +
       '</div>' +
