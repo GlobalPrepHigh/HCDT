@@ -632,7 +632,7 @@ function renderOfficialRecords() {
     '</div>';
 
   preview.innerHTML = transcriptHtml + diplomaHtml;
-  {
+}
 
 function getYouTubeEmbed(url) {
   const base = ["https://www.", "youtube-nocookie.com", "/embed/"].join("");
