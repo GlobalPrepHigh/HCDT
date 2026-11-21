@@ -728,21 +728,19 @@ async function loadStudentDashboard(isPreview = false) {
     const pct = Math.round((doneCount / steps.length) * 100);
     const checklistHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin:10px 0;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><small><b id="prog-lbl-' + a.id + '">' + (pct === 100 ? "100% Complete! Ready to Submit 🏆" : pct + "% Mission Progress") + '</b></small></div><div style="background:#e2e8f0; height:8px; border-radius:99px; overflow:hidden; margin-bottom:8px;"><div id="prog-bar-' + a.id + '" style="background:#2563eb; width:' + pct + '%; height:100%; transition:width 0.3s;"></div></div>' + steps.map((st, i) => '<label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin:4px 0; cursor:pointer;"><input type="checkbox" class="step-cb-' + a.id + '" style="width:auto; margin:0;" ' + (savedSteps[i] ? "checked" : "") + ' onchange="toggleMissionStep(\'' + a.id + '\', ' + i + ')" /> <span>' + st + '</span></label>').join("") + '</div>';
 
-          return '<div class="item-card"><strong>' + a.subject + ' (' + a.course_level + '): ' + cleanTitle + '</strong><br><small class="muted">Due: ' + (a.due_date || "Flexible") + ' &bull; ' + a.credits + ' Credit &bull; Status: <b>' + (sub ? sub.status : "Assigned") + '</b></small>' + mediaHtml + '<div style="margin:8px 0; white-space:pre-line; line-height:1.5;">' + (a.description || "") + '</div>' + checklistHtml + quizHtml + fbHtml + '<label style="margin-top:8px;">Your Written Work / Answers</label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Type your answers, reflections, or problem solutions here...">' + (sub && sub.student_notes ? sub.student_notes : "") + '</textarea><label style="margin-top:6px;">📸 Attach Photo / Screenshot of Handwritten Work (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="margin-bottom:8px;" /><button class="btn-primary" onclick="submitWork(\'' + a.id + '\')">✅ Submit Work to Parent</button></div>';
+       const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:6px; border-radius:6px; margin-top:6px;"><b>Instructor Feedback:</b> ' + sub.parent_feedback + '</div>' : "";
+
+      return '<div class="item-card"><strong>' + a.subject + ' (' + a.course_level + '): ' + cleanTitle + '</strong><br><small class="muted">Due: ' + (a.due_date || "Flexible") + ' &bull; ' + a.credits + ' Credit &bull; Status: <b>' + (sub ? sub.status : "Assigned") + '</b></small>' + mediaHtml + '<div style="margin:8px 0; white-space:pre-line; line-height:1.5;">' + (a.description || "") + '</div>' + checklistHtml + quizHtml + fbHtml + '<label style="margin-top:8px;">Your Written Work / Answers</label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Type your answers, reflections, or problem solutions here...">' + (sub && sub.student_notes ? sub.student_notes : "") + '</textarea><label style="margin-top:6px;">📸 Attach Photo / Screenshot of Handwritten Work (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="margin-bottom:8px;" /><button class="btn-primary" onclick="submitWork(\'' + a.id + '\')">✅ Submit Work to Parent</button></div>';
     }).join("") || "<p class='muted'>No assignments posted yet.</p>";
 
-    const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:6px; border-radius:6px; margin-top:6px;"><small><b>Instructor Feedback:</b> ' + sub.parent_feedback + '</small></div>' : "";
-
-    return '<div class="item-card"><strong>' + a.subject + ' (' + a.course_level + '): ' + cleanTitle + '</strong><br><small class="muted">' + a.quarter + ' • ' + a.credits + ' cr' + dueBadge + '</small>' + scaleHtml + mediaHtml + '<p style="margin:8px 0;"><small>' + (a.description || "").replace(/\n/g, "<br>") + '</small></p>' + checklistHtml + quizHtml + '<small>Status: <b>' + statusText + '</b></small>' + fbHtml + '<div style="margin-top:8px;"><textarea id="subnote-' + a.id + '" rows="3" placeholder="Type your reflection, math solutions, or lab observations...">' + (sub && sub.student_notes ? sub.student_notes : "") + '</textarea><input type="url" id="sublink-' + a.id + '" placeholder="Paste Google Drive / Photo / Video link (optional)..." value="' + (sub && sub.submission_link ? sub.submission_link : "") + '" style="margin-top:6px;" /><button class="btn-primary" style="margin-top:6px;" onclick="submitWork(\'' + a.id + '\')">Submit Assignment</button></div></div>';
-  }).join("") || "<p class='muted'>No assignments posted yet.</p>";
-
-  document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
-    const met = ac.metric ? " • " + ac.metric : "";
-    return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.location || "") + met + '</small></div>';
-  }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
-}
+    document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
+      const met = ac.metric ? " &bull; " + ac.metric : "";
+      return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.location || "") + met + '</small></div>';
+    }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+  }
 
 async function compressPhotoToDataUrl(file) {
+
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
