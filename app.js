@@ -486,7 +486,7 @@ function renderOfficialRecords() {
 
 
 async function loadStudentDashboard() {
-  async function loadStudentDashboard() {
+
   saveSession("student");
 
   document.getElementById("authSection").classList.add("hidden");
