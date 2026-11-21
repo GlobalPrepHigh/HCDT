@@ -555,11 +555,11 @@ function renderOfficialRecords() {
 }
 
 function getYouTubeEmbed(url) {
-  if (url.startsWith("yt:")) return "https://youtube-nocookie.com" + url.slice(3).trim();
+  const base = ["https://www.", "youtube-nocookie.com", "/embed/"].join("");
+  if (url.startsWith("yt:")) return base + url.slice(3).trim();
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
-  return m ? "https://youtube-nocookie.com" + m.at(1) : null;
+  return m ? base + m.at(1) : null;
 }
-
 
 function toggleMissionStep(assignId, stepIdx) {
   const key = "gph_steps_" + assignId;
@@ -629,11 +629,10 @@ async function loadStudentDashboard(isPreview = false) {
     const currMod = (typeof HONORS_CURRICULUM !== "undefined" && modCode) ? HONORS_CURRICULUM.find(m => m.id === modCode) : null;
     const links = a.resource_url ? a.resource_url.split(/\r?\n/).map(u => u.trim()).filter(Boolean) : [];
 
-        const mediaHtml = links.map((url, idx) => {
+            const mediaHtml = links.map((url, idx) => {
       const yt = getYouTubeEmbed(url);
-              return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px; background:#0f172a;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></div>';
-
-        return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe></div></div>';
+      if (yt) {
+        return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px; background:#0f172a;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></div>';
       }
       const cleanHref = url.startsWith("pdf:") ? url.slice(4).trim() : url;
       return '<div style="margin:8px 0;"><a href="' + cleanHref + '" target="_blank" class="btn-outline" style="display:inline-block; text-decoration:none;">📖 Open Reading / PDF Book</a></div>';
