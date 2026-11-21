@@ -130,3 +130,17 @@ input, select, textarea {
   overflow-wrap: normal !important;
   flex-shrink: 0;
 }
+#studentDashboard .card,
+#studentDashboard .card * {
+  color: #0f172a !important;
+}
+
+#studentDashboard .card .btn-primary,
+#studentDashboard .card .btn-primary * {
+  color: #ffffff !important;
+}
+
+#studentDashboard .card .muted {
+  color: #475569 !important;
+}
+
