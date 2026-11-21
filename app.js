@@ -597,10 +597,10 @@ async function loadStudentDashboard() {
     const mediaHtml = links.map((url, idx) => {
       const yt = getYouTubeEmbed(url);
       if (yt) {
-        return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe></div></div>';
-      }
-
-    }).join("");
+        return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe></div></
+    }
+    return '<div style="margin:8px 0;"><a href="' + url + '" target="_blank" class="btn-outline" style="display:inline-block; text-decoration:none;">📖 Open Reading / Resource ' + (idx + 1) + '</a></div>';
+  }).join("");
 
     const steps = ["Watch Video Lesson(s)", "Complete Reading & Real-World Activity", "Pass Interactive Quick Check", "Submit Written Reflection"];
     const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
