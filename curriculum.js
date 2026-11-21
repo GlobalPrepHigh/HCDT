@@ -155,7 +155,13 @@ const HONORS_CURRICULUM = [
     ].join("\n"),
     description: "Golden rule of French travel: NEVER ask a question in France without saying 'Bonjour' first—it's the magic key that turns grumpy service into warm hospitality across 5 continents!\n\n1. SOUNDS & ETIQUETTE (15 mins): Watch Learn French with Alexa's greetings video above.\n\n2. BOULANGERIE SURVIVAL KIT:\n• Bonjour, Madame / Monsieur = Hello, Ma'am / Sir\n• Je voudrais un croissant, s'il vous plaît = I would like a croissant, please\n• C'est combien? = How much is it?\n• Merci beaucoup, bonne journée! = Thank you very much, have a nice day!\n\n3. MISSION: Write a polite 5-line bakery conversation starting with 'Bonjour', ordering two items with 'Je voudrais...', asking the price, and saying goodbye.",
     answer_key: "• Cultural Rule: Always open with 'Bonjour' before making any request.\n• Dialogue Rubric: Includes Bonjour, Je voudrais + item + s'il vous plaît, C'est combien, and Merci / Bonne journée.",
-    quiz: [
+    quiz: [      { q: "1. What is the #1 rule of etiquette before asking anyone a question in France?", options: ["Say 'Bonjour' first", "Speak as fast as possible", "Skip greetings to save time"], answer: 0 },
+      { q: "2. How do you politely say 'I would like...' in French?", options: ["Où est...", "Je voudrais...", "C'est combien..."], answer: 1 },
+      { q: "3. What does 'Bonne journée' mean when leaving a shop?", options: ["How much?", "Have a nice day", "Excuse me"], answer: 1 }
+    ]
+  }
+];
+
 
     HONORS_CURRICULUM.push(
   {
