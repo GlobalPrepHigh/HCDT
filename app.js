@@ -201,6 +201,9 @@ async function loadParentDashboard() {
   });
 
   await refreshFamilyData();
+  populateCurriculumDropdown();
+}
+
 }
 
 
