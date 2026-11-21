@@ -117,26 +117,19 @@
         </div>
       </div>
 
-            <div id="pView-assignments" class="p-view hidden grid-2">
+                  <div id="pView-assignments" class="p-view hidden grid-2">
         <div class="card">
-          <h3>Assign College-Prep / Honors Coursework</h3>
+          <h3>Enroll Student in U.S. Honors Curriculum</h3>
+          <p class="muted">Select a pre-built Honors module—videos, readings, rubrics, interactive quizzes, and parent answer keys load automatically.</p>
           <label>Select Student</label>
           <select id="assignStudentSelect"></select>
+          <label>Select U.S. Honors Course Module</label>
+          <select id="curriculumSelect"></select>
           <div class="row-2">
             <div>
-              <label>Course / Subject</label>
-              <input type="text" id="assignSubject" placeholder="e.g., Honors Chemistry, Honors Algebra II" />
+              <label>Due Date</label>
+              <input type="date" id="assignDueDate" />
             </div>
-            <div>
-              <label>Course Level (GPA Weight)</label>
-              <select id="assignLevel">
-                <option value="Honors">Honors (4.5 Scale)</option>
-                <option value="AP / Dual Enrollment">AP / Dual Enrollment (5.0 Scale)</option>
-                <option value="Regular">Regular (4.0 Scale)</option>
-              </select>
-            </div>
-          </div>
-          <div class="row-2">
             <div>
               <label>Quarter</label>
               <select id="assignQuarter">
@@ -146,43 +139,25 @@
                 <option value="Q4">Quarter 4</option>
               </select>
             </div>
-            <div>
-              <label>Credit Value</label>
-              <select id="assignCredits">
-                <option value="1.0">1.0 Full Credit</option>
-                <option value="0.5">0.5 Half Credit</option>
-              </select>
-            </div>
           </div>
-          <div class="row-2">
-            <div>
-              <label>Due Date</label>
-              <input type="date" id="assignDueDate" />
-            </div>
-            <div>
-              <label>Grading Scale / Rubric</label>
-              <input type="text" id="assignGradingScale" placeholder="e.g., 100 pts (A: 90-100, B: 80-89)" />
-            </div>
-          </div>
-          <label>Module / Assignment Title</label>
-          <input type="text" id="assignTitle" placeholder="e.g., Lab 4: Titration & Stoichiometry Problem Set" />
-            <label>Lecture Video / Experiment Link (YouTube, Khan, PhET, etc.)</label>
-          <input type="url" id="assignResourceUrl" placeholder="https://..." />
-          <label>Syllabus Instructions & Lab / Math Requirements</label>
-          <textarea id="assignDesc" rows="3" placeholder="1. Watch lecture video. 2. Complete lab experiment. 3. Show all math steps and upload photo/Doc link..."></textarea>
-          <label>🔒 Parent-Only Answer Key / Solution Guide (Hidden from Student)</label>
-          <textarea id="assignAnswerKey" rows="2" placeholder="e.g., #1: 4.52 mol, #2: Exothermic reaction..."></textarea>
           <label>Travel Location Tag (Optional)</label>
-          <input type="text" id="assignLocation" placeholder="e.g., Cha-am Coastal Ecology Study" />
-          <button class="btn-primary" onclick="createAssignment()">+ Post Course Module</button>
+          <input type="text" id="assignLocation" placeholder="e.g., Cha-am / Bangkok Study" />
+          <button class="btn-primary" onclick="assignHonorsModule()">⚡ Assign Honors Module</button>
+
+          <hr style="margin:20px 0; border:0; border-top:1px solid #e2e8f0;">
+          <h4>+ Add Quick Extra Practice / Study Note (Optional)</h4>
+          <label>Course / Subject</label>
+          <input type="text" id="extraSubject" placeholder="e.g., Honors English Literature" />
+          <label>Extra Practice Title & Instructions</label>
+          <textarea id="extraDesc" rows="2" placeholder="e.g., Bonus vocabulary review or extra math practice..."></textarea>
+          <button class="btn-outline" onclick="assignExtraPractice()">+ Add Extra Practice</button>
         </div>
 
         <div class="card">
-          <h3>Coursework, Answer Keys & Grading Queue</h3>
+          <h3>Assigned Modules, Answer Keys & Grading</h3>
           <div id="parentAssignmentList" class="list-box"></div>
         </div>
       </div>
-
 
       <div id="pView-achievements" class="p-view hidden grid-2">
         <div class="card">
