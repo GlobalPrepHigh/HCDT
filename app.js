@@ -172,12 +172,22 @@ async function handleStudentLogin() {
     errEl.innerText = err.message;
   }
 }
+function saveSession(role) {
+  localStorage.setItem("gph_session", JSON.stringify({
+    role,
+    authToken,
+    currentFamily,
+    currentUser
+  }));
+}
+
 function logout() {
+  localStorage.removeItem("gph_session");
   location.reload();
 }
 
-// --- PARENT DASHBOARD ---
 async function loadParentDashboard() {
+  saveSession("parent");
   document.getElementById("authSection").classList.add("hidden");
   document.getElementById("parentDashboard").classList.remove("hidden");
   document.getElementById("logoutBtn").classList.remove("hidden");
@@ -402,6 +412,26 @@ function renderAchievements() {
     return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (stu ? stu.full_name : "") + loc + met + '</small></div>';
   }).join("") || "<p class='muted'>No travel study, certifications, or service logged yet.</p>";
 }
+function parseGradePercent(g) {
+  if (!g) return null;
+  const clean = g.trim().toUpperCase().replace("%", "");
+  if (!isNaN(parseFloat(clean))) return parseFloat(clean);
+  const letterMap = { "A+": 98, "A": 95, "A-": 91.5, "B+": 88, "B": 85, "B-": 81.5, "C+": 78, "C": 75, "C-": 71.5, "D+": 68, "D": 65, "F": 55 };
+  return letterMap[clean] !== undefined ? letterMap[clean] : null;
+}
+
+function percentToLetterAndPoints(pct) {
+  if (pct >= 93) return { letter: "A", pts: 4.0 };
+  if (pct >= 90) return { letter: "A-", pts: 3.7 };
+  if (pct >= 87) return { letter: "B+", pts: 3.3 };
+  if (pct >= 83) return { letter: "B", pts: 3.0 };
+  if (pct >= 80) return { letter: "B-", pts: 2.7 };
+  if (pct >= 77) return { letter: "C+", pts: 2.3 };
+  if (pct >= 73) return { letter: "C", pts: 2.0 };
+  if (pct >= 70) return { letter: "C-", pts: 1.7 };
+  if (pct >= 60) return { letter: "D", pts: 1.0 };
+  return { letter: "F", pts: 0.0 };
+}
 
 function renderOfficialRecords() {
   const stuId = document.getElementById("transStudentSelect").value;
@@ -414,28 +444,46 @@ function renderOfficialRecords() {
 
   const stuAssigns = assignmentsCache.filter(a => a.student_id === stu.id);
   const stuAchs = achievementsCache.filter(a => a.student_id === stu.id);
+
+  const courseMap = {};
+  stuAssigns.forEach(a => {
+    const key = `${a.quarter}||${a.subject}||${a.course_level}`;
+    if (!courseMap[key]) {
+      courseMap[key] = {
+        quarter: a.quarter,
+        subject: a.subject,
+        course_level: a.course_level,
+        credits: parseFloat(a.credits) || 1.0,
+        scores: []
+      };
+    }
+    const sub = submissionsCache.find(s => s.assignment_id === a.id);
+    const pct = sub && sub.grade ? parseGradePercent(sub.grade) : null;
+    if (pct !== null) courseMap[key].scores.push(pct);
+  });
+
   let totalCredits = 0;
   let totalPoints = 0;
 
-  const gradePoints = { "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7, "C+": 2.3, "C": 2.0, "D": 1.0, "F": 0.0 };
-
-  const rows = stuAssigns.map(a => {
-    const sub = submissionsCache.find(s => s.assignment_id === a.id);
-    const g = sub && sub.grade ? sub.grade : "In Progress";
-    const cr = parseFloat(a.credits) || 1.0;
-    if (gradePoints[g] !== undefined) {
-      const boost = a.course_level.includes("AP") ? 1.0 : a.course_level.includes("Honors") ? 0.5 : 0;
-      totalCredits += cr;
-      totalPoints += (gradePoints[g] + boost) * cr;
+  const rows = Object.values(courseMap).map(c => {
+    let gradeDisplay = "In Progress";
+    if (c.scores.length > 0) {
+      const avgPct = c.scores.reduce((sum, v) => sum + v, 0) / c.scores.length;
+      const { letter, pts } = percentToLetterAndPoints(avgPct);
+      const boost = c.course_level.includes("AP") ? 1.0 : c.course_level.includes("Honors") ? 0.5 : 0;
+      totalCredits += c.credits;
+      totalPoints += (pts + boost) * c.credits;
+      gradeDisplay = `${letter} (${avgPct.toFixed(0)}%)`;
     }
-    return '<tr><td>' + a.quarter + '</td><td>' + a.subject + ' — ' + a.title + '</td><td>' + a.course_level + '</td><td>' + cr.toFixed(1) + '</td><td><strong>' + g + '</strong></td></tr>';
+    return `<tr><td>${c.quarter}</td><td>${c.subject}</td><td>${c.course_level}</td><td>${c.credits.toFixed(1)}</td><td><strong>${gradeDisplay}</strong></td></tr>`;
   }).join("");
 
   const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "N/A";
-  const achSection = stuAchs.length ? '<h4 style="margin-top:16px;">Worldschooling Field Studies, Certifications & Service</h4><ul>' + stuAchs.map(x => '<li><strong>' + x.type + ':</strong> ' + x.title + (x.location ? ' (' + x.location + ')' : '') + (x.metric ? ' — ' + x.metric : '') + '</li>').join("") + '</ul>' : "";
+  const achSection = stuAchs.length ? `<h4 style="margin-top:16px;">Worldschooling Field Studies, Certifications & Service</h4><ul>${stuAchs.map(x => `<li><strong>${x.type}:</strong> ${x.title}${x.location ? ` (${x.location})` : ""}${x.metric ? ` — ${x.metric}` : ""}</li>`).join("")}</ul>` : "";
 
-  preview.innerHTML = '<div style="border:2px solid #1e293b; padding:24px; border-radius:8px; margin-bottom:24px;"><h2 style="text-align:center; margin-bottom:4px;">' + currentFamily.family_name.toUpperCase() + '</h2><p style="text-align:center; margin-top:0;"><strong>OFFICIAL HIGH SCHOOL ACADEMIC TRANSCRIPT</strong></p><hr><p><strong>Student Legal Name:</strong> ' + stu.full_name + ' &nbsp;|&nbsp; <strong>Grade:</strong> ' + stu.grade_level + ' &nbsp;|&nbsp; <strong>Expected Graduation:</strong> ' + stu.expected_grad_year + '</p><p><strong>Cumulative Weighted GPA:</strong> ' + gpa + ' &nbsp;|&nbsp; <strong>Total Credits Earned:</strong> ' + totalCredits.toFixed(1) + '</p><table style="width:100%; border-collapse:collapse; margin-top:12px;" border="1" cellpadding="6"><thead><tr><th>Term</th><th>Course & Title</th><th>Level</th><th>Credits</th><th>Grade</th></tr></thead><tbody>' + (rows || "<tr><td colspan='5'>No courses recorded yet.</td></tr>") + '</tbody></table>' + achSection + '<p style="margin-top:24px;">Administrator Signature: ___________________________ &nbsp;&nbsp; Date: _______________</p></div><div style="border:4px double #1e293b; padding:32px; text-align:center; border-radius:8px;"><h1 style="margin-bottom:8px;">' + currentFamily.family_name + '</h1><p><em>Be it known that</em></p><h2>' + stu.full_name + '</h2><p>has satisfactorily completed the High School Course of Study prescribed for graduation and is hereby awarded this</p><h3>HIGH SCHOOL DIPLOMA</h3><p>Class of ' + stu.expected_grad_year + '</p><p style="margin-top:28px;">___________________________<br><small>Head of School / Parent Administrator</small></p></div>';
+  preview.innerHTML = `<div style="border:2px solid #1e293b; padding:24px; border-radius:8px; margin-bottom:24px;"><h2 style="text-align:center; margin-bottom:4px;">${currentFamily.family_name.toUpperCase()}</h2><p style="text-align:center; margin-top:0;"><strong>OFFICIAL HIGH SCHOOL ACADEMIC TRANSCRIPT</strong></p><hr><p><strong>Student Legal Name:</strong> ${stu.full_name} &nbsp;|&nbsp; <strong>Grade:</strong> ${stu.grade_level} &nbsp;|&nbsp; <strong>Expected Graduation:</strong> ${stu.expected_grad_year}</p><p><strong>Cumulative Weighted GPA:</strong> ${gpa} &nbsp;|&nbsp; <strong>Total Credits Earned:</strong> ${totalCredits.toFixed(1)}</p><table style="width:100%; border-collapse:collapse; margin-top:12px;" border="1" cellpadding="6"><thead><tr><th>Term</th><th>Course</th><th>Level</th><th>Credits</th><th>Quarter Grade</th></tr></thead><tbody>${rows || "<tr><td colspan='5'>No courses recorded yet.</td></tr>"}</tbody></table>${achSection}<p style="margin-top:24px;">Administrator Signature: ___________________________ &nbsp;&nbsp; Date: _______________</p></div><div style="border:4px double #1e293b; padding:32px; text-align:center; border-radius:8px;"><h1 style="margin-bottom:8px;">${currentFamily.family_name}</h1><p><em>Be it known that</em></p><h2>${stu.full_name}</h2><p>has satisfactorily completed the High School Course of Study prescribed for graduation and is hereby awarded this</p><h3>HIGH SCHOOL DIPLOMA</h3><p>Class of ${stu.expected_grad_year}</p><p style="margin-top:28px;">___________________________<br><small>Head of School / Parent Administrator</small></p></div>`;
 }
+
 
 async function loadStudentDashboard() {
   async function loadStudentDashboard() {
