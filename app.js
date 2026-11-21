@@ -252,10 +252,30 @@ async function addStudent() {
   }
 }
 
+function previewStudentPortal(stuId) {
+  const stu = studentsCache.find(s => s.id === stuId);
+  if (!stu) return;
+  window.parentBackupUser = currentUser;
+  currentUser = stu;
+  document.getElementById("parentDashboard").classList.add("hidden");
+  loadStudentDashboard(true);
+}
+
+function exitStudentPreview() {
+  if (window.parentBackupUser) {
+    currentUser = window.parentBackupUser;
+    window.parentBackupUser = null;
+    document.getElementById("studentDashboard").classList.add("hidden");
+    const banner = document.getElementById("previewBanner");
+    if (banner) banner.remove();
+    loadParentDashboard();
+  }
+}
+
 function renderStudents() {
   const list = document.getElementById("studentList");
   const selects = ["assignStudentSelect", "achStudentSelect", "transStudentSelect"];
-  list.innerHTML = studentsCache.map(s => '<div class="item-card"><strong>' + s.full_name + '</strong> (' + s.grade_level + ' Grade • Class of ' + s.expected_grad_year + ')<br><small class="muted">Student Login: Username <b>' + s.username + '</b> | PIN <b>' + s.pin + '</b></small></div>').join("") || "<p class='muted'>No students added yet.</p>";
+  list.innerHTML = studentsCache.map(s => '<div class="item-card" style="display:flex; justify-content:space-between; align-items:center; gap:10px;"><div><strong>' + s.full_name + '</strong> (' + s.grade_level + ' Grade • Class of ' + s.expected_grad_year + ')<br><small class="muted">Student Login: Username <b>' + s.username + '</b> | PIN <b>' + s.pin + '</b></small></div><button class="btn-outline" style="width:auto; white-space:nowrap; color:#1e293b;" onclick="previewStudentPortal(\'' + s.id + '\')">👀 Preview Portal</button></div>').join("") || "<p class='muted'>No students added yet.</p>";
 
   const options = studentsCache.map(s => '<option value="' + s.id + '">' + s.full_name + ' (' + s.grade_level + ')</option>').join("");
   selects.forEach(id => {
@@ -540,6 +560,7 @@ function getYouTubeEmbed(url) {
   return m ? "https://youtube.com" + m : null;
 }
 
+
 function toggleMissionStep(assignId, stepIdx) {
   const key = "gph_steps_" + assignId;
   const saved = JSON.parse(localStorage.getItem(key) || "{}");
@@ -564,11 +585,25 @@ function checkQuizAnswer(assignId, qIdx, chosenIdx, correctIdx) {
   }
 }
 
-async function loadStudentDashboard() {
-  saveSession("student");
+async function loadStudentDashboard(isPreview = false) {
+  if (!isPreview) saveSession("student");
   document.getElementById("authSection").classList.add("hidden");
   document.getElementById("studentDashboard").classList.remove("hidden");
   document.getElementById("logoutBtn").classList.remove("hidden");
+
+  let banner = document.getElementById("previewBanner");
+  if (isPreview) {
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "previewBanner";
+      banner.style.cssText = "background:#fef08a; border:1px solid #eab308; padding:10px 14px; border-radius:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;";
+      banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> — Viewing as ' + currentUser.full_name + '</span><button class="btn-primary" style="width:auto; padding:6px 12px;" onclick="exitStudentPreview()">⬅️ Back to Parent Dashboard</button>';
+      document.getElementById("studentDashboard").prepend(banner);
+    }
+  } else if (banner) {
+    banner.remove();
+  }
+
 
   document.getElementById("stuDashWelcome").innerText = "Welcome, " + currentUser.full_name;
   document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + currentUser.expected_grad_year;
