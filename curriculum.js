@@ -20,28 +20,30 @@ const HONORS_CURRICULUM = [
       { q: "3. What does 17-year-old Clarisse McClellan notice that Guy Montag stopped noticing?", options: ["The cost of fire trucks", "Everyday nature (dew, grass, the moon) and real conversation", "How to repair a parlor wall"], answer: 1 }
     ]
   },
-  {
+  
+      {
     id: "alg1-hon-u1d1",
     subject: "Honors Algebra I",
     course_level: "Honors",
     quarter: "Q1",
     credits: 1.0,
     title: "U1D1: Slope, Line Equations & Desmos Target Practice",
-    grading_scale: "100 pts — 25 pts Quick Check, 50 pts 5 Mastery Challenges, 25 pts Slider Reflection",
-    resource_url: [
-      "https://" + "www.khanacademy.org/" + "math/algebra/x2f8bb11595b61c86:linear-equations-graphs/x2f8bb11595b61c86:slope/v/introduction-to-slope",
+    grading_scale: "100 pts — 25 pts Quick Check, 50 pts 5 Practice Challenges, 25 pts Slider Reflection",
+        resource_url: [
+      "yt:MeU-KzdCBps",
+      "yt:MXV65i9g1Xg",
       "https://" + "://mathsisfun.com" + "equation_of_line.html",
       "https://" + "://desmos.com" + "calculator"
     ].join("\n"),
-    description: "No heavy graphing calculator in your backpack? No problem—tap '📐 Backpack Math Tools' at the top of your dashboard or open Desmos above!\n\n1. WATCH & PLAY (15 mins): Watch Khan Academy's Introduction to Slope and drag the interactive slope slider inside Math is Fun (y = mx + b).\n\n2. LIVE LINE LAB (15 mins): Open Backpack Math Tools (or Desmos) and test positive slopes, negative slopes, and changing y-intercepts (b).\n\n3. MASTERY CHALLENGES 1–5 (Verify every answer on your live graph!):\n• Challenge 1 (Hiking Trail): A trail climbs from elevation (0, 400) ft to (6, 1900) ft over 6 miles. Find the slope (m) and explain what it means in plain English.\n• Challenge 2 (Build the Line): A line passes through (0, −3) and rises 4 units for every 1 unit right. Write its y = mx + b equation.\n• Challenge 3 (Watch the Negative!): Find the slope (m) between (2, 5) and (6, −3).\n• Challenge 4 (Custom Merch Math): A T-shirt printer charges a $25 setup fee plus $8 per shirt. Write the total cost equation (y) for x shirts, then find the cost for 15 shirts.\n• Challenge 5 (Target Practice): Plot (1, 2) and (4, 8) and write the y = mx + b equation that hits both dots.\n\n4. TURN IN: Submit Challenges 1–5 plus a 2-sentence explanation of how m and b move a line.",
-    answer_key: "• Formulas: m = (y2 − y1) / (x2 − x1) | y = mx + b.\n• Challenge 1: m = (1900 − 400)/(6 − 0) = 250 (climbs 250 ft per mile).\n• Challenge 2: y = 4x − 3.\n• Challenge 3: m = (−3 − 5)/(6 − 2) = −8/4 = −2.\n• Challenge 4: y = 8x + 25; 15 shirts = 8(15) + 25 = $145.\n• Challenge 5: m = (8 − 2)/(4 − 1) = 2, b = 0 → y = 2x.\n• Reflection: Positive m goes uphill left-to-right, negative m goes downhill; changing b shifts the entire line straight up or down.",
+    description: "No heavy graphing calculator in your backpack? No problem—tap '📐 Backpack Math Tools' at the top of your dashboard or open Desmos above!\n\n1. WATCH BOTH VIDEO LESSONS ABOVE (15 mins): Watch Khan Academy on Slope (Rise over Run) and Math Antics on Linear Functions (y = mx + b).\n\n2. INTERACTIVE READING & SLIDER LAB (10 mins): Open the Math is Fun guide above and drag the interactive slope slider, then test positive/negative slopes in Backpack Math Tools or Desmos.\n\n3. PRACTICE PROBLEM 1 (Hiking Trail Slope): A trail climbs from elevation (0, 400) ft to (6, 1900) ft over 6 miles. Calculate the slope (m) and explain what that number means in plain English.\n\n4. PRACTICE PROBLEM 2 (Build the Equation): A line passes through (0, −3) and rises 4 units for every 1 unit it moves right. Write its equation in y = mx + b form.\n\n5. PRACTICE PROBLEM 3 (Two-Point Slope): Find the slope (m) of a line passing through (2, 5) and (6, −3). Watch the negative sign!\n\n6. PRACTICE PROBLEM 4 (Custom Merch Cost): A T-shirt printer charges a $25 setup fee plus $8 per shirt. Write a linear equation for total cost (y) of ordering x shirts, then calculate the cost for 15 shirts.\n\n7. PRACTICE PROBLEM 5 (Desmos Target Practice): Plot (1, 2) and (4, 8) on your graph and write the y = mx + b equation that hits both dots.\n\n8. TURN IN YOUR WORK: Type your answers to Practice Problems 1–5 plus a 2-sentence explanation of how changing m and b moves a line into the submission box.",
+    answer_key: "• Formulas: m = (y2 − y1) / (x2 − x1) | y = mx + b.\n• Problem 1: m = (1900 − 400)/(6 − 0) = 250 (trail climbs 250 ft per mile).\n• Problem 2: y = 4x − 3.\n• Problem 3: m = (−3 − 5)/(6 − 2) = −8/4 = −2.\n• Problem 4: Equation: y = 8x + 25 | Cost for 15 shirts: y = 8(15) + 25 = $145.\n• Problem 5: m = (8 − 2)/(4 − 1) = 2, b = 0 → y = 2x.\n• Reflection: Positive m goes uphill left-to-right, negative m goes downhill; changing b shifts the entire line straight up or down.",
     quiz: [
       { q: "1. In y = mx + b, what does 'b' control on the graph?", options: ["The steepness of the line", "Where the line crosses the vertical y-axis (x = 0)", "The horizontal x-axis"], answer: 1 },
       { q: "2. When the slope (m) is negative, which way does the line slant?", options: ["Downhill from left to right", "Uphill from left to right", "Completely flat"], answer: 0 },
       { q: "3. A shop charges a $25 setup fee plus $8 per shirt. Which equation gives total cost (y)?", options: ["y = 25x + 8", "y = 8x + 25", "y = 33x"], answer: 1 }
     ]
   },
-  {
+
     id: "bio-hon-u1l1",
     subject: "Honors Biology",
     course_level: "Honors",
