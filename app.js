@@ -172,7 +172,6 @@ async function handleStudentLogin() {
     errEl.innerText = err.message;
   }
 }
-
 function logout() {
   location.reload();
 }
@@ -193,6 +192,7 @@ async function loadParentDashboard() {
 
   await refreshFamilyData();
 }
+
 
 function showParentView(viewName, btn) {
   document.querySelectorAll(".p-view").forEach(el => el.classList.add("hidden"));
@@ -438,6 +438,9 @@ function renderOfficialRecords() {
 }
 
 async function loadStudentDashboard() {
+  async function loadStudentDashboard() {
+  saveSession("student");
+
   document.getElementById("authSection").classList.add("hidden");
   document.getElementById("studentDashboard").classList.remove("hidden");
   document.getElementById("logoutBtn").classList.remove("hidden");
@@ -470,6 +473,8 @@ async function loadStudentDashboard() {
 
 async function submitWork(assignment_id) {
   const notes = document.getElementById("subnote-" + assignment_id).value.trim();
+  const linkEl = document.getElementById("sublink-" + assignment_id);
+  const link = linkEl ? linkEl.value.trim() : "";
   try {
     const existing = await sbQuery("submissions", {
       query: `assignment_id=eq.${assignment_id}&student_id=eq.${currentUser.id}&select=*`,
@@ -479,19 +484,37 @@ async function submitWork(assignment_id) {
       await sbQuery("submissions", {
         method: "PATCH",
         query: `id=eq.${existing.id}`,
-        body: { student_notes: notes, status: "Submitted" }
+        body: { student_notes: notes, submission_link: link, status: "Submitted" }
       });
     } else {
       await sbQuery("submissions", {
         method: "POST",
-        body: { assignment_id, student_id: currentUser.id, student_notes: notes, status: "Submitted" }
+        body: { assignment_id, student_id: currentUser.id, student_notes: notes, submission_link: link, status: "Submitted" }
       });
     }
-    alert("Work submitted to your parent/admin!");
+    alert("Work submitted to your instructor!");
     await loadStudentDashboard();
   } catch (err) {
     alert(err.message);
   }
 }
+
+window.addEventListener("DOMContentLoaded", async () => {
+  const saved = localStorage.getItem("gph_session");
+  if (!saved) return;
+  try {
+    const session = JSON.parse(saved);
+    authToken = session.authToken || null;
+    currentFamily = session.currentFamily;
+    currentUser = session.currentUser;
+    if (session.role === "parent" && currentFamily && currentUser) {
+      await loadParentDashboard();
+    } else if (session.role === "student" && currentFamily && currentUser) {
+      await loadStudentDashboard();
+    }
+  } catch (e) {
+    localStorage.removeItem("gph_session");
+  }
+});
 
 
