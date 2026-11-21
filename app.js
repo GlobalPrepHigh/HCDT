@@ -535,9 +535,9 @@ function renderOfficialRecords() {
 }
 
 function getYouTubeEmbed(url) {
+  if (url.startsWith("yt:")) return "https://youtube.com" + url.slice(3).trim();
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
-    return m ? "https://youtube.com/embed/" + m[1] : null;
-
+  return m ? "https://youtube.com" + m[1] : null;
 }
 
 function toggleMissionStep(assignId, stepIdx) {
@@ -594,12 +594,13 @@ async function loadStudentDashboard() {
     const currMod = (typeof HONORS_CURRICULUM !== "undefined" && modCode) ? HONORS_CURRICULUM.find(m => m.id === modCode) : null;
 
     const links = a.resource_url ? a.resource_url.split(/\r?\n/).map(u => u.trim()).filter(Boolean) : [];
-    const mediaHtml = links.map((url, idx) => {
+        const mediaHtml = links.map((url, idx) => {
       const yt = getYouTubeEmbed(url);
-                  if (yt) {
+      if (yt) {
         return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe></div></div>';
       }
-      return '<div style="margin:8px 0;"><a href="' + url + '" target="_blank" class="btn-outline" style="display:inline-block; text-decoration:none;">📖 Open Reading / Resource ' + (idx + 1) + '</a></div>';
+      const cleanHref = url.startsWith("pdf:") ? url.slice(4).trim() : url;
+      return '<div style="margin:8px 0;"><a href="' + cleanHref + '" target="_blank" class="btn-outline" style="display:inline-block; text-decoration:none;">📖 Open Reading / PDF Resource ' + (idx + 1) + '</a></div>';
     }).join("");
 
     const steps = ["Watch Video Lesson(s)", "Complete Reading & Real-World Activity", "Pass Interactive Quick Check", "Submit Written Reflection"];
