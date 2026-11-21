@@ -728,7 +728,8 @@ async function loadStudentDashboard(isPreview = false) {
     const pct = Math.round((doneCount / steps.length) * 100);
     const checklistHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin:10px 0;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><small><b id="prog-lbl-' + a.id + '">' + (pct === 100 ? "100% Complete! Ready to Submit 🏆" : pct + "% Mission Progress") + '</b></small></div><div style="background:#e2e8f0; height:8px; border-radius:99px; overflow:hidden; margin-bottom:8px;"><div id="prog-bar-' + a.id + '" style="background:#2563eb; width:' + pct + '%; height:100%; transition:width 0.3s;"></div></div>' + steps.map((st, i) => '<label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin:4px 0; cursor:pointer;"><input type="checkbox" class="step-cb-' + a.id + '" style="width:auto; margin:0;" ' + (savedSteps[i] ? "checked" : "") + ' onchange="toggleMissionStep(\'' + a.id + '\', ' + i + ')" /> <span>' + st + '</span></label>').join("") + '</div>';
 
-    const quizHtml = (currMod && currMod.quiz) ? '<div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px; border-radius:8px; margin:10px 0;"><small><b>⚡ Interactive Quick Check (Test Your Knowledge!)</b></small>' + currMod.quiz.map((qObj, qi) => '<div style="margin-top:8px;"><small><b>' + qObj.q + '</b></small><div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">' + qObj.options.map((opt, oi) => '<button type="button" class="btn-outline" style="text-align:left; font-size:12px; padding:6px 10px;" onclick="checkQuizAnswer(\'' + a.id + '\', ' + qi + ', ' + oi + ', ' + qObj.answer + ')">' + opt + '</button>').join("") + '</div><div id="quiz-res-' + a.id + '-' + qi + '" style="margin-top:4px; font-size:12px;"></div></div>').join("") + '</div>' : "";
+          return '<div class="item-card"><strong>' + a.subject + ' (' + a.course_level + '): ' + cleanTitle + '</strong><br><small class="muted">Due: ' + (a.due_date || "Flexible") + ' &bull; ' + a.credits + ' Credit &bull; Status: <b>' + (sub ? sub.status : "Assigned") + '</b></small>' + mediaHtml + '<div style="margin:8px 0; white-space:pre-line; line-height:1.5;">' + (a.description || "") + '</div>' + checklistHtml + quizHtml + fbHtml + '<label style="margin-top:8px;">Your Written Work / Answers</label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Type your answers, reflections, or problem solutions here...">' + (sub && sub.student_notes ? sub.student_notes : "") + '</textarea><label style="margin-top:6px;">📸 Attach Photo / Screenshot of Handwritten Work (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="margin-bottom:8px;" /><button class="btn-primary" onclick="submitWork(\'' + a.id + '\')">✅ Submit Work to Parent</button></div>';
+    }).join("") || "<p class='muted'>No assignments posted yet.</p>";
 
     const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:6px; border-radius:6px; margin-top:6px;"><small><b>Instructor Feedback:</b> ' + sub.parent_feedback + '</small></div>' : "";
 
@@ -741,33 +742,57 @@ async function loadStudentDashboard(isPreview = false) {
   }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
 }
 
+async function compressPhotoToDataUrl(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxW = 900;
+        const scale = img.width > maxW ? maxW / img.width : 1;
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function submitWork(assignment_id) {
   const notes = document.getElementById("subnote-" + assignment_id).value.trim();
-  const linkEl = document.getElementById("sublink-" + assignment_id);
-  const link = linkEl ? linkEl.value.trim() : "";
+  const photoInput = document.getElementById("subphoto-" + assignment_id);
+  let link = "";
+  if (photoInput && photoInput.files && photoInput.files[0]) {
+    link = await compressPhotoToDataUrl(photoInput.files[0]);
+  }
   try {
     const existing = await sbQuery("submissions", {
       query: `assignment_id=eq.${assignment_id}&student_id=eq.${currentUser.id}&select=*`,
       single: true
     });
+    const finalLink = link || (existing && existing.submission_link ? existing.submission_link : "");
     if (existing) {
       await sbQuery("submissions", {
         method: "PATCH",
         query: `id=eq.${existing.id}`,
-        body: { student_notes: notes, submission_link: link, status: "Submitted" }
+        body: { student_notes: notes, submission_link: finalLink, status: "Submitted" }
       });
     } else {
       await sbQuery("submissions", {
         method: "POST",
-        body: { assignment_id, student_id: currentUser.id, student_notes: notes, submission_link: link, status: "Submitted" }
+        body: { assignment_id, student_id: currentUser.id, student_notes: notes, submission_link: finalLink, status: "Submitted" }
       });
     }
-    alert("Work submitted to your instructor!");
-    await loadStudentDashboard();
+    await loadStudentDashboard(document.getElementById("previewBanner") && !document.getElementById("previewBanner").classList.contains("hidden"));
   } catch (err) {
     alert(err.message);
   }
 }
+
 
 window.addEventListener("DOMContentLoaded", async () => {
   const saved = localStorage.getItem("gph_session");
