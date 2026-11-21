@@ -613,7 +613,7 @@ function renderOfficialRecords() {
       '</div>' +
     '</div>';
 
-    const diplomaHtml =
+      const diplomaHtml =
     '<div style="font-family: Georgia, \'Times New Roman\', serif; color:#0f172a; background:#fffdf9; border:6px double #1e293b; padding:40px 32px; text-align:center; border-radius:4px; box-shadow:0 2px 10px rgba(0,0,0,0.06);">' +
       '<div style="border:1px solid #94a3b8; padding:28px 24px;">' +
         '<div style="font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#475569; margin-bottom:6px;">In Recognition of Academic Achievement</div>' +
@@ -632,7 +632,7 @@ function renderOfficialRecords() {
     '</div>';
 
   preview.innerHTML = transcriptHtml + diplomaHtml;
-}
+  {
 
 function getYouTubeEmbed(url) {
   const base = ["https://www.", "youtube-nocookie.com", "/embed/"].join("");
