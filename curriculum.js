@@ -285,4 +285,112 @@ const HONORS_CURRICULUM = [
   }
 );
 
+HONORS_CURRICULUM.push(
+  {
+    id: "elec-entrep-101",
+    subject: "Entrepreneurship & Remote Startup Lab",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Spotting Problems & The 60-Second Elevator Pitch",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts Problem-Solution Canvas, 30 pts 60-Second Pitch",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Y+Combinator+How+to+Pitch+Your+Startup"
+    ].join("\n"),
+    description: "Every great business starts with an annoying everyday problem—especially ones you notice while traveling!\n\n1. WATCH (10 mins): Watch the startup pitch breakdown above.\n\n2. PROBLEM HUNTER LAB (20 mins): Spot 3 real friction points travelers, expats, or digital-nomad families face (e.g., currency confusion, SIM cards, luggage storage, homeschool scheduling) and brainstorm one simple product or service to solve your favorite one.\n\n3. MISSION: Write a punchy 4-sentence 'Elevator Pitch' (Customer + Pain Point + Your Solution + Price) and submit it below!",
+    answer_key: "• Pitch Rubric: Clearly names target customer, specific problem, realistic solution, and clear pricing model.",
+    quiz: [
+      { q: "1. What is the #1 starting point for a successful startup?", options: ["Buying an expensive logo first", "Solving a real, painful problem for a specific group of people", "Renting a fancy office"], answer: 1 },
+      { q: "2. What is a Minimum Viable Product (MVP)?", options: ["The simplest working version of your idea used to test real customer interest", "A championship trophy", "A 100-page business plan"], answer: 0 },
+      { q: "3. How long should a sharp elevator pitch take?", options: ["30 to 60 seconds", "25 minutes", "2 hours"], answer: 0 }
+    ]
+  },
+  {
+    id: "elec-marine-101",
+    subject: "Marine Biology & Ocean Conservation",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Coral Reef Symbiosis & Coastal Ecosystem Field Log",
+    grading_scale: "100 pts — 30 pts Quick Check, 40 pts Symbiosis Breakdown, 30 pts Coastal Field Log",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=National+Geographic+Coral+Reefs+101"
+    ].join("\n"),
+    description: "Coral reefs cover less than 1% of the ocean floor yet shelter 25% of all marine species—thanks to an amazing microscopic roommate partnership!\n\n1. WATCH (10 mins): Watch National Geographic's Coral Reefs 101 above.\n\n2. SYMBIOSIS CHECK: Explain how coral polyps and tiny algae (zooxanthellae) help each other survive—and what causes 'coral bleaching' when ocean water gets too warm.\n\n3. MISSION: Complete a Coastal / Water Field Log (either at a local beach, tide pool, fish market, or researching a reef near your travel region) listing 3 marine organisms and their role in the food web.",
+    answer_key: "• Symbiosis Key: Zooxanthellae algae live inside coral tissue, photosynthesizing food/oxygen for the coral while the coral provides shelter and CO2; heat stress expels the algae, causing bleaching.",
+    quiz: [
+      { q: "1. What percentage of marine species depend on coral reefs?", options: ["Less than 1%", "About 25%", "95%"], answer: 1 },
+      { q: "2. What causes coral bleaching?", options: ["Warming ocean temperatures causing coral to expel its symbiotic algae", "Too many fish swimming nearby", "Moonlight at night"], answer: 0 },
+      { q: "3. Are corals classified as plants, rocks, or animals?", options: ["Rocks", "Animals (related to jellyfish and sea anemones)", "Seaweed plants"], answer: 1 }
+    ]
+  },
+  {
+    id: "elec-culinary-101",
+    subject: "World Culinary Arts & Food Science",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: The 5 Flavor Elements & Kitchen Chemistry Lab",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts Balanced Dish & Flavor Audit",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Salt+Fat+Acid+Heat+Netflix+Trailer+Science+of+Cooking"
+    ].join("\n"),
+    description: "Great chefs don't just follow recipes—they balance Salt, Fat, Acid, Heat, and Umami! Whether you're in a Thai night market or a tiny apartment kitchen, mastering flavor balance lets you cook with whatever ingredients you find.\n\n1. WATCH (10 mins): Watch the Salt, Fat, Acid, Heat breakdown above.\n\n2. TASTE TEST LAB (20 mins): Prepare or taste a local dish today and identify all 5 elements: Salt (enhances flavor), Fat (carries aroma/richness), Acid (lime/vinegar brightens heavy food), Sweet, and Umami (savory depth).\n\n3. MISSION: Write a mini Chef's Field Report describing how adding a squeeze of lime/lemon or pinch of salt transformed a dish you ate or cooked today!",
+    answer_key: "• Culinary Science: Salt amplifies flavor receptors; acid (citrus/vinegar) cuts richness and brightens flat flavors; fat carries fat-soluble aromatics.",
+    quiz: [
+      { q: "1. What does adding an 'acid' like fresh lime juice or vinegar do to a rich dish?", options: ["Makes it heavier", "Brightens flavors and balances richness/fat", "Removes all saltiness"], answer: 1 },
+      { q: "2. Which fifth basic taste describes savory depth found in mushrooms, soy sauce, and aged cheese?", options: ["Bitter", "Umami", "Sour"], answer: 1 },
+      { q: "3. Why is heat control critical when searing food?", options: ["It triggers the Maillard reaction, browning proteins and sugars for deep flavor", "It freezes water molecules", "It removes vitamins"], answer: 0 }
+    ]
+  },
+  {
+    id: "elec-psych-101",
+    subject: "Psychology & Human Behavior",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: How Memory Works & The Habit Loop",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts Habit Rewire Experiment",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=Crash+Course+Psychology+13+How+We+Make+Memories"
+    ].join("\n"),
+    description: "Why can you remember the lyrics to a song from three years ago yet forget what you walked into the kitchen for 5 seconds ago? Welcome to cognitive psychology!\n\n1. WATCH (12 mins): Watch Crash Course Psychology: How We Make Memories above.\n\n2. THE HABIT LOOP (Cue → Craving → Response → Reward): Pick one habit you want to build while traveling (e.g., 15 minutes of daily language practice or sketching) and design an obvious Cue + immediate Reward.\n\n3. MISSION: Explain the difference between Working Memory and Long-Term Memory, and outline your 4-step Habit Loop plan below.",
+    answer_key: "• Memory Check: Working memory holds ~7 items briefly (~20–30 sec); spaced repetition and active recall encode information into Long-Term Memory.",
+    quiz: [
+      { q: "1. Which study technique moves information into Long-Term Memory most effectively?", options: ["Re-reading a page passively 5 times", "Active recall (testing yourself) and spaced repetition", "Studying once at 2:00 AM"], answer: 1 },
+      { q: "2. What are the 4 parts of a Habit Loop?", options: ["Cue, Craving, Response, Reward", "Sleep, Eat, Walk, Read", "Start, Middle, Pause, End"], answer: 0 },
+      { q: "3. Approximately how many items can human Working Memory hold at one time?", options: ["About 5 to 9 items (7 ± 2)", "500 items", "1 item"], answer: 0 }
+    ]
+  },
+  {
+    id: "elec-speech-101",
+    subject: "Public Speaking, Rhetoric & Debate",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Aristotle's 3 Pillars (Ethos, Pathos, Logos) & 2-Min Talk",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts Persuasive Mini-Speech",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=TED+Ed+Ethos+Pathos+Logos+Aristotle"
+    ].join("\n"),
+    description: "2,300 years ago, Aristotle cracked the code on why some speeches move crowds while others put people to sleep: Ethos (credibility), Pathos (emotion/story), and Logos (logic/data).\n\n1. WATCH (8 mins): Watch TED-Ed's Ethos, Pathos, Logos video above.\n\n2. SPEECH CHALLENGE (20 mins): Write and deliver a 2-minute persuasive mini-speech to your family arguing which country or city your family should visit next—using 1 Ethos point, 1 Pathos story, and 1 Logos fact/budget stat.\n\n3. MISSION: Paste your 3-part speech outline below!",
+    answer_key: "• Rhetoric Rubric: Ethos = trustworthy source/experience; Pathos = vivid emotional appeal/story; Logos = logical reason, cost comparison, or fact.",
+    quiz: [
+      { q: "1. Which rhetorical appeal uses facts, statistics, and logical reasoning?", options: ["Pathos", "Logos", "Ethos"], answer: 1 },
+      { q: "2. Which appeal connects with the audience's emotions through storytelling?", options: ["Pathos", "Logos", "Ethos"], answer: 0 },
+      { q: "3. What does 'Ethos' establish for a speaker?", options: ["Credibility and trustworthiness", "Background music", "Slide font size"], answer: 0 }
+    ]
+  },
+  {
+    id: "elec-design-101",
+    subject: "Digital Graphic Design & Brand Identity",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Typography, Color Psychology & Travel Brand Board",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts Brand Identity Concept",
+    resource_url: [
+      "https://" + "://youtube.com" + "results?search_query=GCFLearnFree+Beginning+Graphic+Design+Typography"
+    ].join("\n"),
+
 
