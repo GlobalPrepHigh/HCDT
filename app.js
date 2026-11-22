@@ -146,8 +146,8 @@ async function updateParentCredentials(mode) {
     const raw = document.getElementById("newParentLogin").value.trim().toLowerCase();
     if (!raw) return alert("Enter a new short User ID or email address.");
     payload.email = raw.includes("@") ? raw : raw.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.local";
-  } else {
-
+    } else {
+    const pw = document.getElementById("newParentPassword").value;
     if (!pw || pw.length < 6) return alert("Password must be at least 6 characters.");
     payload.password = pw;
   }
