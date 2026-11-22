@@ -439,16 +439,6 @@ async function enrollSelectedCourses() {
   }
 }
 
-
-    }
-    document.getElementById("assignLocation").value = "";
-    await refreshFamilyData();
-    alert("Enrolled in " + freshModules.length + " lesson(s) across Auto-Core, " + chosenLang + ", and " + pickedElectives.length + " elective(s)!");
-  } catch (err) {
-    alert(err.message);
-  }
-}
-
 async function assignExtraPractice() {
   const student_id = document.getElementById("assignStudentSelect").value;
   const subject = document.getElementById("extraSubject").value.trim();
