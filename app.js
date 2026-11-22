@@ -77,10 +77,11 @@ async function handleParentAuth() {
   const errEl = document.getElementById("authError");
   const btn = document.getElementById("parentSubmitBtn");
   errEl.innerText = "";
-  const email = document.getElementById("parentEmail").value.trim();
+    const rawLogin = document.getElementById("parentEmail").value.trim().toLowerCase();
   const password = document.getElementById("parentPassword").value;
 
-  if (!email || !password) return (errEl.innerText = "Please enter email and password.");
+  if (!rawLogin || !password) return (errEl.innerText = "Please enter your email or User ID and password.");
+  const email = rawLogin.includes("@") ? rawLogin : rawLogin.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.local";
 
   try {
     btn.disabled = true;
