@@ -1,4 +1,4 @@
-const HONORS_CURRICULUM = [
+ var HONORS_CURRICULUM = [
   {
     id: "eng-hon-w1d1",
     subject: "Honors English Literature",
