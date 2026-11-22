@@ -391,44 +391,61 @@ function populateCurriculumDropdown() {
 }
 
 async function enrollSelectedCourses() {
+  const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
+  if (!catalog.length) return alert("Course catalog is empty—please refresh the page once.");
+
   const student_id = document.getElementById("assignStudentSelect").value;
   const quarter = document.getElementById("assignQuarter").value;
-  const travel_location = document.getElementById("assignLocation").value.trim();
-  const chosenLang = document.getElementById("assignLanguageSelect").value;
-  const pickedElectives = Array.from(document.querySelectorAll(".course-pick-cb:checked")).map(cb => cb.value);
+  const langSubject = document.getElementById("assignLanguageSelect").value;
+  const loc = document.getElementById("assignLocation").value.trim();
+  const pickedElectives = Array.from(document.querySelectorAll(".elec-cb:checked")).map(cb => cb.value);
 
   if (!student_id) return alert("Please add or select a student first.");
-    if (!pickedElectives.length) return alert("Please select at least 1 required elective before enrolling.");
-  if (typeof HONORS_CURRICULUM === "undefined") return alert("Curriculum file is still loading—check curriculum.js.");
+  if (!pickedElectives.length) return alert("Please select at least 1 required elective before enrolling.");
 
-  const autoCore = ["Honors English Literature", "Honors Algebra I", "Honors Biology", "Honors World History"];
-  const allSubjects = [...autoCore, chosenLang, ...pickedElectives];
+  const stu = (studentsCache || []).find(s => s.id === student_id);
+  const g = stu ? String(stu.grade_level) : "9th";
+  const mathSubject = g.startsWith("10") ? "Honors Geometry" : (g.startsWith("11") || g.startsWith("12") ? "Honors Algebra II" : "Honors Algebra I");
 
-  const modulesToEnroll = HONORS_CURRICULUM.filter(m => allSubjects.includes(m.subject));
-  const alreadyTitles = new Set(assignmentsCache.filter(a => a.student_id === student_id).map(a => a.title));
-  const freshModules = modulesToEnroll.filter(m => !alreadyTitles.has('[' + m.id + '] ' + m.title));
+  const coreSubjects = ["Honors English Literature", mathSubject, "Honors Biology", "Honors World History"];
+  const targetSubjects = [...coreSubjects, langSubject, ...pickedElectives];
+  const coursesToEnroll = catalog.filter(c => targetSubjects.includes(c.subject));
 
-  if (!freshModules.length) return alert("All selected courses are already enrolled for this student!");
+  if (!coursesToEnroll.length) return alert("No matching courses found in catalog.");
 
   try {
-    for (const mod of freshModules) {
+    for (const course of coursesToEnroll) {
+      const m = Array.isArray(course.modules) ? course.modules[0] : course;
+      const titleText = loc ? `[${quarter} • ${loc}] ${m.title}` : `[${quarter}] ${m.title}`;
       await sbQuery("assignments", {
         method: "POST",
         body: {
           family_id: currentFamily.id,
           student_id,
-          subject: mod.subject,
-          course_level: mod.course_level,
-          quarter,
-          credits: mod.credits,
-          grading_scale: mod.grading_scale,
-          title: '[' + mod.id + '] ' + mod.title,
-          resource_url: mod.resource_url,
-          description: mod.description,
-          answer_key: mod.answer_key,
-          travel_location
+          subject: course.subject,
+          course_level: course.course_level || "Honors",
+          credits: course.credits || 1.0,
+          title: titleText,
+          description: m.description || "",
+          resource_url: m.resource_url || ""
         }
       });
+    }
+    alert(`Enrolled ${stu ? stu.full_name : "student"} in ${coursesToEnroll.length} Honors courses!`);
+    await refreshFamilyData();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+    }
+    alert(`Enrolled ${stu ? stu.full_name : "student"} in ${coursesToEnroll.length} Honors courses (${coreSubjects.length} Core + ${langSubject} + ${pickedElectives.length} Elective${pickedElectives.length > 1 ? "s" : ""})!`);
+    await loadParentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
     }
     document.getElementById("assignLocation").value = "";
     await refreshFamilyData();
@@ -527,6 +544,68 @@ async function saveGrade(assignment_id, student_id) {
 }
 
 async function addAchievement() {
+  async function deleteAchievement(id) {
+  if (!confirm("Remove this certification/milestone from the student's record?")) return;
+  try {
+    await sbQuery("achievements", { method: "DELETE", query: `id=eq.${id}` });
+    await loadParentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function editAchievement(id, oldTitle, oldLoc, oldMetric) {
+  const title = prompt("Edit Title / Credential:", oldTitle);
+  if (title === null) return;
+  const location = prompt("Edit Location / Organization:", oldLoc || "");
+  if (location === null) return;
+  const metric = prompt("Edit Hours / Cert # / Metric:", oldMetric || "");
+  if (metric === null) return;
+  try {
+    await sbQuery("achievements", {
+      method: "PATCH",
+      query: `id=eq.${id}`,
+      body: { title: title.trim() || oldTitle, location: location.trim(), metric: metric.trim() }
+    });
+    await loadParentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function deleteCourseAssignment(id) {
+  if (!confirm("Remove this course from the student's transcript and active schedule?")) return;
+  try {
+    await sbQuery("assignments", { method: "DELETE", query: `id=eq.${id}` });
+    await loadParentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function editCourseAssignment(id, oldSubject, oldLevel, oldCredits) {
+  const subject = prompt("Edit Course Name:", oldSubject);
+  if (subject === null) return;
+  const course_level = prompt("Edit Level (Honors, Regular, or AP):", oldLevel || "Honors");
+  if (course_level === null) return;
+  const creditsStr = prompt("Edit Credit Value (e.g., 1.0 or 0.5):", String(oldCredits || 1.0));
+  if (creditsStr === null) return;
+  try {
+    await sbQuery("assignments", {
+      method: "PATCH",
+      query: `id=eq.${id}`,
+      body: {
+        subject: subject.trim() || oldSubject,
+        course_level: course_level.trim() || oldLevel,
+        credits: parseFloat(creditsStr) || oldCredits
+      }
+    });
+    await loadParentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
   const student_id = document.getElementById("achStudentSelect").value;
   const type = document.getElementById("achType").value;
   const title = document.getElementById("achTitle").value.trim();
@@ -561,11 +640,87 @@ function renderAchievements() {
   const container = document.getElementById("parentAchievementList");
   container.innerHTML = achievementsCache.map(ac => {
     const stu = studentsCache.find(s => s.id === ac.student_id);
-    const loc = ac.location ? " • 📍 " + ac.location : "";
-    const met = ac.metric ? " • " + ac.metric : "";
-    return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (stu ? stu.full_name : "") + loc + met + '</small></div>';
+    const loc = ac.location ? " &bull; 📍 " + ac.location : "";
+    const met = ac.metric ? " &bull; " + ac.metric : "";
+    const safeTitle = (ac.title || "").replace(/'/g, "\\'");
+    const safeLoc = (ac.location || "").replace(/'/g, "\\'");
+    const safeMet = (ac.metric || "").replace(/'/g, "\\'");
+    return '<div class="item-card" style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;"><div><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (stu ? stu.full_name : "Student") + loc + met + '</small></div><div style="display:flex; gap:6px; flex-shrink:0;"><button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:4px 8px; font-size:12px;" onclick="editAchievement(\'' + ac.id + '\',\'' + safeTitle + '\',\'' + safeLoc + '\',\'' + safeMet + '\')">✏️ Edit</button><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:4px 8px; font-size:12px;" onclick="deleteAchievement(\'' + ac.id + '\')">🗑️ Remove</button></div></div>';
   }).join("") || "<p class='muted'>No travel study, certifications, or service logged yet.</p>";
 }
+
+async function deleteAchievement(id) {
+  if (!confirm("Remove this certification/milestone from the student's record?")) return;
+  try {
+    await sbQuery("achievements", { method: "DELETE", query: `id=eq.${id}` });
+    await refreshFamilyData();
+    renderOfficialRecords();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function editAchievement(id, oldTitle, oldLoc, oldMetric) {
+  const title = prompt("Edit Title / Credential:", oldTitle);
+  if (title === null) return;
+  const location = prompt("Edit Location / Organization:", oldLoc || "");
+  if (location === null) return;
+  const metric = prompt("Edit Hours / Cert # / Metric:", oldMetric || "");
+  if (metric === null) return;
+  try {
+    await sbQuery("achievements", {
+      method: "PATCH",
+      query: `id=eq.${id}`,
+      body: { title: title.trim() || oldTitle, location: location.trim(), metric: metric.trim() }
+    });
+    await refreshFamilyData();
+    renderOfficialRecords();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function deleteTranscriptCourse(studentId, subject, level) {
+  if (!confirm(`Remove "${subject} (${level})" from this student's transcript and active schedule?`)) return;
+  try {
+    const matches = assignmentsCache.filter(a => a.student_id === studentId && a.subject === subject && a.course_level === level);
+    for (const m of matches) {
+      await sbQuery("assignments", { method: "DELETE", query: `id=eq.${m.id}` });
+    }
+    await refreshFamilyData();
+    renderOfficialRecords();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function editTranscriptCourse(studentId, oldSubject, oldLevel, oldCredits) {
+  const subject = prompt("Edit Course Name:", oldSubject);
+  if (subject === null) return;
+  const course_level = prompt("Edit Course Level (Honors, Regular, or AP):", oldLevel || "Honors");
+  if (course_level === null) return;
+  const creditsStr = prompt("Edit Credit Value (e.g., 1.0 or 0.5):", String(oldCredits || 1.0));
+  if (creditsStr === null) return;
+  try {
+    const matches = assignmentsCache.filter(a => a.student_id === studentId && a.subject === oldSubject && a.course_level === oldLevel);
+    for (const m of matches) {
+      await sbQuery("assignments", {
+        method: "PATCH",
+        query: `id=eq.${m.id}`,
+        body: {
+          subject: subject.trim() || oldSubject,
+          course_level: course_level.trim() || oldLevel,
+          credits: parseFloat(creditsStr) || oldCredits
+        }
+      });
+    }
+    await refreshFamilyData();
+    renderOfficialRecords();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 
 function parseGradePercent(g) {
   if (!g) return null;
@@ -634,9 +789,13 @@ function renderOfficialRecords() {
       weightedPoints += (pts + boost) * c.credits;
       gradeDisplay = letter + " (" + avgPct.toFixed(0) + "%)";
       crEarned = c.credits.toFixed(2);
-    }
-    return '<tr><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.quarter + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; font-weight:600;">' + c.subject + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.course_level + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center;">' + c.credits.toFixed(2) + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center;">' + crEarned + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center; font-weight:700;">' + gradeDisplay + '</td></tr>';
+       }
+    const safeSub = (c.subject || "").replace(/'/g, "\\'");
+    const safeLvl = (c.course_level || "Honors").replace(/'/g, "\\'");
+    const actionBtns = '<span class="no-print" style="margin-left:8px; display:inline-flex; gap:4px;"><button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:2px 6px; font-size:11px;" onclick="editTranscriptCourse(\'' + stu.id + '\',\'' + safeSub + '\',\'' + safeLvl + '\',' + c.credits + ')">✏️</button><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:2px 6px; font-size:11px;" onclick="deleteTranscriptCourse(\'' + stu.id + '\',\'' + safeSub + '\',\'' + safeLvl + '\')">🗑️</button></span>';
+    return '<tr><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.quarter + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.subject + actionBtns + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.course_level + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + gradeDisplay + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + crEarned + '</td></tr>';
   }).join("");
+
 
   const weightedGpa = totalCredits > 0 ? (weightedPoints / totalCredits).toFixed(2) : "N/A";
   const unweightedGpa = totalCredits > 0 ? (unweightedPoints / totalCredits).toFixed(2) : "N/A";
