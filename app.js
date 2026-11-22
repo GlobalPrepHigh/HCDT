@@ -398,7 +398,8 @@ async function enrollSelectedCourses() {
   const quarter = document.getElementById("assignQuarter").value;
   const langSubject = document.getElementById("assignLanguageSelect").value;
   const loc = document.getElementById("assignLocation").value.trim();
-  const pickedElectives = Array.from(document.querySelectorAll(".elec-cb:checked")).map(cb => cb.value);
+    const pickedElectives = Array.from(document.querySelectorAll(".course-pick-cb:checked")).map(cb => cb.value);
+
 
   if (!student_id) return alert("Please add or select a student first.");
   if (!pickedElectives.length) return alert("Please select at least 1 required elective before enrolling.");
@@ -438,13 +439,6 @@ async function enrollSelectedCourses() {
   }
 }
 
-    }
-    alert(`Enrolled ${stu ? stu.full_name : "student"} in ${coursesToEnroll.length} Honors courses (${coreSubjects.length} Core + ${langSubject} + ${pickedElectives.length} Elective${pickedElectives.length > 1 ? "s" : ""})!`);
-    await loadParentDashboard();
-  } catch (err) {
-    alert(err.message);
-  }
-}
 
     }
     document.getElementById("assignLocation").value = "";
