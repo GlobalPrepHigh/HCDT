@@ -15,8 +15,11 @@
         <small>College-Prep Worldschooling & Transcript Portal</small>
       </div>
     </div>
-    <button id="logoutBtn" class="btn-outline hidden" onclick="logout()">Sign Out</button>
-  </header>
+       <div style="display:flex; gap:8px; align-items:center;">
+        <button id="accountSettingsBtn" class="btn-outline hidden" onclick="toggleAccountModal(true)">👤 Account Settings</button>
+        <button id="logoutBtn" class="btn-outline hidden" onclick="logout()">Sign Out</button>
+      </div>
+    </header>
 
   <main class="container">
     <section id="authSection" class="card auth-card">
@@ -115,23 +118,6 @@
           <div class="row-2"><label>Q4 Start <input type="date" id="q4s"></label><label>Q4 End <input type="date" id="q4e"></label></
                       <button class="btn-primary" onclick="saveQuarters()">Save Quarter Dates</button>
         </div>
-        <div class="card" style="grid-column: 1 / -1;">
-          <h3>🔐 Account &amp; Login Settings (Switch to Short User ID or Change Password)</h3>
-          <p class="muted" style="margin-bottom:10px;">Replace a long email with a short User ID (like <code>smithfamily</code>) or update your password anytime.</p>
-          <div class="row-2">
-            <div>
-              <label>New Short User ID or Email</label>
-              <input type="text" id="newParentLogin" placeholder="e.g., smithfamily or new@email.com" />
-              <button type="button" class="btn-outline" style="color:#1e293b; margin-top:6px;" onclick="updateParentCredentials('login')">Update Login ID / Email</button>
-            </div>
-            <div>
-              <label>New Password (Min 6 Characters)</label>
-              <input type="password" id="newParentPassword" placeholder="••••••••" />
-              <button type="button" class="btn-outline" style="color:#1e293b; margin-top:6px;" onclick="updateParentCredentials('password')">Update Password</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
 
                     <div id="pView-assignments" class="p-view hidden">
@@ -311,7 +297,7 @@
   </main>
 
   <script src="curriculum.js?v=23"></script>
-  <script src="app.js?v=40"></script>
+  <script src="app.js?v=41"></script>
 
 </body>
 </html>
