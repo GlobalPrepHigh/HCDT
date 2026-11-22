@@ -118,10 +118,9 @@
       </div>
 
             
-              <div id="pView-assignments" class="p-view hidden">
+                    <div id="pView-assignments" class="p-view hidden">
         <div class="card" style="margin-bottom:16px;">
-          <h3>🧭 Family Course &amp; Elective Builder (1-Click Term Enrollment)</h3>
-          <p class="muted" style="margin-bottom:12px;">Sit down together, check the Core Honors subjects, World Language, and Electives your teen wants to take, and enroll once—lessons unlock automatically day by day!</p>
+          <h3>🧭 Student Course Enrollment (Auto-Core + Language + Electives)</h3>
           <div class="row-2">
             <div>
               <label>Select Student</label>
@@ -137,16 +136,32 @@
               </select>
             </div>
           </div>
-          <label style="margin-top:8px;">Travel / Study Location Tag (Optional)</label>
-          <input type="text" id="assignLocation" placeholder="e.g., Cha-am / Bangkok Study" />
 
-          <div id="courseCatalogChecklist" style="margin:14px 0; max-height:360px; overflow-y:auto; padding:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px;"></div>
-
-          <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-            <button type="button" class="btn-primary" style="width:auto;" onclick="enrollSelectedCourses()">⚡ Enroll Student in Checked Courses</button>
-            <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="toggleAllCourseChecks(true)">Select All</button>
-            <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="toggleAllCourseChecks(false)">Clear All</button>
+          <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px 12px; border-radius:8px; margin:12px 0;">
+            <strong style="color:#1e3a8a;">📘 Automatic Core Honors Sequence (Included Automatically):</strong>
+            <p class="muted" style="margin:4px 0 0 0;">Honors English Literature &bull; Math Sequence (Algebra I &rarr; Geometry &rarr; Algebra II) &bull; Honors Biology &bull; Honors World History</p>
           </div>
+
+          <div class="row-2">
+            <div>
+              <label>🌍 Required World Language (Immersion Track)</label>
+              <select id="assignLanguageSelect">
+                <option value="Honors Mandarin Chinese I">Honors Mandarin Chinese I (Visual &amp; Audio Immersion)</option>
+                <option value="Honors Hindi I">Honors Hindi I (Visual &amp; Audio Immersion)</option>
+                <option value="Honors Spanish I">Honors Spanish I (Visual &amp; Audio Immersion)</option>
+                <option value="Honors French I">Honors French I (Visual &amp; Audio Immersion)</option>
+              </select>
+            </div>
+            <div>
+              <label>Travel / Study Location Tag (Optional)</label>
+              <input type="text" id="assignLocation" placeholder="e.g., Cha-am / Bangkok Study" />
+            </div>
+          </div>
+
+          <label style="margin-top:10px;">🚀 Choose Family Electives (Optional — Check 1 or More)</label>
+          <div id="electiveChecklist" style="margin:6px 0 14px 0; max-height:240px; overflow-y:auto; padding:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px;"></div>
+
+          <button type="button" class="btn-primary" style="width:auto;" onclick="enrollSelectedCourses()">⚡ Enroll Student (Auto-Core + Language + Checked Electives)</button>
         </div>
 
         <div class="grid-2">
@@ -279,6 +294,6 @@
   </main>
 
       <script src="curriculum.js?v=18"></script>
-  <script src="app.js?v=29"></script>
+  <script src="app.js?v=30"></script>
 </body>
 </html>
