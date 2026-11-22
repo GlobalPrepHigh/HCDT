@@ -393,4 +393,53 @@ HONORS_CURRICULUM.push(
       "https://" + "://youtube.com" + "results?search_query=GCFLearnFree+Beginning+Graphic+Design+Typography"
     ].join("\n"),
 
+        description: "Notice how luxury hotels use clean serif fonts while tech startups use bold sans-serif fonts? Typography and color send instant subconscious signals before anyone reads a single word!\n\n1. WATCH (10 mins): Watch Beginning Graphic Design: Typography above.\n\n2. BRAND LAB (20 mins): Invent a travel cafe, surf school, or digital magazine. Choose a 3-color palette (Primary, Accent, Neutral) with hex codes and pair one Display font with one clean Body font.\n\n3. MISSION: Describe your brand concept, font pairing, and why you chose those colors.",
+    answer_key: "• Design Rubric: Shows clear visual hierarchy (contrasting header vs. readable body font) and intentional color psychology.",
+    quiz: [
+      { q: "1. What is the visual difference between a Serif and Sans-Serif font?", options: ["Serif fonts have small decorative 'feet' on letter strokes; Sans-Serif fonts have clean straight edges", "Sans-Serif fonts are always italic", "Serif fonts are only used for numbers"], answer: 0 },
+      { q: "2. Why do designers limit most brand palettes to 2–3 core colors?", options: ["To maintain visual harmony, hierarchy, and instant brand recognition", "Computers only support 3 colors", "More colors cost extra to display"], answer: 0 },
+      { q: "3. What is 'White Space' (Negative Space) in graphic design?", options: ["Empty breathing room around text and elements that improves readability", "A printing error", "The color of the border"], answer: 0 }
+    ]
+  },
+  {
+    id: "elec-health-101",
+    subject: "Health, Nutrition & Travel First Aid",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Hydration Science, Electrolytes & Heat-Safety Readiness",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts Travel First-Aid & Hydration Audit",
+    resource_url: [
+      "https://youtube.com"
+    ].join("\n"),
+    description: "Exploring warm coastal climates, hiking trails, and long flights puts extra demand on your body's fluid and electrolyte balance—knowing how to prevent dehydration and heat exhaustion is a must-have traveler skill!\n\n1. WATCH (8 mins): Watch TED-Ed's Hydration video above.\n\n2. TRAVEL SAFETY AUDIT (15 mins): Check your daypack first-aid kit and list 5 essential items for tropical/active travel (e.g., oral rehydration salts, antiseptic wipes, bandages, sunscreen, tweezers) and how to recognize early heat exhaustion vs. heat stroke.\n\n3. MISSION: Submit your hydration plan and 5-item daypack safety checklist below!",
+    answer_key: "• Safety Check: Early heat exhaustion = heavy sweating, dizziness, nausea, cool/clammy skin (move to shade, cool with water, sip electrolytes); Heat stroke = confusion, hot/dry or flushed skin, body temp >104°F (medical emergency).",
+    quiz: [
+      { q: "1. Why do electrolytes (sodium, potassium) matter alongside water in hot climates?", options: ["They help cells absorb water and maintain nerve/muscle function lost through sweat", "They add artificial coloring", "They replace sleep"], answer: 0 },
+      { q: "2. What is the first action to take if someone shows signs of heat exhaustion?", options: ["Have them run faster to sweat it out", "Move to shade/AC, loosen tight clothing, cool skin with wet cloths, and sip fluids", "Give them hot coffee"], answer: 1 },
+      { q: "3. Approximately what percentage of the adult human body is water?", options: ["About 55–60%", "10%", "95%"], answer: 0 }
+    ]
+  },
+  {
+    id: "elec-arch-101",
+    subject: "Architecture & Global Urban Design",
+    course_level: "Honors",
+    quarter: "Q1",
+    credits: 0.5,
+    title: "W1D1: Climate-Smart Architecture & Local Building Safari",
+    grading_scale: "100 pts — 30 pts Quick Check, 70 pts Local Architecture Field Analysis",
+    resource_url: [
+      "https://youtube.com"
+    ].join("\n"),
+    description: "Before air conditioning existed, architects designed steep roofs for monsoon rain, breezy stilted houses, thick adobe walls for deserts, and shaded courtyards—form always follows climate!\n\n1. WATCH (8 mins): Watch the climate-smart architecture video above.\n\n2. NEIGHBORHOOD BUILDING SAFARI (20 mins): Step outside (or look out your window) and examine one local building. Spot 3 design features built specifically for the local weather/climate (roof pitch, overhangs, shade screens, elevated floors, cross-ventilation windows).\n\n3. MISSION: Describe the building you observed and explain how its 3 architectural features solve local climate challenges!",
+    answer_key: "• Architecture Rubric: Accurately connects physical building features (e.g., wide eaves, high ceilings, stilts, thermal mass) to heat, rain, wind, or humidity.",
+    quiz: [
+      { q: "1. Why do traditional tropical buildings often feature steep roofs and wide overhangs?", options: ["To shed heavy monsoon rain rapidly and shade walls from intense overhead sun", "To trap snow", "To block ocean breezes"], answer: 0 },
+      { q: "2. What is 'Passive Cooling' in architecture?", options: ["Using airflow, shade, orientation, and materials to cool a building naturally without electricity", "Running two air conditioners at once", "Painting walls black"], answer: 0 },
+      { q: "3. What does the famous architectural rule 'Form follows function' mean?", options: ["A building's shape and design should be driven by its practical purpose and environment", "Every building must look identical", "Decoration is more important than structure"], answer: 0 }
+    ]
+  }
+);
+
+
 
