@@ -310,48 +310,87 @@ async function saveQuarters() {
 }
 
 function populateCurriculumDropdown() {
-  const sel = document.getElementById("curriculumSelect");
-  if (!sel || typeof HONORS_CURRICULUM === "undefined") return;
-  sel.innerHTML = HONORS_CURRICULUM.map(m => '<option value="' + m.id + '">' + m.subject + ' — ' + m.title + '</option>').join("");
+  const box = document.getElementById("courseCatalogChecklist");
+  if (!box || typeof HONORS_CURRICULUM === "undefined") return;
+
+  const grouped = {};
+  HONORS_CURRICULUM.forEach(m => {
+    if (!grouped[m.subject]) grouped[m.subject] = [];
+    grouped[m.subject].push(m);
+  });
+
+  const subjects = Object.keys(grouped);
+  const core = subjects.filter(s => ["Honors English Literature", "Honors Algebra I", "Honors Biology", "Honors World History"].includes(s));
+  const langs = subjects.filter(s => s.startsWith("Honors Mandarin") || s.startsWith("Honors Hindi") || s.startsWith("Honors Spanish") || s.startsWith("Honors French"));
+  const electives = subjects.filter(s => !core.includes(s) && !langs.includes(s));
+
+  const renderGroup = (label, list, defaultChecked) => {
+    if (!list.length) return "";
+    return '<div style="margin-bottom:12px;"><strong style="display:block; margin-bottom:6px; color:#1e3a8a;">' + label + '</strong>' +
+      list.map(subj => {
+        const mods = grouped[subj];
+        const cr = mods[0].credits || 1.0;
+        return '<label style="display:flex; align-items:center; gap:8px; padding:6px 8px; background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:4px; cursor:pointer;">' +
+          '<input type="checkbox" class="course-pick-cb" value="' + subj + '" ' + (defaultChecked ? "checked" : "") + ' style="width:auto; margin:0;" />' +
+          '<span style="flex:1; font-weight:600;">' + subj + '</span>' +
+          '<small class="muted">' + cr + ' Cr &bull; ' + mods.length + ' Lesson' + (mods.length > 1 ? 's' : '') + ' Ready</small>' +
+          '</label>';
+      }).join("") + '</div>';
+  };
+
+  box.innerHTML =
+    renderGroup("📘 Core 9th Grade Honors (Recommended)", core, true) +
+    renderGroup("🌍 Top Global Languages (Choose 1–2)", langs, false) +
+    renderGroup("🚀 Travel, STEM & Creative Electives (Family Choice)", electives, false);
 }
 
-async function assignHonorsModule() {
+function toggleAllCourseChecks(state) {
+  document.querySelectorAll(".course-pick-cb").forEach(cb => cb.checked = state);
+}
+
+async function enrollSelectedCourses() {
   const student_id = document.getElementById("assignStudentSelect").value;
-  const modId = document.getElementById("curriculumSelect").value;
-  const due_date = document.getElementById("assignDueDate").value || null;
   const quarter = document.getElementById("assignQuarter").value;
   const travel_location = document.getElementById("assignLocation").value.trim();
+  const pickedSubjects = Array.from(document.querySelectorAll(".course-pick-cb:checked")).map(cb => cb.value);
 
-  if (!student_id) return alert("Please add/select a student first.");
-  const mod = HONORS_CURRICULUM.find(m => m.id === modId);
-  if (!mod) return alert("Select a curriculum module.");
+  if (!student_id) return alert("Please add or select a student first.");
+  if (!pickedSubjects.length) return alert("Check at least one course or elective above!");
+
+  const modulesToEnroll = HONORS_CURRICULUM.filter(m => pickedSubjects.includes(m.subject));
+  const alreadyIds = new Set(assignmentsCache.filter(a => a.student_id === student_id).map(a => a.title));
+  const freshModules = modulesToEnroll.filter(m => !alreadyIds.has('[' + m.id + '] ' + m.title));
+
+  if (!freshModules.length) return alert("All selected courses are already enrolled for this student!");
 
   try {
-    await sbQuery("assignments", {
-      method: "POST",
-      body: {
-        family_id: currentFamily.id,
-        student_id,
-        subject: mod.subject,
-        course_level: mod.course_level,
-        quarter,
-        credits: mod.credits,
-        due_date,
-        grading_scale: mod.grading_scale,
-        title: '[' + mod.id + '] ' + mod.title,
-        resource_url: mod.resource_url,
-        description: mod.description,
-        answer_key: mod.answer_key,
-        travel_location
-      }
-    });
+    for (const mod of freshModules) {
+      await sbQuery("assignments", {
+        method: "POST",
+        body: {
+          family_id: currentFamily.id,
+          student_id,
+          subject: mod.subject,
+          course_level: mod.course_level,
+          quarter,
+          credits: mod.credits,
+          grading_scale: mod.grading_scale,
+          title: '[' + mod.id + '] ' + mod.title,
+          resource_url: mod.resource_url,
+          description: mod.description,
+          answer_key: mod.answer_key,
+          travel_location
+        }
+      });
+    }
     document.getElementById("assignLocation").value = "";
     await refreshFamilyData();
-  
+    alert("Enrolled in " + freshModules.length + " lesson module(s) across " + pickedSubjects.length + " course(s)! Lessons unlock automatically as each day is submitted.");
   } catch (err) {
     alert(err.message);
   }
 }
+
 
 async function assignExtraPractice() {
   const student_id = document.getElementById("assignStudentSelect").value;
@@ -684,21 +723,47 @@ async function loadStudentDashboard(isPreview = false) {
     banner.remove();
   }
 
-
   document.getElementById("stuDashWelcome").innerText = "Welcome, " + currentUser.full_name;
   document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + currentUser.expected_grad_year;
 
-  const assigns = (await sbQuery("assignments", {
-    query: `student_id=eq.${currentUser.id}&select=*&order=created_at.desc`
-  })) || [];
-  const subs = (await sbQuery("submissions", {
-    query: `student_id=eq.${currentUser.id}&select=*`
-  })) || [];
-  const achs = (await sbQuery("achievements", {
-    query: `student_id=eq.${currentUser.id}&select=*`
-  })) || [];
+      const allAssigns = (await sbQuery("assignments", {
+      query: `student_id=eq.${currentUser.id}&select=*&order=created_at.asc`
+    })) || [];
+    const subs = (await sbQuery("submissions", {
+      query: `student_id=eq.${currentUser.id}&select=*`
+    })) || [];
+    const achs = (await sbQuery("achievements", {
+      query: `student_id=eq.${currentUser.id}&select=*`
+    })) || [];
 
-  document.getElementById("studentAssignmentList").innerHTML = assigns.map(a => {
+    const bySubject = {};
+    allAssigns.forEach(a => {
+      if (!bySubject[a.subject]) bySubject[a.subject] = [];
+      bySubject[a.subject].push(a);
+    });
+
+    const activeAssigns = [];
+    let completedCount = 0;
+    Object.keys(bySubject).forEach(subj => {
+      const seq = bySubject[subj];
+      let foundNext = false;
+      seq.forEach(item => {
+        const s = subs.find(x => x.assignment_id === item.id);
+        if (s && (s.status === "Submitted" || s.status === "Graded")) {
+          completedCount++;
+        } else if (!foundNext) {
+          activeAssigns.push(item);
+          foundNext = true;
+        }
+      });
+    });
+
+    const progressBanner = allAssigns.length
+      ? '<div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px 12px; border-radius:8px; margin-bottom:12px;"><b>🎯 Today\'s Active Schedule:</b> ' + activeAssigns.length + ' active lesson' + (activeAssigns.length === 1 ? '' : 's') + ' &bull; <b>' + completedCount + ' of ' + allAssigns.length + '</b> enrolled lessons completed (next lesson unlocks automatically upon submission!)</div>'
+      : "";
+
+    document.getElementById("studentAssignmentList").innerHTML = progressBanner + (activeAssigns.map(a => {
+
     const sub = subs.find(s => s.assignment_id === a.id);
     const statusText = sub && sub.grade ? "Graded: " + sub.grade : sub ? "Submitted" : "Assigned";
     const dueBadge = a.due_date ? " • 📅 Due: <b>" + a.due_date + "</b>" : "";
@@ -728,10 +793,10 @@ async function loadStudentDashboard(isPreview = false) {
     const pct = Math.round((doneCount / steps.length) * 100);
     const checklistHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin:10px 0;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><small><b id="prog-lbl-' + a.id + '">' + (pct === 100 ? "100% Complete! Ready to Submit 🏆" : pct + "% Mission Progress") + '</b></small></div><div style="background:#e2e8f0; height:8px; border-radius:99px; overflow:hidden; margin-bottom:8px;"><div id="prog-bar-' + a.id + '" style="background:#2563eb; width:' + pct + '%; height:100%; transition:width 0.3s;"></div></div>' + steps.map((st, i) => '<label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin:4px 0; cursor:pointer;"><input type="checkbox" class="step-cb-' + a.id + '" style="width:auto; margin:0;" ' + (savedSteps[i] ? "checked" : "") + ' onchange="toggleMissionStep(\'' + a.id + '\', ' + i + ')" /> <span>' + st + '</span></label>').join("") + '</div>';
 
-       const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:6px; border-radius:6px; margin-top:6px;"><b>Instructor Feedback:</b> ' + sub.parent_feedback + '</div>' : "";
+             const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:6px; border-radius:6px; margin-top:6px;"><b>Instructor Feedback:</b> ' + sub.parent_feedback + '</div>' : "";
 
       return '<div class="item-card"><strong>' + a.subject + ' (' + a.course_level + '): ' + cleanTitle + '</strong><br><small class="muted">Due: ' + (a.due_date || "Flexible") + ' &bull; ' + a.credits + ' Credit &bull; Status: <b>' + (sub ? sub.status : "Assigned") + '</b></small>' + mediaHtml + '<div style="margin:8px 0; white-space:pre-line; line-height:1.5;">' + (a.description || "") + '</div>' + checklistHtml + quizHtml + fbHtml + '<label style="margin-top:8px;">Your Written Work / Answers</label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Type your answers, reflections, or problem solutions here...">' + (sub && sub.student_notes ? sub.student_notes : "") + '</textarea><label style="margin-top:6px;">📸 Attach Photo / Screenshot of Handwritten Work (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="margin-bottom:8px;" /><button class="btn-primary" onclick="submitWork(\'' + a.id + '\')">✅ Submit Work to Parent</button></div>';
-    }).join("") || "<p class='muted'>No assignments posted yet.</p>";
+    }).join("") || "<p class='muted'>All enrolled lessons for this term are complete! Great work! 🎉</p>");
 
     document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
       const met = ac.metric ? " &bull; " + ac.metric : "";
