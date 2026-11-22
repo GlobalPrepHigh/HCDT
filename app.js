@@ -363,6 +363,7 @@ async function enrollSelectedCourses() {
   const pickedElectives = Array.from(document.querySelectorAll(".course-pick-cb:checked")).map(cb => cb.value);
 
   if (!student_id) return alert("Please add or select a student first.");
+    if (!pickedElectives.length) return alert("Please select at least 1 required elective before enrolling.");
   if (typeof HONORS_CURRICULUM === "undefined") return alert("Curriculum file is still loading—check curriculum.js.");
 
   const autoCore = ["Honors English Literature", "Honors Algebra I", "Honors Biology", "Honors World History"];
