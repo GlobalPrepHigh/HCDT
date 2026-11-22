@@ -140,6 +140,39 @@ async function handleParentAuth() {
     btn.innerText = isSignupMode ? "Create Academy & Sign In" : "Sign In";
   }
 }
+async function updateParentCredentials(mode) {
+  const payload = {};
+  if (mode === "login") {
+    const raw = document.getElementById("newParentLogin").value.trim().toLowerCase();
+    if (!raw) return alert("Enter a new short User ID or email address.");
+    payload.email = raw.includes("@") ? raw : raw.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.local";
+  } else {
+    const pw = document.getElementById("newParentPassword").value;
+    if (!pw || pw.length < 6) return alert("Password must be at least 6 characters.");
+    payload.password = pw;
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      method: "PUT",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.msg || data.error_description || "Could not update account.");
+    document.getElementById("newParentLogin").value = "";
+    document.getElementById("newParentPassword").value = "";
+    alert(mode === "login"
+      ? "Login updated! Next time you sign in, you can use your new short User ID or email."
+      : "Password updated successfully!");
+  } catch (err) {
+    alert(err.message);
+  }
+}
 
 async function handleStudentLogin() {
   const errEl = document.getElementById("authError");
