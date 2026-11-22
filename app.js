@@ -80,8 +80,7 @@ async function handleParentAuth() {
   const rawLogin = document.getElementById("parentEmail").value.trim().toLowerCase();
   const password = document.getElementById("parentPassword").value;
 
-  if (!rawLogin || !password) return (errEl.innerText = "Please enter your email or User ID and password.");
-  const email = rawLogin.includes("@") ? rawLogin : rawLogin.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.local";
+    if (!rawLogin || !password) return (errEl.innerText = "Please enter your email or User ID and password.");
   const email = rawLogin.includes("@") ? rawLogin : rawLogin.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.local";
 
   try {
@@ -153,13 +152,14 @@ async function updateParentCredentials(mode) {
   }
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       method: "PUT",
       headers: {
-        apikey: SUPABASE_ANON_KEY,
+        apikey: SUPABASE_KEY,
         Authorization: `Bearer ${authToken}`,
         "Content-Type": "application/json"
       },
+
       body: JSON.stringify(payload)
     });
     const data = await res.json();
