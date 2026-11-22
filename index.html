@@ -307,6 +307,12 @@
       <button type="button" class="btn-outline" style="color:#1e293b;" onclick="updateParentCredentials('password')">Save New Password</button>
     </div>
   </div>
+  <script>
+    window.onerror = function(msg, url, line) {
+      var el = document.getElementById("authError");
+      if (el) el.innerText = "Error on line " + line + ": " + msg;
+    };
+  </script>
 
   <script src="/HCDT/curriculum.js?v=26"></script>
   <script src="/HCDT/app.js?v=47"></script>
