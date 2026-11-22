@@ -284,7 +284,8 @@
       { q: "3. Which component ignites the compressed air-fuel mixture in a gasoline engine?", options: ["The radiator", "The spark plug", "The alternator"], answer: 1 }
     ]
   }
-];
+);
+
 
 HONORS_CURRICULUM.push(
   {
