@@ -310,56 +310,67 @@ async function saveQuarters() {
 }
 
 function populateCurriculumDropdown() {
-  const box = document.getElementById("courseCatalogChecklist");
-  if (!box || typeof HONORS_CURRICULUM === "undefined") return;
+  const box = document.getElementById("electiveChecklist");
+  if (!box) return;
 
-  const grouped = {};
-  HONORS_CURRICULUM.forEach(m => {
-    if (!grouped[m.subject]) grouped[m.subject] = [];
-    grouped[m.subject].push(m);
-  });
+  const fallbackElectives = [
+    { subject: "Personal Financial Literacy & Investing", credits: 0.5 },
+    { subject: "Honors Economics & Global Markets", credits: 0.5 },
+    { subject: "Computer Science & Web Coding", credits: 1.0 },
+    { subject: "Travel Photography & Visual Storytelling", credits: 0.5 },
+    { subject: "Studio Art & Design", credits: 0.5 },
+    { subject: "Automotive & Applied Mechanics", credits: 0.5 },
+    { subject: "Entrepreneurship & Remote Startup Lab", credits: 0.5 },
+    { subject: "Marine Biology & Ocean Conservation", credits: 0.5 },
+    { subject: "World Culinary Arts & Food Science", credits: 0.5 },
+    { subject: "Psychology & Human Behavior", credits: 0.5 },
+    { subject: "Public Speaking, Rhetoric & Debate", credits: 0.5 },
+    { subject: "Digital Graphic Design & Brand Identity", credits: 0.5 },
+    { subject: "Health, Nutrition & Travel First Aid", credits: 0.5 },
+    { subject: "Architecture & Global Urban Design", credits: 0.5 }
+  ];
 
-  const subjects = Object.keys(grouped);
-  const core = subjects.filter(s => ["Honors English Literature", "Honors Algebra I", "Honors Biology", "Honors World History"].includes(s));
-  const langs = subjects.filter(s => s.startsWith("Honors Mandarin") || s.startsWith("Honors Hindi") || s.startsWith("Honors Spanish") || s.startsWith("Honors French"));
-  const electives = subjects.filter(s => !core.includes(s) && !langs.includes(s));
+  const coreNames = ["Honors English Literature", "Honors Algebra I", "Honors Biology", "Honors World History"];
+  const langNames = ["Honors Mandarin Chinese I", "Honors Hindi I", "Honors Spanish I", "Honors French I"];
 
-  const renderGroup = (label, list, defaultChecked) => {
-    if (!list.length) return "";
-    return '<div style="margin-bottom:12px;"><strong style="display:block; margin-bottom:6px; color:#1e3a8a;">' + label + '</strong>' +
-      list.map(subj => {
-        const mods = grouped[subj];
-        const cr = mods[0].credits || 1.0;
-        return '<label style="display:flex; align-items:center; gap:8px; padding:6px 8px; background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:4px; cursor:pointer;">' +
-          '<input type="checkbox" class="course-pick-cb" value="' + subj + '" ' + (defaultChecked ? "checked" : "") + ' style="width:auto; margin:0;" />' +
-          '<span style="flex:1; font-weight:600;">' + subj + '</span>' +
-          '<small class="muted">' + cr + ' Cr &bull; ' + mods.length + ' Lesson' + (mods.length > 1 ? 's' : '') + ' Ready</small>' +
-          '</label>';
-      }).join("") + '</div>';
-  };
+  let list = fallbackElectives;
+  if (typeof HONORS_CURRICULUM !== "undefined" && Array.isArray(HONORS_CURRICULUM)) {
+    const seen = new Set();
+    const fromCurr = [];
+    HONORS_CURRICULUM.forEach(m => {
+      if (!coreNames.includes(m.subject) && !langNames.includes(m.subject) && !seen.has(m.subject)) {
+        seen.add(m.subject);
+        fromCurr.push({ subject: m.subject, credits: m.credits || 0.5 });
+      }
+    });
+    if (fromCurr.length) list = fromCurr;
+  }
 
-  box.innerHTML =
-    renderGroup("📘 Core 9th Grade Honors (Recommended)", core, true) +
-    renderGroup("🌍 Top Global Languages (Choose 1–2)", langs, false) +
-    renderGroup("🚀 Travel, STEM & Creative Electives (Family Choice)", electives, false);
-}
-
-function toggleAllCourseChecks(state) {
-  document.querySelectorAll(".course-pick-cb").forEach(cb => cb.checked = state);
+  box.innerHTML = list.map(e =>
+    '<label style="display:flex; align-items:center; gap:8px; padding:6px 8px; background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:4px; cursor:pointer;">' +
+    '<input type="checkbox" class="course-pick-cb" value="' + e.subject + '" style="width:auto; margin:0;" />' +
+    '<span style="flex:1; font-weight:600;">' + e.subject + '</span>' +
+    '<small class="muted">' + e.credits + ' Cr</small>' +
+    '</label>'
+  ).join("");
 }
 
 async function enrollSelectedCourses() {
   const student_id = document.getElementById("assignStudentSelect").value;
   const quarter = document.getElementById("assignQuarter").value;
   const travel_location = document.getElementById("assignLocation").value.trim();
-  const pickedSubjects = Array.from(document.querySelectorAll(".course-pick-cb:checked")).map(cb => cb.value);
+  const chosenLang = document.getElementById("assignLanguageSelect").value;
+  const pickedElectives = Array.from(document.querySelectorAll(".course-pick-cb:checked")).map(cb => cb.value);
 
   if (!student_id) return alert("Please add or select a student first.");
-  if (!pickedSubjects.length) return alert("Check at least one course or elective above!");
+  if (typeof HONORS_CURRICULUM === "undefined") return alert("Curriculum file is still loading—check curriculum.js.");
 
-  const modulesToEnroll = HONORS_CURRICULUM.filter(m => pickedSubjects.includes(m.subject));
-  const alreadyIds = new Set(assignmentsCache.filter(a => a.student_id === student_id).map(a => a.title));
-  const freshModules = modulesToEnroll.filter(m => !alreadyIds.has('[' + m.id + '] ' + m.title));
+  const autoCore = ["Honors English Literature", "Honors Algebra I", "Honors Biology", "Honors World History"];
+  const allSubjects = [...autoCore, chosenLang, ...pickedElectives];
+
+  const modulesToEnroll = HONORS_CURRICULUM.filter(m => allSubjects.includes(m.subject));
+  const alreadyTitles = new Set(assignmentsCache.filter(a => a.student_id === student_id).map(a => a.title));
+  const freshModules = modulesToEnroll.filter(m => !alreadyTitles.has('[' + m.id + '] ' + m.title));
 
   if (!freshModules.length) return alert("All selected courses are already enrolled for this student!");
 
@@ -383,6 +394,14 @@ async function enrollSelectedCourses() {
         }
       });
     }
+    document.getElementById("assignLocation").value = "";
+    await refreshFamilyData();
+    alert("Enrolled in " + freshModules.length + " lesson(s) across Auto-Core, " + chosenLang + ", and " + pickedElectives.length + " elective(s)!");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
     document.getElementById("assignLocation").value = "";
     await refreshFamilyData();
     alert("Enrolled in " + freshModules.length + " lesson module(s) across " + pickedSubjects.length + " course(s)! Lessons unlock automatically as each day is submitted.");
