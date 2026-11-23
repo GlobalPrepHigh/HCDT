@@ -174,7 +174,13 @@ async function recoverParentPassword(e) {
     });
     if (!res.ok) {
       const data = await res.json();
-      throw new Error(data.msg || data.error_description || "Could not send password reset email.");
+      throw new Error(data.msg || data.error_description || "Could not send password reset email.");    }
+    alert("Password reset email sent! Check your inbox.");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 async function updateParentCredentials(mode) {
   if (mode === "login") {
     const inputEl = document.getElementById("newParentLogin");
@@ -640,15 +646,6 @@ function setGradingStudentFilter(stuId) {
   if (sel && stuId && stuId !== "ALL") sel.value = stuId;
   renderGradingQueue();
 }
-
-async function deleteAssignment(id, label) {
-  if (!confirm(`Remove "${label}" from this student's coursework?`)) return;
-  try {
-    await sbQuery("assignments", { method: "DELETE", query: `id=eq.${id}` });
-    await refreshFamilyData();
-  } catch (err) {
-    alert(err.message);
-  }
 
 function getParentTextSnippet(subject) {
   const s = (subject || "").toLowerCase();
