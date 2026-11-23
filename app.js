@@ -794,7 +794,15 @@ function renderOfficialRecords() {
   let weightedPoints = 0;
   let unweightedPoints = 0;
 
-  const rows = Object.values(courseMap).map(c => {
+    const courseRank = (sub) => {
+    const s = (sub || "").toLowerCase();
+    if (s.includes("english") || s.includes("literature") || s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("history") || s.includes("government") || s.includes("economics")) return 1;
+    if (s.includes("mandarin") || s.includes("chinese") || s.includes("hindi") || s.includes("spanish") || s.includes("french") || s.includes("japanese") || s.includes("german")) return 2;
+    return 3;
+  };
+  const sortedCourses = Object.values(courseMap).sort((a, b) => courseRank(a.subject) - courseRank(b.subject));
+  const rows = sortedCourses.map(c => {
+
     let gradeDisplay = "In Progress";
     let crEarned = "—";
     if (c.scores.length > 0) {
