@@ -216,14 +216,6 @@ async function updateParentCredentials(mode) {
   }
 }
 
-    alert(mode === "login"
-      ? "Login updated! Next time you sign in, you can use your new short User ID or email."
-      : "Password updated successfully!");
-  } catch (err) {
-    alert(err.message);
-  }
-}
-
 async function handleStudentLogin() {
   const errEl = document.getElementById("authError");
   errEl.innerText = "";
