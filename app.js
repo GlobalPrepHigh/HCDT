@@ -172,8 +172,13 @@ async function recoverParentPassword(e) {
 async function updateParentCredentials(mode) {
   const payload = {};
   if (mode === "login") {
-    const raw = document.getElementById("newParentLogin").value.trim().toLowerCase();
-    if (!raw) return alert("Enter a new short User ID (at least 3 letters/numbers) or a new email address.");
+    const inputEl = document.getElementById("newParentLogin");
+    let raw = (inputEl ? inputEl.value : "").trim().toLowerCase();
+    if (!raw || (currentUser && raw === (currentUser.email || "").toLowerCase())) {
+      const typed = prompt("Enter your desired Short User ID (e.g., smithfamily or doe2026):");
+      if (!typed) return;
+      raw = typed.trim().toLowerCase();
+    }
     if (raw.includes("@")) {
       payload.email = raw;
     } else {
@@ -188,14 +193,13 @@ async function updateParentCredentials(mode) {
   }
 
   try {
-        const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       method: "PUT",
       headers: {
         apikey: SUPABASE_KEY,
         Authorization: `Bearer ${authToken}`,
         "Content-Type": "application/json"
       },
-
       body: JSON.stringify(payload)
     });
     const data = await res.json();
@@ -208,6 +212,7 @@ async function updateParentCredentials(mode) {
   } catch (err) {
     alert(err.message);
   }
+}
 }
 
 async function handleStudentLogin() {
@@ -358,7 +363,7 @@ function renderStudents() {
     const safeUser = (s.username || "").replace(/'/g, "\\'");
     const safePin = (s.pin || "").replace(/'/g, "\\'");
     const gradVal = s.expected_grad_year || s.grad_year || "";
-    return '<div class="item-card" style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;"><div><strong>' + s.full_name + '</strong> <span class="badge">' + s.grade_level + '</span><br><small class="muted">User: <code>' + s.username + '</code> &bull; PIN: <code>' + s.pin + '</code> &bull; Grad: ' + gradVal + '</small></div><div style="display:flex; gap:6px; flex-shrink:0;"><button type="button" class="btn-outline" style="width:auto; color:#1d4ed8; border-color:#bfdbfe; padding:4px 8px; font-size:12px;" onclick="previewStudentPortal(\'' + s.id + '\')">👀 Preview</button><button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:4px 8px; font-size:12px;" onclick="editStudent(\'' + s.id + '\',\'' + safeName + '\',\'' + safeGrade + '\',\'' + safeUser + '\',\'' + safePin + '\',\'' + gradVal + '\')">✏️ Edit</button><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:4px 8px; font-size:12px;" onclick="deleteStudent(\'' + s.id + '\',\'' + safeName + '\')">🗑️</button></div></div>';
+    return '<div class="item-card"><div><strong>' + s.full_name + '</strong> <span class="badge">' + s.grade_level + '</span><br><small class="muted">User: <code>' + s.username + '</code> &bull; PIN: <code>' + s.pin + '</code> &bull; Grad: ' + gradVal + '</small></div><div style="display:flex; gap:8px; margin-top:8px;"><button type="button" class="btn-outline" style="width:auto; color:#1d4ed8; border-color:#bfdbfe; padding:5px 10px; font-size:12px;" onclick="previewStudentPortal(\'' + s.id + '\')">👀 Preview</button><button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:5px 10px; font-size:12px;" onclick="editStudent(\'' + s.id + '\',\'' + safeName + '\',\'' + safeGrade + '\',\'' + safeUser + '\',\'' + safePin + '\',\'' + gradVal + '\')">✏️ Edit</button><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:5px 10px; font-size:12px;" onclick="deleteStudent(\'' + s.id + '\',\'' + safeName + '\')">🗑️</button></div></div>';
   }).join("") || "<p class='muted'>No students enrolled yet.</p>";
 
   const options = studentsCache.map(s => '<option value="' + s.id + '">' + s.full_name + ' (' + s.grade_level + ')</option>').join("");
