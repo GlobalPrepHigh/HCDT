@@ -213,7 +213,6 @@ async function updateParentCredentials(mode) {
     alert(err.message);
   }
 }
-}
 
 async function handleStudentLogin() {
   const errEl = document.getElementById("authError");
