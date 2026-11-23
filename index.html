@@ -40,8 +40,12 @@
         <input type="text" id="parentEmail" placeholder="e.g., smithfamily or parent@example.com" />
                 <label>Password</label>
         <input type="password" id="parentPassword" placeholder="••••••••" />
-        <div style="text-align:right; margin:-4px 0 10px 0;">
-          <a href="#" onclick="recoverParentPassword(event)" style="font-size:12px; color:#2563eb;">Forgot Password or User ID?</a>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 0 12px 0;">
+          <label style="display:flex; align-items:center; gap:6px; font-weight:normal; margin:0; cursor:pointer; font-size:13px;">
+            <input type="checkbox" id="rememberParentCb" checked style="width:auto; margin:0;" />
+            <span>Remember me on this device</span>
+          </label>
+          <a href="#" onclick="recoverParentPassword(event)" style="font-size:12px; color:#2563eb;">Forgot Password?</a>
         </div>
         <button class="btn-primary full" onclick="handleParentAuth()" id="parentSubmitBtn">Sign In</button>
 
@@ -55,11 +59,15 @@
         <h2>Student Portal Login</h2>
         <p class="muted">Enter your 6-character Academy Invite Code, Username, and 4-digit PIN.</p>
         <label>Academy Invite Code</label>
-        <input type="text" id="stuInviteCode" placeholder="e.g., TRVL88" maxlength="6" style="text-transform:uppercase" />
+        <input type="text" id="stuInviteCode" placeholder="e.g., TRVL88" maxlength="6" style="text-transform:uppercase;" />
         <label>Student Username</label>
         <input type="text" id="stuUsername" placeholder="e.g., alex_j" />
         <label>4-Digit PIN</label>
         <input type="password" id="stuPin" placeholder="••••" maxlength="4" inputmode="numeric" />
+        <label style="display:flex; align-items:center; gap:6px; font-weight:normal; margin:6px 0 12px 0; cursor:pointer; font-size:13px;">
+          <input type="checkbox" id="rememberStudentCb" checked style="width:auto; margin:0;" />
+          <span>Remember me on this device</span>
+        </label>
         <button class="btn-primary full" onclick="handleStudentLogin()">Enter Student Portal</button>
       </div>
       <p id="authError" class="error-msg"></p>
