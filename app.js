@@ -87,7 +87,11 @@ async function handleParentAuth() {
     btn.disabled = true;
     btn.innerText = "Connecting...";
 
-    if (isSignupMode) {
+        if (isSignupMode) {
+      const betaCode = (document.getElementById("betaAccessCode").value || "").trim().toUpperCase();
+      if (betaCode !== "GPH2026") throw new Error("Private Beta Access Only: Enter a valid Founder Beta Code to register.");
+      const legalAck = document.getElementById("legalAckCb");
+      if (legalAck && !legalAck.checked) throw new Error("Please check the Home-Education Administrator acknowledgment box to continue.");
       const fullName = document.getElementById("parentName").value.trim();
       const academyName = document.getElementById("academyName").value.trim();
       if (!fullName || !academyName) throw new Error("Please enter your name and Academy name.");
