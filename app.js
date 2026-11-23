@@ -342,13 +342,58 @@ function exitStudentPreview() {
 function renderStudents() {
   const list = document.getElementById("studentList");
   const selects = ["assignStudentSelect", "achStudentSelect", "transStudentSelect"];
-  list.innerHTML = studentsCache.map(s => '<div class="item-card" style="display:flex; justify-content:space-between; align-items:center; gap:10px;"><div><strong>' + s.full_name + '</strong> (' + s.grade_level + ' Grade • Class of ' + s.expected_grad_year + ')<br><small class="muted">Student Login: Username <b>' + s.username + '</b> | PIN <b>' + s.pin + '</b></small></div><button class="btn-outline" style="width:auto; white-space:nowrap; color:#1e293b;" onclick="previewStudentPortal(\'' + s.id + '\')">👀 Preview Portal</button></div>').join("") || "<p class='muted'>No students added yet.</p>";
+  list.innerHTML = studentsCache.map(s => {
+    const safeName = (s.full_name || "").replace(/'/g, "\\'");
+    const safeGrade = (s.grade_level || "9th").replace(/'/g, "\\'");
+    const safeUser = (s.username || "").replace(/'/g, "\\'");
+    const safePin = (s.pin || "").replace(/'/g, "\\'");
+    return '<div class="item-card" style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><div><strong>' + s.full_name + '</strong> <span class="badge">' + s.grade_level + '</span><br><small class="muted">User: <code>' + s.username + '</code> &bull; PIN: <code>' + s.pin + '</code> &bull; Grad: ' + (s.grad_year || "") + '</small></div><div style="display:flex; gap:6px; flex-shrink:0;"><button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:4px 8px; font-size:12px;" onclick="editStudent(\'' + s.id + '\',\'' + safeName + '\',\'' + safeGrade + '\',\'' + safeUser + '\',\'' + safePin + '\',\'' + (s.grad_year || "") + '\')">✏️ Edit</button><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:4px 8px; font-size:12px;" onclick="deleteStudent(\'' + s.id + '\',\'' + safeName + '\')">🗑️</button></div></div>';
+  }).join("") || "<p class='muted'>No students enrolled yet.</p>";
 
   const options = studentsCache.map(s => '<option value="' + s.id + '">' + s.full_name + ' (' + s.grade_level + ')</option>').join("");
   selects.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = options;
   });
+}
+
+async function editStudent(id, oldName, oldGrade, oldUser, oldPin, oldGrad) {
+  const full_name = prompt("Edit Student Full Legal Name:", oldName);
+  if (full_name === null) return;
+  const grade_level = prompt("Edit Grade Level (9th, 10th, 11th, or 12th):", oldGrade);
+  if (grade_level === null) return;
+  const username = prompt("Edit Student Login Username:", oldUser);
+  if (username === null) return;
+  const pin = prompt("Edit 4-Digit Student PIN:", oldPin);
+  if (pin === null) return;
+  const grad_year = prompt("Edit Expected Graduation Year:", oldGrad);
+  if (grad_year === null) return;
+  try {
+    await sbQuery("students", {
+      method: "PATCH",
+      query: `id=eq.${id}`,
+      body: {
+        full_name: full_name.trim() || oldName,
+        grade_level: grade_level.trim() || oldGrade,
+        username: username.trim().toLowerCase() || oldUser,
+        pin: pin.trim() || oldPin,
+        grad_year: parseInt(grad_year, 10) || oldGrad
+      }
+    });
+    await refreshFamilyData();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function deleteStudent(id, name) {
+  if (!confirm(`Remove ${name} from your academy?`)) return;
+  try {
+    await sbQuery("students", { method: "DELETE", query: `id=eq.${id}` });
+    await refreshFamilyData();
+  } catch (err) {
+    alert(err.message);
+  }
 }
 
 async function saveQuarters() {
