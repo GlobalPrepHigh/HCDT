@@ -971,7 +971,12 @@ function percentToLetterAndPoints(pct) {
   if (pct >= 77) return { letter: "C+", pts: 2.3 };
   if (pct >= 73) return { letter: "C", pts: 2.0 };
   if (pct >= 70) return { letter: "C-", pts: 1.7 };
- function buildGoldGlobeSealSvg() {
+  if (pct >= 67) return { letter: "D+", pts: 1.3 };
+  if (pct >= 63) return { letter: "D", pts: 1.0 };
+  return { letter: "F", pts: 0.0 };
+}
+
+function buildGoldGlobeSealSvg() {
   return '<svg width="110" height="110" viewBox="0 0 140 140" xmlns="http://w3.org" style="display:inline-block; vertical-align:middle;">' +
     '<defs>' +
       '<radialGradient id="oceanGrad" cx="38%" cy="35%" r="65%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="55%" stop-color="#1d4ed8"/><stop offset="100%" stop-color="#0f172a"/></radialGradient>' +
@@ -987,7 +992,6 @@ function percentToLetterAndPoints(pct) {
     '<text x="70" y="128" text-anchor="middle" fill="#0f172a" font-family="Georgia, serif" font-size="9" font-weight="700" letter-spacing="1.4">HONORS ACADEMY</text>' +
   '</svg>';
 }
-
 
 function getCourseStandardTag(subj) {
   const s = (subj || "").toLowerCase();
