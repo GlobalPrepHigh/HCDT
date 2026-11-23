@@ -1394,14 +1394,28 @@ async function loadStudentDashboard(isPreview = false) {
   stuActiveAssignsCache = activeAssigns;
   renderStudentTodayPane();
 
+    const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
   const syllabusEl = document.getElementById("stuSyllabusList");
   if (syllabusEl) {
     syllabusEl.innerHTML = Object.keys(bySubject).map(subj => {
       const items = bySubject[subj];
-      const first = items[0];
-      return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:center;"><strong>📘 ' + subj + '</strong><span class="badge">' + first.quarter + ' &bull; ' + first.course_level + ' (' + first.credits + ' cr)</span></div><p class="muted" style="margin:6px 0;">' + (first.description || "Honors Quarter Syllabus & Mastery Roadmap") + '</p><div style="font-size:13px; background:#f8fafc; padding:8px; border-radius:6px;"><b>Planned Term Sequence:</b><ul style="margin:4px 0 0 18px;">' + items.map((m, i) => '<li>Week ' + (i * 3 + 1) + '–' + (i * 3 + 3) + ': ' + m.title.replace(/^\[[^\]]+\]\s*/, "") + '</li>').join("") + '</ul></div></div>';
+      const first = items;
+      const catMatch = catalog.find(m => m.subject === subj || subj.startsWith(m.subject) || m.subject.startsWith(subj.replace(/\s*\(\d+th\)$/, "")));
+      const cleanFirstTitle = first.title.replace(/^\[[^\]]+\]\s*/, "");
+      let weekListHtml = "";
+      if (catMatch && Array.isArray(catMatch.modules) && catMatch.modules.length > 1) {
+        weekListHtml = catMatch.modules.map((m, i) => '<li><b>Weeks ' + (i * 3 + 1) + '–' + (i * 3 + 3) + ':</b> ' + m.title + '</li>').join("");
+      } else {
+        weekListHtml =
+          '<li><b>Weeks 1–3 (Foundations &amp; Core Concepts):</b> ' + cleanFirstTitle + '</li>' +
+          '<li><b>Weeks 4–6 (Applied Analysis &amp; Lab Inquiry):</b> Primary Source / Quantitative Problem-Solving &amp; Guided Synthesis</li>' +
+          '<li><b>Weeks 7–8 (Independent Research &amp; Project):</b> Real-World Field Application &amp; Analytical Portfolio</li>' +
+          '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Oral Defense &amp; Transcript Review</li>';
+      }
+      return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;"><strong>📘 ' + subj + '</strong><span class="badge">' + first.quarter + ' &bull; ' + first.course_level + ' (' + first.credits + ' cr)</span></div><p class="muted" style="margin:6px 0;">Full 9-Week Quarter Syllabus &amp; Academic Roadmap</p><div style="font-size:13px; background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px;"><b>Planned Quarter Schedule:</b><ul style="margin:6px 0 0 18px; line-height:1.6;">' + weekListHtml + '</ul></div></div>';
     }).join("") || "<p class='muted'>No quarter syllabus items enrolled yet.</p>";
   }
+
 
   const gradesEl = document.getElementById("stuGradesList");
   const gpaBadge = document.getElementById("stuGpaBadge");
