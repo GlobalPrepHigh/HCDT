@@ -650,24 +650,30 @@ async function deleteAssignment(id, label) {
   }
 }
 
-function getParentGuideLink(subject) {
+function getParentTextSnippet(subject) {
   const s = (subject || "").toLowerCase();
   if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
-    return { url: "https://khanacademy.org", text: "📘 Parent Math Concept Refresher & Worked Examples (Khan Academy)" };
+    return "<b>📘 Parent Concept Refresher &amp; Worked Example:</b><br>• <b>Linear &amp; Geometric Proofs:</b> Always isolate the variable using inverse operations on both sides of the equals sign.<br>• <b>Worked Example:</b> Solve <code>3(x - 4) + 2 = 17</code> &rarr; Step 1 (Distribute): <code>3x - 12 + 2 = 17</code> &rarr; Step 2 (Combine like terms): <code>3x - 10 = 17</code> &rarr; Step 3 (Add 10): <code>3x = 27</code> &rarr; Step 4 (Divide by 3): <b><code>x = 9</code></b>.<br>• <i>Check student's uploaded paper photo to verify every intermediate line is shown!</i>";
   }
-  if (s.includes("english") || s.includes("literature")) {
-    return { url: "https://purdue.edu", text: "📘 Parent Essay & Literary Analysis Guide (Purdue OWL)" };
-  }
-  if (s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("science")) {
-    return { url: "https://openstax.org", text: "📘 Parent Science Reference Textbook (OpenStax)" };
+  if (s.includes("chemistry") || s.includes("biology") || s.includes("physics") || s.includes("science")) {
+    return "<b>📘 Parent Concept Refresher &amp; Lab Key:</b><br>• <b>Scientific Method &amp; Cellular/Chemical Reactions:</b> A valid lab conclusion must state an independent variable (what changed), dependent variable (what was measured), and quantitative evidence.<br>• <b>Key Concept:</b> In cellular respiration (<code>C6H12O6 + 6O2 &rarr; 6CO2 + 6H2O + ATP</code>) or acid-base reactions, trapped <code>CO2</code> gas inflates the balloon proportionally to reaction rate.";
   }
   if (s.includes("history") || s.includes("government") || s.includes("economics")) {
-    return { url: "https://openstax.org", text: "📘 Parent History & Civics Reference Guide (OpenStax)" };
+    return "<b>📘 Parent Concept Refresher — Code of Hammurabi &amp; Louvre Context:</b><br>• <b>Pronunciation:</b> <i>Hammurabi</i> (<b>hah-moo-RAH-bee</b>) &bull; <i>Louvre</i> (<b>LOOV-ruh</b>).<br>• <b>Key Historical Takeaway:</b> Carved onto a 7.4-foot basalt stele in Babylon (c. 1754 BCE) and housed today in the Louvre Museum in Paris, Hammurabi's 282 laws established written public legal standards and social-class-based restitution (<i>lex talionis</i>).";
   }
-  if (s.includes("stock") || s.includes("financial")) {
-    return { url: "https://investopedia.com", text: "📘 Parent Equities & Investing Reference Guide (Investopedia)" };
+  if (s.includes("mandarin") || s.includes("chinese")) {
+    return "<b>📘 Parent Concept Refresher — Mandarin Tones &amp; Greetings:</b><br>• <b>4 Mandarin Tones:</b> 1st tone (high flat: <code>mā</code> = mother), 2nd tone (rising: <code>má</code> = hemp), 3rd tone (dipping: <code>mǎ</code> = horse), 4th tone (sharp falling: <code>mà</code> = scold).<br>• <b>Key Phrases:</b> <i>Nǐ hǎo</i> (<b>nee HOW</b> = Hello) &bull; <i>Xièxie</i> (<b>SHYEH-shyeh</b> = Thank you) &bull; <i>Zàijiàn</i> (<b>DZAI-jyen</b> = Goodbye).";
   }
-  return { url: "https://khanacademy.org", text: "📘 Parent Subject Concept Refresher Guide" };
+  if (s.includes("spanish") || s.includes("french") || s.includes("hindi")) {
+    return "<b>📘 Parent Concept Refresher — World Language Mastery:</b><br>• Listen for clear vowel pronunciation, accurate gender/number agreement on nouns and adjectives, and complete conversational responses rather than single-word answers.";
+  }
+  if (s.includes("stock") || s.includes("financial") || s.includes("entrepreneurship")) {
+    return "<b>📘 Parent Concept Refresher — Equities, P/E Ratio &amp; Compound Growth:</b><br>• <b>Key Terms:</b> <b>Stock/Equity</b> = fractional ownership in a company; <b>Dividend</b> = cash profit shared per share; <b>P/E Ratio</b> = Share Price &divide; Earnings Per Share (measures how much investors pay per $1 of profit); <b>Diversification</b> = spreading capital across sectors to reduce single-company risk.";
+  }
+  if (s.includes("automotive") || s.includes("engineering")) {
+    return "<b>📘 Parent Concept Refresher — 4-Stroke Engine &amp; Vehicle Systems:</b><br>• <b>4-Stroke Cycle (Suck, Squeeze, Bang, Blow):</b> 1. <b>Intake</b> (air-fuel enters) &rarr; 2. <b>Compression</b> (piston compresses mixture) &rarr; 3. <b>Power</b> (spark plug ignites mixture) &rarr; 4. <b>Exhaust</b> (spent gases exit).";
+  }
+  return "<b>📘 Parent Concept Refresher &amp; Grading Standard:</b><br>• Look for a clear topic sentence/claim, at least 2 specific facts or examples from today's video lesson, and complete, well-reasoned sentences.";
 }
 
 function renderGradingQueue() {
@@ -704,11 +710,11 @@ function renderGradingQueue() {
     const modMatch = catMatch && Array.isArray(catMatch.modules) ? catMatch.modules : catMatch;
     const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
     const defaultSteps = isMath
-      ? "<b>Step-by-Step Verification:</b><br>1. Check that student wrote out the original equation/problem on paper.<br>2. Verify each algebraic/geometric transformation line-by-line (watch for sign errors when moving terms across =).<br>3. Confirm units/slope-intercept form and final boxed answer."
-      : "<b>Step-by-Step Verification:</b><br>1. Check clear thesis or hypothesis statement.<br>2. Verify supporting evidence/data from the lesson video and simulation.<br>3. Confirm complete sentences and reasoned conclusion.";
+      ? "<b>Step-by-Step Verification:</b><br>1. Confirm student copied the original problem onto paper.<br>2. Check each algebraic/geometric step line-by-line (watch for sign flips across =).<br>3. Verify units and final boxed answer."
+      : "<b>Step-by-Step Verification:</b><br>1. Check clear thesis or hypothesis statement.<br>2. Verify supporting facts/data from today's video lesson.<br>3. Confirm complete sentences and reasoned conclusion.";
     const resolvedKey = a.answer_key || (modMatch && modMatch.answer_key) || (catMatch && catMatch.answer_key) || defaultSteps;
-    const guide = getParentGuideLink(a.subject);
-    const keyBox = '<details style="background:#fef9c3; border:1px solid #fde047; padding:8px 10px; border-radius:6px; margin-top:6px;"><summary style="cursor:pointer; font-weight:700; color:#854d0e; font-size:13px;">🔑 Parent Answer Key, Step-by-Step Solution &amp; Refresher Guide</summary><div style="margin-top:6px; font-size:13px; color:#713f12; line-height:1.5;">' + resolvedKey + '<div style="margin-top:8px; padding-top:6px; border-top:1px dashed #eab308;"><a href="' + guide.url + '" target="_blank" rel="noopener" style="font-weight:700; color:#1d4ed8;">' + guide.text + ' ↗</a></div></div></details>';
+    const snippetHtml = getParentTextSnippet(a.subject);
+    const keyBox = '<details style="background:#fef9c3; border:1px solid #fde047; padding:8px 10px; border-radius:6px; margin-top:6px;"><summary style="cursor:pointer; font-weight:700; color:#854d0e; font-size:13px;">🔑 Parent Answer Key, Worked Steps &amp; Lesson Text Snippet</summary><div style="margin-top:6px; font-size:13px; color:#713f12; line-height:1.55;">' + resolvedKey + '<div style="margin-top:8px; padding-top:8px; border-top:1px dashed #eab308; color:#422006;">' + snippetHtml + '</div></div></details>';
     const subWork = sub && (sub.student_notes || sub.submission_link)
       ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">Open Photo/Link ↗</a>' : '') + '</small></div>'
       : '<small class="muted">Awaiting student submission (students can upload a photo of handwritten paper work)</small>';
@@ -716,7 +722,6 @@ function renderGradingQueue() {
     return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">Student: <b>' + (stu ? stu.full_name : "Student") + '</b> &bull; ' + a.course_level + ' (' + a.credits + ' cr)' + dueText + '</small></div><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:3px 8px; font-size:12px; flex-shrink:0;" onclick="deleteAssignment(\'' + a.id + '\',\'' + safeLabel + '\')">🗑️ Remove</button></div>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" value="' + gradeVal + '" placeholder="Grade (e.g., A or 95%)" /><input type="text" id="fb-' + a.id + '" value="' + fbVal + '" placeholder="Parent feedback..." /></div><button class="btn-primary" style="margin-top:6px; width:auto;" onclick="saveGrade(\'' + a.id + '\',\'' + a.student_id + '\')">Save Grade</button></div>';
   }).join("");
 }
-
 
 
 async function saveGrade(assignment_id, student_id) {
