@@ -975,7 +975,7 @@ function percentToLetterAndPoints(pct) {
   return '<svg width="110" height="110" viewBox="0 0 140 140" xmlns="http://w3.org" style="display:inline-block; vertical-align:middle;">' +
     '<defs>' +
       '<radialGradient id="oceanGrad" cx="38%" cy="35%" r="65%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="55%" stop-color="#1d4ed8"/><stop offset="100%" stop-color="#0f172a"/></radialGradient>' +
-      '<linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#0f172a"/><stop offset="50%" stop-color="#1e293b"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>' +
+      '<linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#0f172a"/><stop offset="50%" stop-color="#1e3a8a"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>' +
     '</defs>' +
     '<circle cx="70" cy="70" r="44" fill="url(#oceanGrad)" stroke="#d97706" stroke-width="2.5"/>' +
     '<path d="M46 46 Q56 40 62 50 T54 68 Q45 64 46 46 Z" fill="#86efac" opacity="0.85"/>' +
@@ -983,15 +983,11 @@ function percentToLetterAndPoints(pct) {
     '<path d="M58 76 Q70 74 74 88 T60 98 Q52 90 58 76 Z" fill="#86efac" opacity="0.85"/>' +
     '<ellipse cx="70" cy="70" rx="64" ry="20" transform="rotate(-18 70 70)" fill="none" stroke="#facc15" stroke-width="3.5"/>' +
     '<rect x="6" y="57" width="128" height="24" rx="5" transform="rotate(-18 70 70)" fill="url(#ribbonGrad)" stroke="#facc15" stroke-width="2"/>' +
-    '<text x="70" y="73" transform="rotate(-18 70 70)" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="10.5" font-weight="900" letter-spacing="1.1">GLOBALPREP HIGH</text>' +
+    '<text x="70" y="73" transform="rotate(-18 70 70)" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="10.5" font-weight="bold" letter-spacing="1.2">GLOBALPREP HIGH</text>' +
     '<text x="70" y="128" text-anchor="middle" fill="#0f172a" font-family="Georgia, serif" font-size="9" font-weight="700" letter-spacing="1.4">HONORS ACADEMY</text>' +
   '</svg>';
 }
 
-    '<text x="60" y="21" text-anchor="middle" fill="#fde047" font-size="8.5" font-weight="bold" letter-spacing="1.4">GLOBALPREP HIGH</text>' +
-    '<text x="60" y="105" text-anchor="middle" fill="#fde047" font-size="7.5" font-weight="bold" letter-spacing="1.2">HONORS ACADEMY</text>' +
-    '</svg>';
-}
 
 function getCourseStandardTag(subj) {
   const s = (subj || "").toLowerCase();
@@ -1454,43 +1450,33 @@ async function loadStudentDashboard(isPreview = false) {
       banner = document.createElement("div");
       banner.id = "previewBanner";
       banner.style.cssText = "background:#fef08a; border:1px solid #eab308; padding:10px 14px; border-radius:10px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; color:#713f12;";
-      banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> — Viewing as <b>' + currentUser.full_name + '</b></span><button class="btn-outline" style="background:#fff; color:#0f172a; padding:6px 12px;" onclick="exitStudentPreview()">← Back to Parent Portal</button>';
       document.getElementById("studentDashboard").prepend(banner);
-    } else {
-      banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> — Viewing as <b>' + currentUser.full_name + '</b></span><button class="btn-outline" style="background:#fff; color:#0f172a; padding:6px 12px;" onclick="exitStudentPreview()">← Back to Parent Portal</button>';
     }
+    banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> — Viewing as <b>' + currentUser.full_name + '</b></span><button class="btn-outline" style="background:#fff; color:#0f172a; padding:6px 12px;" onclick="exitStudentPreview()">← Back to Parent Portal</button>';
   } else if (banner) {
     banner.remove();
   }
 
   document.getElementById("stuDashWelcome").innerText = "Welcome, " + currentUser.full_name;
-  document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + (currentUser.grad_year || "2028");
+  document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + (currentUser.expected_grad_year || currentUser.grad_year || "2028");
 
-  let freshAssigns = null;
-  try {
-    freshAssigns = await sbQuery("assignments", {
-      query: `student_id=eq.${currentUser.id}&select=*&order=created_at.asc`
-    });
-  } catch (e) {
-    freshAssigns = null;
+  let famAssigns = await sbQuery("assignments", {
+    query: `family_id=eq.${currentFamily.id}&select=*&order=created_at.asc`
+  }).catch(() => null);
+
+  if (!Array.isArray(famAssigns)) {
+    famAssigns = Array.isArray(assignmentsCache) ? assignmentsCache : [];
   }
 
-  const allAssigns = Array.isArray(freshAssigns)
-    ? freshAssigns
-    : (isPreview && Array.isArray(assignmentsCache) ? assignmentsCache.filter(a => a.student_id === currentUser.id) : []);
+  const allAssigns = famAssigns.filter(a => !a.student_id || String(a.student_id) === String(currentUser.id));
 
-  let freshSubs = null;
-  try {
-    freshSubs = await sbQuery("submissions", {
-      query: `student_id=eq.${currentUser.id}&select=*`
-    });
-  } catch (e) {
-    freshSubs = null;
-  }
+  let freshSubs = await sbQuery("submissions", {
+    query: `student_id=eq.${currentUser.id}&select=*`
+  }).catch(() => null);
 
   const subs = Array.isArray(freshSubs)
     ? freshSubs
-    : (isPreview && Array.isArray(submissionsCache) ? submissionsCache.filter(s => s.student_id === currentUser.id) : []);
+    : (Array.isArray(submissionsCache) ? submissionsCache.filter(s => String(s.student_id) === String(currentUser.id)) : []);
 
   const achs = (await sbQuery("achievements", {
     query: `student_id=eq.${currentUser.id}&select=*`
@@ -1516,6 +1502,7 @@ async function loadStudentDashboard(isPreview = false) {
   });
 
   stuActiveAssignsCache = activeAssigns;
+  selectedStuSubjectIdx = 0;
   renderStudentTodayPane();
 
   const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
@@ -1523,9 +1510,9 @@ async function loadStudentDashboard(isPreview = false) {
   if (syllabusEl) {
     syllabusEl.innerHTML = Object.keys(bySubject).map(subj => {
       const items = bySubject[subj];
-      const first = items[0];
+      const first = items || {};
       const catMatch = catalog.find(m => m.subject === subj || subj.startsWith(m.subject) || m.subject.startsWith(subj.replace(/\s*\(\d+th\)$/, "")));
-      const cleanFirstTitle = first.title.replace(/^\[[^\]]+\]\s*/, "");
+      const cleanFirstTitle = String(first.title || subj).replace(/^\[[^\]]+\]\s*/, "");
       let weekListHtml = "";
       if (catMatch && Array.isArray(catMatch.modules) && catMatch.modules.length > 1) {
         weekListHtml = catMatch.modules.map((m, i) => '<li><b>Weeks ' + (i * 3 + 1) + '-' + (i * 3 + 3) + ':</b> ' + m.title + '</li>').join("");
@@ -1575,11 +1562,26 @@ async function loadStudentDashboard(isPreview = false) {
 
   const portEl = document.getElementById("studentPortfolioList");
   if (portEl) {
-    portEl.innerHTML = achs.map(ac => {
+    const gradYr = currentUser.expected_grad_year || currentUser.grad_year || "2028";
+    const diplomaCard =
+      '<div class="item-card" style="border:2px solid #1e3a8a; background:linear-gradient(135deg,#f8fafc,#eff6ff); margin-bottom:14px;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">' +
+          '<div>' +
+            '<div style="font-size:12px; font-weight:700; color:#1e3a8a; letter-spacing:0.06em;">OFFICIAL COLLEGE-PREP CREDENTIAL</div>' +
+            '<div style="font-size:17px; font-weight:800; color:#0f172a; margin:2px 0;">🎓 High School Diploma — ' + currentUser.full_name + '</div>' +
+            '<div style="font-size:13px; color:#475569;">' + currentFamily.family_name + ' • Class of ' + gradYr + '</div>' +
+          '</div>' +
+          '<button type="button" class="btn-primary" style="width:auto; padding:8px 14px;" onclick="window.print()">🖨️ Print Diploma</button>' +
+        '</div>' +
+      '</div>';
+
+    const achHtml = achs.map(ac => {
       const met = ac.metric ? " &bull; " + ac.metric : "";
       const loc = ac.location ? " &bull; 📍 " + ac.location : "";
       return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.date_completed || "") + loc + met + '</small></div>';
     }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+
+    portEl.innerHTML = diplomaCard + achHtml;
   }
 }
 
