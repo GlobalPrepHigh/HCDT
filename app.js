@@ -171,11 +171,17 @@ async function recoverParentPassword(e) {
 
 async function updateParentCredentials(mode) {
   const payload = {};
-    if (mode === "login") {
+  if (mode === "login") {
     const raw = document.getElementById("newParentLogin").value.trim().toLowerCase();
-    if (!raw) return alert("Enter a new short User ID or email address.");
-    payload.email = raw.includes("@") ? raw : raw.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.org";
+    if (!raw) return alert("Enter a new short User ID (at least 3 letters/numbers) or a new email address.");
+    if (raw.includes("@")) {
+      payload.email = raw;
     } else {
+      const cleanId = raw.replace(/[^a-z0-9._-]/g, "");
+      if (cleanId.length < 3) return alert("Short User ID must be at least 3 letters or numbers (e.g., smithfamily).");
+      payload.email = cleanId + "@globalprephigh.org";
+    }
+  } else {
     const pw = document.getElementById("newParentPassword").value;
     if (!pw || pw.length < 6) return alert("Password must be at least 6 characters.");
     payload.password = pw;
@@ -228,19 +234,24 @@ async function handleStudentLogin() {
 
     currentFamily = fam;
     currentUser = stu;
-    await loadStudentDashboard();
-  } catch (err) {
-    errEl.innerText = err.message;
+    function saveSession(role) {
+  const payload = JSON.stringify({ role, authToken, currentFamily, currentUser });
+  const rememberEl = document.getElementById(role === "parent" ? "rememberParentCb" : "rememberStudentCb");
+  if (rememberEl && !rememberEl.checked) {
+    localStorage.removeItem("gph_session");
+    sessionStorage.setItem("gph_session", payload);
+  } else {
+    sessionStorage.removeItem("gph_session");
+    localStorage.setItem("gph_session", payload);
   }
 }
 
-function saveSession(role) {
-  localStorage.setItem("gph_session", JSON.stringify({
-    role,
-    authToken,
-    currentFamily,
-    currentUser
-  }));
+function logout() {
+  localStorage.removeItem("gph_session");
+  sessionStorage.removeItem("gph_session");
+  location.reload();
+}
+
 }
 
 function logout() {
