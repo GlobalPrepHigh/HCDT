@@ -1435,28 +1435,42 @@ async function loadStudentDashboard(isPreview = false) {
     if (!banner) {
       banner = document.createElement("div");
       banner.id = "previewBanner";
-      banner.style.cssText = "background:#fef08a; border:1px solid #eab308; padding:10px 14px; border-radius:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;";
-      banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> – Viewing as ' + currentUser.full_name + '</span><button class="btn-primary" style="width:auto;" onclick="exitStudentPreview()">← Back to Parent Portal</button>';
+      banner.style.cssText = "background:#fef08a; border:1px solid #eab308; padding:10px 14px; border-radius:10px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; color:#713f12;";
+      banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> — Viewing as <b>' + currentUser.full_name + '</b></span><button class="btn-outline" style="background:#fff; color:#0f172a; padding:6px 12px;" onclick="exitStudentPreview()">← Back to Parent Portal</button>';
       document.getElementById("studentDashboard").prepend(banner);
+    } else {
+      banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> — Viewing as <b>' + currentUser.full_name + '</b></span><button class="btn-outline" style="background:#fff; color:#0f172a; padding:6px 12px;" onclick="exitStudentPreview()">← Back to Parent Portal</button>';
     }
   } else if (banner) {
     banner.remove();
   }
 
   document.getElementById("stuDashWelcome").innerText = "Welcome, " + currentUser.full_name;
-  document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + (currentUser.grad_year || "");
+  document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + (currentUser.grad_year || "2028");
 
-    const freshAssigns = await sbQuery("assignments", {
-    query: `student_id=eq.${currentUser.id}&select=*&order=created_at.asc`
-  }).catch(() => []);
-  const allAssigns = (Array.isArray(freshAssigns) && freshAssigns.length)
+  let freshAssigns = null;
+  try {
+    freshAssigns = await sbQuery("assignments", {
+      query: `student_id=eq.${currentUser.id}&select=*&order=created_at.asc`
+    });
+  } catch (e) {
+    freshAssigns = null;
+  }
+
+  const allAssigns = Array.isArray(freshAssigns)
     ? freshAssigns
     : (isPreview && Array.isArray(assignmentsCache) ? assignmentsCache.filter(a => a.student_id === currentUser.id) : []);
 
-  const freshSubs = await sbQuery("submissions", {
-    query: `student_id=eq.${currentUser.id}&select=*`
-  }).catch(() => []);
-  const subs = (Array.isArray(freshSubs) && freshSubs.length)
+  let freshSubs = null;
+  try {
+    freshSubs = await sbQuery("submissions", {
+      query: `student_id=eq.${currentUser.id}&select=*`
+    });
+  } catch (e) {
+    freshSubs = null;
+  }
+
+  const subs = Array.isArray(freshSubs)
     ? freshSubs
     : (isPreview && Array.isArray(submissionsCache) ? submissionsCache.filter(s => s.student_id === currentUser.id) : []);
 
@@ -1466,12 +1480,11 @@ async function loadStudentDashboard(isPreview = false) {
 
   stuSubsCache = subs;
 
-  stuSubsCache = subs;
-
   const bySubject = {};
   allAssigns.forEach(a => {
-    if (!bySubject[a.subject]) bySubject[a.subject] = [];
-    bySubject[a.subject].push(a);
+    const subjKey = (a.subject || "General").trim();
+    if (!bySubject[subjKey]) bySubject[subjKey] = [];
+    bySubject[subjKey].push(a);
   });
 
   const activeAssigns = [];
@@ -1487,7 +1500,7 @@ async function loadStudentDashboard(isPreview = false) {
   stuActiveAssignsCache = activeAssigns;
   renderStudentTodayPane();
 
-    const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
+  const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
   const syllabusEl = document.getElementById("stuSyllabusList");
   if (syllabusEl) {
     syllabusEl.innerHTML = Object.keys(bySubject).map(subj => {
@@ -1497,18 +1510,23 @@ async function loadStudentDashboard(isPreview = false) {
       const cleanFirstTitle = first.title.replace(/^\[[^\]]+\]\s*/, "");
       let weekListHtml = "";
       if (catMatch && Array.isArray(catMatch.modules) && catMatch.modules.length > 1) {
-        weekListHtml = catMatch.modules.map((m, i) => '<li><b>Weeks ' + (i * 3 + 1) + '–' + (i * 3 + 3) + ':</b> ' + m.title + '</li>').join("");
+        weekListHtml = catMatch.modules.map((m, i) => '<li><b>Weeks ' + (i * 3 + 1) + '-' + (i * 3 + 3) + ':</b> ' + m.title + '</li>').join("");
       } else {
         weekListHtml =
-          '<li><b>Weeks 1–3 (Foundations &amp; Core Concepts):</b> ' + cleanFirstTitle + '</li>' +
-          '<li><b>Weeks 4–6 (Applied Analysis &amp; Lab Inquiry):</b> Primary Source / Quantitative Problem-Solving &amp; Guided Synthesis</li>' +
-          '<li><b>Weeks 7–8 (Independent Research &amp; Project):</b> Real-World Field Application &amp; Analytical Portfolio</li>' +
+          '<li><b>Weeks 1-3 (Foundations &amp; Core Concepts):</b> ' + cleanFirstTitle + '</li>' +
+          '<li><b>Weeks 4-6 (Applied Analysis &amp; Lab Inquiry):</b> Primary Source / Quantitative Problem-Solving &amp; Guided Synthesis</li>' +
+          '<li><b>Weeks 7-8 (Independent Research &amp; Project):</b> Real-World Field Application &amp; Analytical Portfolio</li>' +
           '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Oral Defense &amp; Transcript Review</li>';
       }
-      return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;"><strong>📘 ' + subj + '</strong><span class="badge">' + first.quarter + ' &bull; ' + first.course_level + ' (' + first.credits + ' cr)</span></div><p class="muted" style="margin:6px 0;">Full 9-Week Quarter Syllabus &amp; Academic Roadmap</p><div style="font-size:13px; background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px;"><b>Planned Quarter Schedule:</b><ul style="margin:6px 0 0 18px; line-height:1.6;">' + weekListHtml + '</ul></div></div>';
+      return '<div class="item-card">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">' +
+          '<div><strong>' + subj + '</strong> <span class="badge">' + (first.course_level || "Honors") + ' • ' + (first.credits || 1.0) + ' Cr</span></div>' +
+          '<span style="font-size:12px; color:#64748b;">' + items.length + ' Lesson(s) Assigned</span>' +
+        '</div>' +
+        '<ul style="margin:8px 0 0 18px; padding:0; font-size:13.5px; color:#334155; line-height:1.55;">' + weekListHtml + '</ul>' +
+      '</div>';
     }).join("") || "<p class='muted'>No quarter syllabus items enrolled yet.</p>";
   }
-
 
   const gradesEl = document.getElementById("stuGradesList");
   const gpaBadge = document.getElementById("stuGpaBadge");
@@ -1523,17 +1541,28 @@ async function loadStudentDashboard(isPreview = false) {
         ptsSum += gradeToPoints(sub.grade, a.course_level) * cr;
         crSum += cr;
       }
-      const fb = sub && sub.parent_feedback ? '<div style="margin-top:4px; font-size:13px; color:#15803d;"><b>Teacher Note:</b> ' + sub.parent_feedback + '</div>' : '';
-      return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><strong>' + a.subject + '</strong> <small class="muted">(' + a.quarter + ' &bull; ' + a.credits + ' cr)</small><br><small class="muted">' + a.title.replace(/^\[[^\]]+\]\s*/, "") + '</small></div><span class="badge" style="font-size:13px;">' + gr + '</span></div>' + fb + '</div>';
+      const fb = sub && sub.parent_feedback
+        ? '<div style="margin-top:4px; font-size:13px; color:#15803d;"><b>Teacher Note:</b> ' + sub.parent_feedback + '</div>'
+        : '';
+      return '<div class="item-card">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">' +
+          '<div><strong>' + a.subject + '</strong> — ' + a.title + '</div>' +
+          '<span class="badge">' + gr + '</span>' +
+        '</div>' +
+        fb +
+      '</div>';
     }).join("") || "<p class='muted'>No graded coursework yet.</p>";
-    if (gpaBadge) gpaBadge.innerText = "Cumulative GPA: " + (crSum > 0 ? (ptsSum / crSum).toFixed(2) : "—");
+    if (gpaBadge) gpaBadge.innerText = "Cumulative GPA: " + (crSum > 0 ? (ptsSum / crSum).toFixed(2) : "-");
   }
 
-  document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
-    const met = ac.metric ? " &bull; " + ac.metric : "";
-    const loc = ac.location ? " &bull; 📍 " + ac.location : "";
-    return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + loc + met + '</small></div>';
-  }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+  const portEl = document.getElementById("studentPortfolioList");
+  if (portEl) {
+    portEl.innerHTML = achs.map(ac => {
+      const met = ac.metric ? " &bull; " + ac.metric : "";
+      const loc = ac.location ? " &bull; 📍 " + ac.location : "";
+      return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.date_completed || "") + loc + met + '</small></div>';
+    }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+  }
 }
 
 async function compressPhotoToDataUrl(file) {
