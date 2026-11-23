@@ -558,14 +558,38 @@ async function deleteAssignment(id) {
   }
 }
 
+let activeGradingStudentId = "ALL";
+
+function setGradingStudentFilter(stuId) {
+  activeGradingStudentId = stuId;
+  const sel = document.getElementById("assignStudentSelect");
+  if (sel && stuId !== "ALL") sel.value = stuId;
+  renderGradingQueue();
+}
+
 function renderGradingQueue() {
+  const pillsEl = document.getElementById("gradingStudentPills");
+  if (pillsEl) {
+    if (activeGradingStudentId === "ALL" && studentsCache.length) {
+      activeGradingStudentId = studentsCache[0].id;
+    }
+    pillsEl.innerHTML = studentsCache.map(s => {
+      const isAct = s.id === activeGradingStudentId;
+      return '<button type="button" class="' + (isAct ? 'btn-primary' : 'btn-outline') + '" style="width:auto; padding:4px 12px; font-size:13px;' + (isAct ? '' : ' color:#1e293b;') + '" onclick="setGradingStudentFilter(\'' + s.id + '\')">' + s.full_name + ' (' + s.grade_level + ')</button>';
+    }).join("") + (studentsCache.length > 1 ? '<button type="button" class="' + (activeGradingStudentId === 'ALL' ? 'btn-primary' : 'btn-outline') + '" style="width:auto; padding:4px 10px; font-size:12px;' + (activeGradingStudentId === 'ALL' ? '' : ' color:#1e293b;') + '" onclick="setGradingStudentFilter(\'ALL\')">All</button>' : '');
+  }
+
   const container = document.getElementById("parentAssignmentList");
-  if (!assignmentsCache.length) {
-    container.innerHTML = "<p class='muted'>No modules assigned yet. Enroll a student to populate active coursework.</p>";
+  const filtered = activeGradingStudentId === "ALL"
+    ? assignmentsCache
+    : assignmentsCache.filter(a => a.student_id === activeGradingStudentId);
+
+  if (!filtered.length) {
+    container.innerHTML = "<p class='muted'>No courses enrolled for this student yet. Click <b>+ Enroll / Add Courses</b> above to enroll them.</p>";
     return;
   }
   const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
-  container.innerHTML = assignmentsCache.map(a => {
+  container.innerHTML = filtered.map(a => {
     const stu = studentsCache.find(s => s.id === a.student_id);
     const sub = submissionsCache.find(s => s.assignment_id === a.id);
     const gradeVal = sub && sub.grade ? sub.grade : "";
