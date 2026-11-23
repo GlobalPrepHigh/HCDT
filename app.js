@@ -232,9 +232,15 @@ async function handleStudentLogin() {
     });
     if (!stu) return (errEl.innerText = "Incorrect Username or PIN.");
 
-    currentFamily = fam;
+        currentFamily = fam;
     currentUser = stu;
-    function saveSession(role) {
+    await loadStudentDashboard();
+  } catch (err) {
+    errEl.innerText = err.message;
+  }
+}
+
+function saveSession(role) {
   const payload = JSON.stringify({ role, authToken, currentFamily, currentUser });
   const rememberEl = document.getElementById(role === "parent" ? "rememberParentCb" : "rememberStudentCb");
   if (rememberEl && !rememberEl.checked) {
@@ -249,13 +255,6 @@ async function handleStudentLogin() {
 function logout() {
   localStorage.removeItem("gph_session");
   sessionStorage.removeItem("gph_session");
-  location.reload();
-}
-
-}
-
-function logout() {
-  localStorage.removeItem("gph_session");
   location.reload();
 }
 
