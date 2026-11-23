@@ -691,10 +691,14 @@ function renderGradingQueue() {
     if (activeGradingStudentId === null && studentsCache.length) {
       activeGradingStudentId = studentsCache[0].id;
     }
+        pillsEl.style.alignItems = "center";
     pillsEl.innerHTML = studentsCache.map(s => {
       const isAct = s.id === activeGradingStudentId;
-      return '<button type="button" class="' + (isAct ? 'btn-primary' : 'btn-outline') + '" style="width:auto; padding:4px 12px; font-size:13px;' + (isAct ? '' : ' color:#1e293b;') + '" onclick="setGradingStudentFilter(\'' + s.id + '\')">' + s.full_name + ' (' + s.grade_level + ')</button>';
-    }).join("") + (studentsCache.length > 1 ? '<button type="button" class="' + (activeGradingStudentId === 'ALL' ? 'btn-primary' : 'btn-outline') + '" style="width:auto; padding:4px 10px; font-size:12px;' + (activeGradingStudentId === 'ALL' ? '' : ' color:#1e293b;') + '" onclick="setGradingStudentFilter(\'ALL\')">All</button>' : '');
+      const btnStyle = isAct
+        ? "width:auto; padding:10px 18px; font-size:17px; font-weight:800; background:#1e3a8a; color:#ffffff; border:2px solid #0f172a; box-shadow:0 3px 8px rgba(30,58,138,0.25);"
+        : "width:auto; padding:8px 14px; font-size:14px; font-weight:600; background:#f8fafc; color:#1e293b; border:1px solid #cbd5e1;";
+      return '<button type="button" style="border-radius:8px; cursor:pointer; ' + btnStyle + '" onclick="setGradingStudentFilter(\'' + s.id + '\')">' + s.full_name + ' (' + s.grade_level + ')</button>';
+    }).join("") + (studentsCache.length > 1 ? '<button type="button" style="border-radius:8px; cursor:pointer; ' + (activeGradingStudentId === 'ALL' ? 'width:auto; padding:10px 16px; font-size:16px; font-weight:800; background:#1e3a8a; color:#ffffff; border:2px solid #0f172a;' : 'width:auto; padding:8px 13px; font-size:14px; font-weight:600; background:#f8fafc; color:#1e293b; border:1px solid #cbd5e1;') + '" onclick="setGradingStudentFilter(\'ALL\')">All</button>' : '');
   }
 
   const container = document.getElementById("parentAssignmentList");
@@ -955,20 +959,23 @@ function percentToLetterAndPoints(pct) {
   if (pct >= 77) return { letter: "C+", pts: 2.3 };
   if (pct >= 73) return { letter: "C", pts: 2.0 };
   if (pct >= 70) return { letter: "C-", pts: 1.7 };
-  if (pct >= 60) return { letter: "D", pts: 1.0 };
-  return { letter: "F", pts: 0.0 };
+ function buildGoldGlobeSealSvg() {
+  return '<svg width="110" height="110" viewBox="0 0 140 140" xmlns="http://w3.org" style="display:inline-block; vertical-align:middle;">' +
+    '<defs>' +
+      '<radialGradient id="oceanGrad" cx="38%" cy="35%" r="65%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="55%" stop-color="#1d4ed8"/><stop offset="100%" stop-color="#0f172a"/></radialGradient>' +
+      '<linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#0f172a"/><stop offset="50%" stop-color="#1e293b"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>' +
+    '</defs>' +
+    '<circle cx="70" cy="70" r="44" fill="url(#oceanGrad)" stroke="#d97706" stroke-width="2.5"/>' +
+    '<path d="M46 46 Q56 40 62 50 T54 68 Q45 64 46 46 Z" fill="#86efac" opacity="0.85"/>' +
+    '<path d="M74 42 Q88 38 94 52 T86 76 Q76 74 74 60 Z" fill="#86efac" opacity="0.85"/>' +
+    '<path d="M58 76 Q70 74 74 88 T60 98 Q52 90 58 76 Z" fill="#86efac" opacity="0.85"/>' +
+    '<ellipse cx="70" cy="70" rx="64" ry="20" transform="rotate(-18 70 70)" fill="none" stroke="#facc15" stroke-width="3.5"/>' +
+    '<rect x="6" y="57" width="128" height="24" rx="5" transform="rotate(-18 70 70)" fill="url(#ribbonGrad)" stroke="#facc15" stroke-width="2"/>' +
+    '<text x="70" y="73" transform="rotate(-18 70 70)" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="10.5" font-weight="900" letter-spacing="1.1">GLOBALPREP HIGH</text>' +
+    '<text x="70" y="128" text-anchor="middle" fill="#0f172a" font-family="Georgia, serif" font-size="9" font-weight="700" letter-spacing="1.4">HONORS ACADEMY</text>' +
+  '</svg>';
 }
 
-function buildGoldGlobeSealSvg() {
-  return '<svg width="96" height="96" viewBox="0 0 120 120" xmlns="http://w3.org" style="display:inline-block; vertical-align:middle;">' +
-    '<defs><linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fde047"/><stop offset="50%" stop-color="#d97706"/><stop offset="100%" stop-color="#92400e"/></linearGradient></defs>' +
-    '<circle cx="60" cy="60" r="56" fill="#0f172a" stroke="url(#goldGrad)" stroke-width="5"/>' +
-    '<circle cx="60" cy="60" r="48" fill="none" stroke="#facc15" stroke-width="1.2" stroke-dasharray="3 2"/>' +
-    '<circle cx="60" cy="60" r="26" fill="none" stroke="url(#goldGrad)" stroke-width="2.2"/>' +
-    '<ellipse cx="60" cy="60" rx="13" ry="26" fill="none" stroke="#facc15" stroke-width="1.5"/>' +
-    '<line x1="34" y1="60" x2="86" y2="60" stroke="#facc15" stroke-width="1.5"/>' +
-    '<path d="M38 48 Q60 53 82 48" fill="none" stroke="#facc15" stroke-width="1.2"/>' +
-    '<path d="M38 72 Q60 67 82 72" fill="none" stroke="#facc15" stroke-width="1.2"/>' +
     '<text x="60" y="21" text-anchor="middle" fill="#fde047" font-size="8.5" font-weight="bold" letter-spacing="1.4">GLOBALPREP HIGH</text>' +
     '<text x="60" y="105" text-anchor="middle" fill="#fde047" font-size="7.5" font-weight="bold" letter-spacing="1.2">HONORS ACADEMY</text>' +
     '</svg>';
