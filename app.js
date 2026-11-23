@@ -1314,27 +1314,59 @@ function selectStudentSubject(idx) {
   selectedStuSubjectIdx = idx;
   renderStudentTodayPane();
 }
+function normalizeYoutubeEmbedUrl(url) {
+  if (!url) return "";
+  let clean = String(url).trim().replace("youtube-nocookie.com", "youtube.com");
+  const m = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (m && m) {
+    return "https://youtube.com" + m + "?rel=0&playsinline=1";
+  }
+  return clean;
+}
+
 function makeVideoIframeHtml(url, label) {
-  return '<div style="margin:10px 0 14px 0;">' + (label ? '<div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:4px;">🎬 ' + label + '</div>' : '') + '<div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; border:1px solid #cbd5e1; background:#000;"><iframe src="' + url + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
+  const safeUrl = normalizeYoutubeEmbedUrl(url);
+  if (!safeUrl) return "";
+  const titleBar = label
+    ? '<div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:6px;">🎬 ' + label + '</div>'
+    : '';
+  return '<div style="margin:12px 0 16px 0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px;">' +
+    titleBar +
+    '<div style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#000;">' +
+      '<iframe src="' + safeUrl + '" title="' + (label || "Lesson Video") + '" ' +
+      'style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" ' +
+      'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
+      'allowfullscreen playsinline></iframe>' +
+    '</div>' +
+  '</div>';
 }
 
 function buildInterleavedLessonHtml(rawDesc, subject, embedUrls, mathToolkitBtn) {
   const s = (subject || "").toLowerCase();
   let text = (rawDesc || "").trim();
+
   if (s.includes("history") && !text.toLowerCase().includes("louvre")) {
-    text = "HISTORICAL BACKGROUND (THE LOUVRE & BABYLON): Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the French royal palace before opening as a public museum in 1793, the Louvre houses over 35,000 works—including the 7.4-foot basalt steel of King Hammurabi (c. 1754 BCE).\n\n" + text;
+    text = "HISTORICAL BACKGROUND (THE LOUVRE & BABYLON): Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the world's largest art museum in Paris, the Louvre houses the Stele of Hammurabi—a 7-foot black basalt monument inscribed in cuneiform with 282 laws from ancient Babylon (Mesopotamia).\n\n" + text;
   }
   if (s.includes("biology") && text.toLowerCase().includes("yeast")) {
-    text += "\n\nNO-YEAST HOUSEHOLD ALTERNATIVE: If you do not have active dry yeast on hand, mix 2 tablespoons of baking soda with 1/2 cup of warm vinegar (or lemon juice) inside a clear bottle with a balloon stretched over the top to observe rapid CO2 gas expansion, then compare chemical acid-base gas release with biological cellular respiration!";
+    text += "\n\nNO-YEAST HOUSEHOLD ALTERNATIVE: If you do not have active dry yeast on hand, mix 2 tablespoons of baking soda with 1/2 cup of warm vinegar inside a bottle capped with a balloon to model gas-producing chemical reactions and measure balloon circumference over 10 minutes.";
   }
   if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
-    text += "\n\nREQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every step line-by-line, box your final answer, and upload a photo below!";
+    text += "\n\nREQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every step line-by-line, box your final answer, and upload a clear photo below for teacher grading.";
+  }
+
+  let urls = Array.isArray(embedUrls) ? embedUrls.map(normalizeYoutubeEmbedUrl).filter(Boolean) : [];
+  if ((s.includes("literature") || s.includes("english")) && (text.toLowerCase().includes("bradbury") || text.toLowerCase().includes("fahrenheit") || !urls.length)) {
+    const bradburyUrl = "https://youtube.com76A3b1M3E8U?rel=0&playsinline=1";
+    if (!urls.some(u => u.includes("76A3b1M3E8U"))) urls.unshift(bradburyUrl);
   }
 
   const normalized = text.replace(/\s+(?=\d+\.\s)/g, "\n\n");
   const blocks = normalized.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
-  const videosHtml = embedUrls.map((u, idx) => makeVideoIframeHtml(u, embedUrls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the video")).join("");
-  const amoebaHtml = s.includes("biology") ? makeVideoIframeHtml("https://youtube.com", "Watch Amoeba Sisters: Cellular Respiration") : "";
+  const videosHtml = urls.map((u, idx) => makeVideoIframeHtml(u, urls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video")).join("");
+  const amoebaHtml = s.includes("biology")
+    ? makeVideoIframeHtml("https://youtube.com4Eo7JtRA7lg?rel=0&playsinline=1", "Watch Amoeba Sisters: Cellular Respiration")
+    : "";
 
   let videoPlaced = false;
   let calcPlaced = false;
@@ -1342,7 +1374,7 @@ function buildInterleavedLessonHtml(rawDesc, subject, embedUrls, mathToolkitBtn)
     let styled = blk
       .replace(/\n/g, "<br>")
       .replace(/^(\d+\.\s[^\n<]+)/, "<strong>$1</strong>")
-      .replace(/\b([A-Z][A-Z0-9\s,&'’—-]{3,}:)/g, "<strong>$1</strong>");
+      .replace(/\b([A-Z][A-Z0-9\s,&'’--]{3,}:)/g, "<strong>$1</strong>");
     let extraAfter = "";
     if (!videoPlaced && (/^1\./.test(blk) || /watch/i.test(blk))) {
       extraAfter += videosHtml;
@@ -1355,11 +1387,11 @@ function buildInterleavedLessonHtml(rawDesc, subject, embedUrls, mathToolkitBtn)
       extraAfter += mathToolkitBtn;
       calcPlaced = true;
     }
-    return '<div style="margin:10px 0;">' + styled + extraAfter + '</div>';
+    return '<div style="margin:12px 0;">' + styled + extraAfter + '</div>';
   });
 
-  if (!videoPlaced) {
-    renderedBlocks.unshift('<div style="margin:10px 0;"><strong>1. WATCH THE VIDEO(S):</strong>' + videosHtml + '</div>');
+  if (!videoPlaced && videosHtml) {
+    renderedBlocks.unshift('<div style="margin:12px 0;"><strong>1. WATCH THE VIDEO(S):</strong>' + videosHtml + '</div>');
   }
   if (!calcPlaced && mathToolkitBtn) {
     renderedBlocks.push(mathToolkitBtn);
