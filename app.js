@@ -1119,7 +1119,7 @@ let stuSubsCache = [];
 let selectedStuSubjectIdx = 0;
 
 function switchStudentTab(tabName, btn) {
-  document.querySelectorAll("#studentDashboard .tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("#studentDashboard .pill").forEach(b => b.classList.remove("active"));
   if (btn) btn.classList.add("active");
   document.querySelectorAll(".s-view").forEach(v => v.classList.add("hidden"));
   const target = document.getElementById("sView-" + tabName);
@@ -1128,38 +1128,147 @@ function switchStudentTab(tabName, btn) {
 
 function getSubjectMediaPack(subject) {
   const s = (subject || "").toLowerCase();
+  const YT = "https://youtube.com";
   if (s.includes("english") || s.includes("literature")) {
-    return { yt: "https://youtube.com", link: "https://openstax.org", label: "OpenStax Humanities & Literature Reader" };
+    return { yt: YT + "MSYw502dJNY", link: "https://openstax.org", label: "OpenStax Rhetoric & Literary Analysis Chapter" };
   }
   if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
-    return { yt: "https://youtube.com", link: "https://desmos.com", label: "Interactive Desmos Graphing Lab" };
+    return { yt: YT + "NybHckSEQBI", link: "https://desmos.com", label: "Interactive Desmos Graphing Calculator" };
   }
   if (s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("science") || s.includes("marine")) {
-    return { yt: "https://youtube.com", link: "https://colorado.edu", label: "PhET Interactive Science Simulations" };
+    return { yt: YT + "8IlzKri08kk", link: "https://colorado.edu", label: "PhET Interactive Cell & Membrane Lab" };
   }
   if (s.includes("history") || s.includes("government") || s.includes("economics")) {
-    return { yt: "https://youtube.com", link: "https://openstax.org", label: "OpenStax World & U.S. History Textbook" };
+    return { yt: YT + "Yocja_N5s1I", link: "https://louvre.fr", label: "Louvre Museum: Code of Hammurabi Artifact" };
   }
   if (s.includes("mandarin") || s.includes("chinese")) {
-    return { yt: "https://youtube.com", link: "https://yellowbridge.com", label: "Interactive Mandarin Pinyin & Stroke Lab" };
+    return { yt: YT + "McZW0iOgSrv", link: "https://yellowbridge.com", label: "Interactive Mandarin 4-Tone Audio Trainer" };
   }
   if (s.includes("hindi")) {
-    return { yt: "https://youtube.com", link: "https://learning-hindi.com", label: "Interactive Hindi Devanagari & Audio Guide" };
+    return { yt: YT + "1lrz11BbqCA", link: "https://learning-hindi.com", label: "Interactive Hindi Devanagari Script Guide" };
   }
   if (s.includes("spanish")) {
-    return { yt: "https://youtube.com", link: "https://spanishdict.com", label: "Interactive Spanish Grammar & Audio Lab" };
+    return { yt: YT + "DAp_v7EH9AA", link: "https://spanishdict.com", label: "Interactive Spanish Ser vs. Estar Practice" };
   }
   if (s.includes("french")) {
-    return { yt: "https://youtube.com", link: "https://lawlessfrench.com", label: "Interactive French Pronunciation & Grammar Lab" };
+    return { yt: YT + "ujDtm0hZyII", link: "https://lawlessfrench.com", label: "Interactive French Pronunciation Trainer" };
+  }
+  if (s.includes("automotive") || s.includes("mechanics")) {
+    return { yt: YT + "ZQvfHyfgBtA", link: "https://howstuffworks.com", label: "Interactive 4-Stroke Engine Diagram & Guide" };
   }
   if (s.includes("stock") || s.includes("financial") || s.includes("entrepreneurship")) {
-    return { yt: "https://youtube.com", link: "https://investopedia.com", label: "Investopedia Virtual Stock Market Simulator" };
+    return { yt: YT + "p7HKvqRI_Bo", link: "https://investopedia.com", label: "Investopedia Virtual Stock Market Simulator" };
   }
   if (s.includes("computer") || s.includes("coding")) {
-    return { yt: "https://youtube.com", link: "https://khanacademy.org", label: "Interactive Coding Sandbox & Tutorials" };
+    return { yt: YT + "zOjov-2OZ0E", link: "https://khanacademy.org", label: "Interactive Coding Lesson & Sandbox" };
   }
-  return { yt: "https://youtube.com", link: "https://khanacademy.org", label: "Interactive Reference & Study Guide" };
+  return { yt: YT + "8jPQjjsBbIc", link: "https://khanacademy.org", label: "Interactive Study Guide" };
 }
+function formatLessonSteps(rawDesc, subject) {
+  let text = (rawDesc || "").trim();
+  const s = (subject || "").toLowerCase();
+  if (s.includes("history") && !text.toLowerCase().includes("louvre")) {
+    text = "🏛️ HISTORICAL CONTEXT — THE LOUVRE: Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the French royal palace before opening as a public museum during the French Revolution in 1793, the Louvre houses over 35,000 works spanning ancient Mesopotamia, Egypt, Greece, and the Renaissance.\n\n" + text;
+  }
+  if (s.includes("biology") && text.toLowerCase().includes("yeast")) {
+    text += "\n\n🥄 NO-YEAST HOUSEHOLD ALTERNATIVE: If you do not have active dry yeast on hand, mix 2 tablespoons of baking soda with 1/2 cup of warm vinegar (or lemon juice) inside a clear bottle with a balloon stretched over the top to observe rapid CO2 gas expansion, then compare chemical acid-base gas release with biological cellular respiration!";
+  }
+  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
+    text += "\n\n✏️ REQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every algebraic step line-by-line, box your final answer, and snap a photo below so your parent can review your process!";
+  }
+  let formatted = text
+    .replace(/\s+(?=\d+\.\s)/g, "<br><br>")
+    .replace(/\n\n+/g, "<br><br>")
+    .replace(/\n/g, "<br>")
+    .replace(/\b([A-Z][A-Z0-9\s,&'’—-]{3,}:)/g, "<strong>$1</strong>");
+  return formatted;
+}
+
+function checkInlineQuiz(assignId, qIdx, chosenIdx, correctIdx) {
+  const fb = document.getElementById("qz-fb-" + assignId + "-" + qIdx);
+  if (!fb) return;
+  if (Number(chosenIdx) === Number(correctIdx)) {
+    fb.style.color = "#15803d";
+    fb.innerText = "✅ Correct! Great job.";
+  } else {
+    fb.style.color = "#b91c1c";
+    fb.innerText = "❌ Not quite—re-check the video/notes above and try again!";
+  }
+}
+
+function renderStudentTodayPane() {
+  const tabsEl = document.getElementById("stuSubjectTabs");
+  const paneEl = document.getElementById("stuActiveLessonPane");
+  const progEl = document.getElementById("stuTodayProgress");
+  if (!tabsEl || !paneEl) return;
+
+  if (!stuActiveAssignsCache.length) {
+    tabsEl.innerHTML = "";
+    if (progEl) progEl.innerText = "0 / 0 Completed";
+    paneEl.innerHTML = "<div class='card'><p class='muted'>All enrolled lessons for this term are complete—or ask your parent to enroll your courses! 🎉</p></div>";
+    return;
+  }
+
+  if (selectedStuSubjectIdx >= stuActiveAssignsCache.length) selectedStuSubjectIdx = 0;
+
+  let doneToday = 0;
+  tabsEl.innerHTML = stuActiveAssignsCache.map((a, idx) => {
+    const sub = stuSubsCache.find(x => x.assignment_id === a.id);
+    const isDone = sub && (sub.status === "Submitted" || sub.status === "Graded");
+    if (isDone) doneToday++;
+    const isAct = idx === selectedStuSubjectIdx;
+    return '<button type="button" class="' + (isAct ? 'btn-primary' : 'btn-outline') + '" style="width:auto; padding:8px 14px; font-size:14px; font-weight:700;' + (isAct ? '' : ' color:#1e293b;') + '" onclick="selectStudentSubject(' + idx + ')">' + (isDone ? '✅ ' : '📘 ') + a.subject + '</button>';
+  }).join("");
+
+  if (progEl) progEl.innerText = doneToday + " / " + stuActiveAssignsCache.length + " Submitted";
+
+  const a = stuActiveAssignsCache[selectedStuSubjectIdx];
+  const sub = stuSubsCache.find(x => x.assignment_id === a.id);
+  const statusText = sub && sub.grade ? "Graded: " + sub.grade : sub ? "Submitted ✓" : "Today's Active Lesson";
+  const dueBadge = a.due_date ? " &bull; Due: <b>" + a.due_date + "</b>" : "";
+  const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
+  const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
+  const currMod = catalog.find(m => m.subject === a.subject || a.subject.startsWith(m.subject) || m.subject.startsWith(a.subject.replace(/\s*\(\d+th\)$/, "")));
+  const pack = getSubjectMediaPack(a.subject);
+
+  let embedUrl = pack.yt;
+  let extLinksHtml = "";
+  const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
+  rawLinks.forEach(u => {
+    const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
+    const yt = typeof getYouTubeEmbed === "function" ? getYouTubeEmbed(cleanU) : null;
+    if (yt) {
+      embedUrl = yt;
+    } else if (cleanU.startsWith("http://") || cleanU.startsWith("https://")) {
+      extLinksHtml += '<a href="' + cleanU + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; color:#1e293b; display:inline-block; margin:4px 6px 4px 0;">🔗 Open Direct Lab / Activity ↗</a>';
+    }
+  });
+  if (!extLinksHtml) {
+    extLinksHtml = '<a href="' + pack.link + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; color:#1e293b; display:inline-block; margin:4px 0;">🔗 ' + pack.label + ' ↗</a>';
+  }
+
+  const videoBlock = '<div style="margin:12px 0;"><div style="font-weight:700; font-size:14px; color:#0f172a; margin-bottom:6px;">🎬 Watch the video:</div><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; border:1px solid #cbd5e1; background:#000;"><iframe src="' + embedUrl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
+
+  const steps = ["Watch the video", "Complete the step-by-step activity & interactive lab", "Complete Self-Check Quiz & submit your work"];
+  const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
+  const doneCount = steps.filter((_, i) => savedSteps[i]).length;
+  const pct = Math.round((doneCount / steps.length) * 100);
+  const checklistHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin:10px 0;"><div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:6px;"><span>📋 Today\'s Lesson Checklist</span><span id="pct-' + a.id + '">' + pct + '% Complete</span></div>' + steps.map((st, idx) => '<label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin:4px 0; cursor:pointer;"><input type="checkbox" style="width:auto; margin:0;" ' + (savedSteps[idx] ? 'checked' : '') + ' onchange="toggleLessonStep(\'' + a.id + '\',' + idx + ',' + steps.length + ',this.checked)" /> <span>' + st + '</span></label>').join("") + '</div>';
+
+  const quizList = (currMod && currMod.quiz && currMod.quiz.length) ? currMod.quiz : [
+    { q: "What is the primary analytical skill practiced in today's " + a.subject + " lesson?", options: ["Showing step-by-step evidence and clear reasoning", "Guessing without checking sources or calculations", "Skipping the lab or reading steps"], answer: 0 }
+  ];
+
+  const quizHtml = '<div style="background:#fffbeb; border:1px solid #fde68a; padding:12px; border-radius:8px; margin:10px 0;"><strong style="color:#92400e;">⚡ Quick Self-Check Quiz (Tap an answer for instant feedback):</strong>' + quizList.map((qz, qi) => {
+    const cleanQ = String(qz.q || "").replace(/^\s*\d+[\.\)]\s*/, "");
+    return '<div style="margin-top:10px;"><div style="font-size:13px; font-weight:700;">' + (qi + 1) + '. ' + cleanQ + '</div>' + qz.options.map((opt, oi) => '<label style="display:block; font-weight:normal; font-size:13px; margin:4px 0 4px 12px; cursor:pointer;"><input type="radio" name="qz-' + a.id + '-' + qi + '" style="width:auto; margin-right:6px;" onclick="checkInlineQuiz(\'' + a.id + '\',' + qi + ',' + oi + ',' + qz.answer + ')" />' + opt + '</label>').join("") + '<div id="qz-fb-' + a.id + '-' + qi + '" style="font-size:13px; font-weight:700; margin:4px 0 0 12px;"></div></div>';
+  }).join("") + '</div>';
+
+  const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:8px; border-radius:6px; margin-top:8px;"><small><b>Parent Feedback:</b> ' + sub.parent_feedback + '</small></div>' : '';
+
+  paneEl.innerHTML = '<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">' + a.course_level + ' (' + a.credits + ' cr)' + dueBadge + '</small></div><span class="badge" style="background:#dbeafe; color:#1e40af;">' + statusText + '</span></div>' + videoBlock + '<div style="margin:12px 0; font-size:14px; line-height:1.65; color:#1e293b;">' + formatLessonSteps(a.description, a.subject) + '</div><div style="margin:8px 0;">' + extLinksHtml + '</div>' + checklistHtml + quizHtml + fbHtml + '<div style="margin-top:12px;"><label><b>✍️ Submit Today\'s Reflection, Calculations, or Essay Response:</b></label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Write your answers, summary, or reflection here...">' + (sub && sub.student_notes ? sub.student_notes : '') + '</textarea><label style="margin-top:8px;">📸 Snap or Upload Photo of Handwritten Work / Lab / Project (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="padding:6px; background:#f8fafc;" />' + (sub && sub.submission_link ? '<div style="margin-top:6px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:12px;">📎 View Uploaded Work Photo ↗</a></div>' : '') + '<button class="btn-primary" style="margin-top:10px; width:auto;" onclick="submitWork(\'' + a.id + '\')">Submit Today\'s Work</button></div></div>';
+}
+
 function selectStudentSubject(idx) {
   selectedStuSubjectIdx = idx;
   renderStudentTodayPane();
