@@ -561,24 +561,29 @@ async function deleteAssignment(id) {
 function renderGradingQueue() {
   const container = document.getElementById("parentAssignmentList");
   if (!assignmentsCache.length) {
-    container.innerHTML = "<p class='muted'>No modules assigned yet. Pick a U.S. Honors module on the left to begin!</p>";
+    container.innerHTML = "<p class='muted'>No modules assigned yet. Enroll a student to populate active coursework.</p>";
     return;
   }
+  const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
   container.innerHTML = assignmentsCache.map(a => {
     const stu = studentsCache.find(s => s.id === a.student_id);
     const sub = submissionsCache.find(s => s.assignment_id === a.id);
     const gradeVal = sub && sub.grade ? sub.grade : "";
     const fbVal = sub && sub.parent_feedback ? sub.parent_feedback : "";
-    const dueText = a.due_date ? " • Due: <b>" + a.due_date + "</b>" : "";
+    const dueText = a.due_date ? " &bull; Due: <b>" + a.due_date + "</b>" : "";
     const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
-    const keyBox = a.answer_key ? '<div style="background:#fef9c3; padding:8px; border-radius:6px; margin-top:6px;"><small><b>🔒 Parent Answer Key:</b><br>' + a.answer_key.replace(/\n/g, "<br>") + '</small></div>' : "";
+    const catMatch = catalog.find(c => c.subject === a.subject);
+    const modMatch = catMatch && Array.isArray(catMatch.modules) ? catMatch.modules[0] : catMatch;
+    const resolvedKey = a.answer_key || (modMatch && modMatch.answer_key) || (catMatch && catMatch.answer_key) || "Review student thesis/calculations for accuracy, textual evidence, and complete explanation of steps.";
+    const keyBox = '<details style="background:#fef9c3; border:1px solid #fde047; padding:8px 10px; border-radius:6px; margin-top:6px;"><summary style="cursor:pointer; font-weight:700; color:#854d0e; font-size:13px;">🔑 Parent Answer Key &amp; Grading Rubric</summary><div style="margin-top:6px; font-size:13px; color:#713f12;">' + resolvedKey + '</div></details>';
     const subWork = sub && (sub.student_notes || sub.submission_link)
-      ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">[Open Attached Link]</a>' : '') + '</small></div>'
+      ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">Open Link ↗</a>' : '') + '</small></div>'
       : '<small class="muted">Awaiting student submission</small>';
 
-    return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:start;"><div><strong>' + a.subject + ': ' + cleanTitle + '</strong> (' + a.course_level + ' • ' + a.quarter + ')<br><small class="muted">Student: ' + (stu ? stu.full_name : "Student") + dueText + '</small></div><button class="btn-outline" style="padding:4px 8px; font-size:12px;" onclick="deleteAssignment(\'' + a.id + '\')">🗑️ Remove</button></div>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" placeholder="Grade (A, 96%, etc.)" value="' + gradeVal + '" /><input type="text" id="fb-' + a.id + '" placeholder="Professor Feedback..." value="' + fbVal + '" /></div><button class="btn-outline" style="margin-top:6px;" onclick="saveGrade(\'' + a.id + '\', \'' + a.student_id + '\')">Save Grade & Feedback</button></div>';
+    return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">Student: <b>' + (stu ? stu.full_name : "Student") + '</b> &bull; ' + a.course_level + ' (' + a.credits + ' cr)' + dueText + '</small></div></div>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" value="' + gradeVal + '" placeholder="Grade (e.g., A or 95%)" /><input type="text" id="fb-' + a.id + '" value="' + fbVal + '" placeholder="Parent feedback..." /></div><button class="btn-primary" style="margin-top:6px; width:auto;" onclick="saveGrade(\'' + a.id + '\',\'' + a.student_id + '\')">Save Grade</button></div>';
   }).join("");
 }
+
 
 async function saveGrade(assignment_id, student_id) {
   const grade = document.getElementById("grade-" + assignment_id).value.trim().toUpperCase();
