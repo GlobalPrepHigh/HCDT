@@ -475,25 +475,61 @@ async function enrollSelectedCourses() {
   const quarter = document.getElementById("assignQuarter").value;
   const langSubject = document.getElementById("assignLanguageSelect").value;
   const loc = document.getElementById("assignLocation").value.trim();
-    const pickedElectives = Array.from(document.querySelectorAll(".course-pick-cb:checked")).map(cb => cb.value);
-
+  const pickedElectives = Array.from(document.querySelectorAll(".course-pick-cb:checked")).map(cb => cb.value);
 
   if (!student_id) return alert("Please add or select a student first.");
   if (!pickedElectives.length) return alert("Please select at least 1 required elective before enrolling.");
 
   const stu = (studentsCache || []).find(s => s.id === student_id);
   const g = stu ? String(stu.grade_level) : "9th";
-  const mathSubject = g.startsWith("10") ? "Honors Geometry" : (g.startsWith("11") || g.startsWith("12") ? "Honors Algebra II" : "Honors Algebra I");
 
-  const coreSubjects = ["Honors English Literature", mathSubject, "Honors Biology", "Honors World History"];
-  const targetSubjects = [...coreSubjects, langSubject, ...pickedElectives];
-  const coursesToEnroll = catalog.filter(c => targetSubjects.includes(c.subject));
+  let gradeTrack = [
+    { base: "Honors English Literature", target: "Honors English Literature I (9th)" },
+    { base: "Honors Algebra I", target: "Honors Algebra I (9th)" },
+    { base: "Honors Biology", target: "Honors Biology (9th)" },
+    { base: "Honors World History", target: "Honors World History (9th)" }
+  ];
+
+  if (g.startsWith("10")) {
+    gradeTrack = [
+      { base: "Honors English Literature", target: "Honors World Literature (10th)" },
+      { base: "Honors Algebra I", target: "Honors Geometry (10th)" },
+      { base: "Honors Biology", target: "Honors Chemistry (10th)" },
+      { base: "Honors World History", target: "Honors Modern World & U.S. History (10th)" }
+    ];
+  } else if (g.startsWith("11")) {
+    gradeTrack = [
+      { base: "Honors English Literature", target: "Honors American Literature (11th)" },
+      { base: "Honors Algebra I", target: "Honors Algebra II (11th)" },
+      { base: "Honors Biology", target: "Honors Physics (11th)" },
+      { base: "Honors World History", target: "Honors U.S. History (11th)" }
+    ];
+  } else if (g.startsWith("12")) {
+    gradeTrack = [
+      { base: "Honors English Literature", target: "Honors British & Global Literature (12th)" },
+      { base: "Honors Algebra I", target: "Honors Pre-Calculus & Statistics (12th)" },
+      { base: "Honors Biology", target: "Honors Environmental & Marine Science (12th)" },
+      { base: "Honors World History", target: "Honors U.S. Government & Macroeconomics (12th)" }
+    ];
+  }
+
+  const coursesToEnroll = [];
+  gradeTrack.forEach(item => {
+    const found = catalog.find(c => c.subject === item.target) || catalog.find(c => c.subject === item.base);
+    if (found) coursesToEnroll.push({ ...found, subject: item.target });
+  });
+
+  const extraSubjects = [langSubject, ...pickedElectives];
+  extraSubjects.forEach(sub => {
+    const found = catalog.find(c => c.subject === sub);
+    if (found) coursesToEnroll.push(found);
+  });
 
   if (!coursesToEnroll.length) return alert("No matching courses found in catalog.");
 
   try {
     for (const course of coursesToEnroll) {
-      const m = Array.isArray(course.modules) ? course.modules[0] : course;
+      const m = Array.isArray(course.modules) ? course.modules : course;
       const titleText = loc ? `[${quarter} • ${loc}] ${m.title}` : `[${quarter}] ${m.title}`;
       await sbQuery("assignments", {
         method: "POST",
@@ -510,12 +546,16 @@ async function enrollSelectedCourses() {
         }
       });
     }
-    alert(`Enrolled ${stu ? stu.full_name : "student"} in ${coursesToEnroll.length} Honors courses!`);
+    alert(`Enrolled ${stu ? stu.full_name : "student"} in ${coursesToEnroll.length} Honors courses (4 Core + ${langSubject} + ${pickedElectives.length} Elective${pickedElectives.length > 1 ? "s" : ""})!`);
+    const drawer = document.getElementById("enrollmentDrawer");
+    if (drawer) drawer.classList.add("hidden");
+    setGradingStudentFilter(student_id);
     await refreshFamilyData();
   } catch (err) {
     alert(err.message);
   }
 }
+
 
 async function assignExtraPractice() {
   const student_id = document.getElementById("assignStudentSelect").value;
