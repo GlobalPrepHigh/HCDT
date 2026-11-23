@@ -186,7 +186,22 @@
       </div>
 
       <div id="pView-transcript" class="p-view hidden">
-        <div class="grid-2 no-print" style="margin-bottom:16px;">
+                <div class="card no-print" style="margin-bottom:16px;">
+          <div class="row-2">
+            <div>
+              <h3>Official High School Transcript &amp; Diploma Generator</h3>
+              <label>Select Student</label>
+              <select id="transStudentSelect" onchange="renderOfficialRecords()"></select>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-end;">
+              <button class="btn-primary" onclick="window.print()">🖨️ Print / Save PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="officialDocsPreview" class="card" style="margin-bottom:16px;"></div>
+
+        <div class="grid-2 no-print">
           <div class="card">
             <h3>Log PADI Certifications, Field Studies &amp; Service</h3>
             <label>Select Student</label>
@@ -218,20 +233,6 @@
           </div>
         </div>
 
-        <div class="card no-print">
-          <div class="row-2">
-            <div>
-              <h3>Official High School Transcript &amp; Diploma Generator</h3>
-              <label>Select Student</label>
-              <select id="transStudentSelect" onchange="renderOfficialRecords()"></select>
-            </div>
-            <div style="display:flex; gap:10px; align-items:flex-end;">
-              <button class="btn-primary" onclick="window.print()">🖨️ Print / Save PDF</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="officialDocsPreview" class="card"></div>
       </div>
     </section>
 
