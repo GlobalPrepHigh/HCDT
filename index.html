@@ -79,36 +79,47 @@
       </div>
 
       <div id="pView-overview" class="p-view grid-2">
-        <div class="card">
-          <h3>Add High School Student</h3>
-          <label>Student Full Legal Name (for Transcript &amp; Diploma)</label>
-          <input type="text" id="newStuName" placeholder="e.g., Alexander James Jenkins" />
-          <div class="row-2">
-            <div>
-              <label>Grade Level</label>
-              <select id="newStuGrade">
-                <option value="9th">9th (Freshman)</option>
-                <option value="10th">10th (Sophomore)</option>
-                <option value="11th">11th (Junior)</option>
-                <option value="12th">12th (Senior)</option>
-              </select>
-            </div>
-            <div>
-              <label>Expected Grad Year</label>
-              <input type="number" id="newStuGradYear" placeholder="2028" />
-            </div>
+                <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
+            <h3 style="margin:0;">👨‍🎓 Enrolled High School Students</h3>
+            <button type="button" class="btn-primary" style="width:auto; padding:6px 12px; font-size:13px;" onclick="const box=document.getElementById('addStudentDrawer'); box.classList.toggle('hidden');">+ Add Student</button>
           </div>
-          <div class="row-2">
-            <div>
-              <label>Login Username</label>
-              <input type="text" id="newStuUser" placeholder="alex_j" />
+
+          <div id="addStudentDrawer" class="hidden" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <strong>Add High School Student</strong>
+              <button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:2px 8px; font-size:12px;" onclick="document.getElementById('addStudentDrawer').classList.add('hidden')">✕</button>
             </div>
-            <div>
-              <label>4-Digit PIN</label>
-              <input type="text" id="newStuPin" placeholder="1234" maxlength="4" />
+            <label>Student Full Legal Name (for Transcript &amp; Diploma)</label>
+            <input type="text" id="newStuName" placeholder="e.g., Alexander James Jenkins" />
+            <div class="row-2">
+              <div>
+                <label>Grade Level</label>
+                <select id="newStuGrade">
+                  <option value="9th">9th (Freshman)</option>
+                  <option value="10th">10th (Sophomore)</option>
+                  <option value="11th">11th (Junior)</option>
+                  <option value="12th">12th (Senior)</option>
+                </select>
+              </div>
+              <div>
+                <label>Expected Grad Year</label>
+                <input type="number" id="newStuGradYear" placeholder="2028" />
+              </div>
             </div>
+            <div class="row-2">
+              <div>
+                <label>Login Username</label>
+                <input type="text" id="newStuUser" placeholder="alex_j" />
+              </div>
+              <div>
+                <label>4-Digit PIN</label>
+                <input type="text" id="newStuPin" placeholder="1234" maxlength="4" />
+              </div>
+            </div>
+            <button class="btn-primary" style="margin-top:8px;" onclick="addStudent()">Save New Student</button>
           </div>
-          <button class="btn-primary" onclick="addStudent()">+ Add Student</button>
+
           <div id="studentList" class="list-box"></div>
         </div>
 
