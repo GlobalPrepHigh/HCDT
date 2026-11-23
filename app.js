@@ -169,6 +169,8 @@ async function handleParentAuth() {
     }
   }
 }
+
+function toggleAccountModal(show) {
   const modal = document.getElementById("accountModal");
   if (!modal) return;
   modal.classList.toggle("hidden", !show);
