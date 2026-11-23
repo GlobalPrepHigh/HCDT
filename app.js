@@ -1355,17 +1355,16 @@ function buildInterleavedLessonHtml(rawDesc, subject, embedUrls, mathToolkitBtn)
     text += "\n\nREQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every step line-by-line, box your final answer, and upload a clear photo below for teacher grading.";
   }
 
-  let urls = Array.isArray(embedUrls) ? embedUrls.map(normalizeYoutubeEmbedUrl).filter(Boolean) : [];
-  if ((s.includes("literature") || s.includes("english")) && (text.toLowerCase().includes("bradbury") || text.toLowerCase().includes("fahrenheit") || !urls.length)) {
-    const bradburyUrl = "https://youtube.com76A3b1M3E8U?rel=0&playsinline=1";
-    if (!urls.some(u => u.includes("76A3b1M3E8U"))) urls.unshift(bradburyUrl);
+  let urls = Array.isArray(embedUrls) ? embedUrls.map(u => normalizeYoutubeEmbedUrl(u, subject)).filter(Boolean) : [];
+  if ((s.includes("literature") || s.includes("english")) && !urls.some(u => u.includes("7aKItfLeso4"))) {
+    urls.unshift("https://youtube.com");
   }
 
   const normalized = text.replace(/\s+(?=\d+\.\s)/g, "\n\n");
   const blocks = normalized.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
-  const videosHtml = urls.map((u, idx) => makeVideoIframeHtml(u, urls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video")).join("");
+  const videosHtml = urls.map((u, idx) => makeVideoIframeHtml(u, urls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video", subject)).join("");
   const amoebaHtml = s.includes("biology")
-    ? makeVideoIframeHtml("https://youtube.com4Eo7JtRA7lg?rel=0&playsinline=1", "Watch Amoeba Sisters: Cellular Respiration")
+    ? makeVideoIframeHtml("https://youtube.com", "Watch Amoeba Sisters: Cellular Respiration", subject)
     : "";
 
   let videoPlaced = false;
@@ -1374,7 +1373,7 @@ function buildInterleavedLessonHtml(rawDesc, subject, embedUrls, mathToolkitBtn)
     let styled = blk
       .replace(/\n/g, "<br>")
       .replace(/^(\d+\.\s[^\n<]+)/, "<strong>$1</strong>")
-      .replace(/\b([A-Z][A-Z0-9\s,&'’--]{3,}:)/g, "<strong>$1</strong>");
+      .replace(/\b([A-Z][A-Z0-9\s,&'’-]{3,}:)/g, "<strong>$1</strong>");
     let extraAfter = "";
     if (!videoPlaced && (/^1\./.test(blk) || /watch/i.test(blk))) {
       extraAfter += videosHtml;
@@ -1398,6 +1397,7 @@ function buildInterleavedLessonHtml(rawDesc, subject, embedUrls, mathToolkitBtn)
   }
   return renderedBlocks.join("");
 }
+
 function renderStudentTodayPane() {
   const tabsEl = document.getElementById("stuSubjectTabs");
   const paneEl = document.getElementById("stuActiveLessonPane");
