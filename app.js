@@ -74,33 +74,46 @@ function generateInviteCode() {
 }
 
 async function handleParentAuth() {
-    const rawLogin = document.getElementById("parentEmail").value.trim().toLowerCase();
-  const password = document.getElementById("parentPassword").value;
+  const errEl = document.getElementById("authError");
+  const btn = document.getElementById("parentSubmitBtn");
+  if (errEl) errEl.innerText = "";
 
-  if (!rawLogin || !password) return (errEl.innerText = "Please enter your email or User ID and password.");
-  const aliasMap = JSON.parse(localStorage.getItem("gph_user_aliases") || "{}");
-  let email = rawLogin;
-  if (!rawLogin.includes("@")) {
-    const cleanId = rawLogin.replace(/[^a-z0-9._-]/g, "");
-    if (aliasMap[cleanId]) {
-      email = aliasMap[cleanId];
-    } else {
-      const matchedProf = await sbQuery("profiles", { query: `role=eq.parent&select=*` }).catch(() => []);
-      const found = Array.isArray(matchedProf) ? matchedProf.find(p => (p.short_username || "").toLowerCase() === cleanId) : null;
-      email = found && found.login_email ? found.login_email : (cleanId + "@globalprephigh.org");
-    }
+  const rawLogin = (document.getElementById("parentEmail").value || "").trim().toLowerCase();
+  const password = document.getElementById("parentPassword").value || "";
+
+  if (!rawLogin || !password) {
+    if (errEl) errEl.innerText = "Please enter your email or User ID and password.";
+    return;
   }
-  try {
-    btn.disabled = true;
-    btn.innerText = "Connecting...";
 
-        if (isSignupMode) {
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = "Connecting...";
+    }
+
+    const aliasMap = JSON.parse(localStorage.getItem("gph_user_aliases") || "{}");
+    let email = rawLogin;
+    if (!rawLogin.includes("@")) {
+      const cleanId = rawLogin.replace(/[^a-z0-9._-]/g, "");
+      if (aliasMap[cleanId]) {
+        email = aliasMap[cleanId];
+      } else {
+        const matchedProf = await sbQuery("profiles", { query: `role=eq.parent&select=*` }).catch(() => []);
+        const found = Array.isArray(matchedProf)
+          ? matchedProf.find(p => (p.short_username || "").toLowerCase() === cleanId)
+          : null;
+        email = found && found.login_email ? found.login_email : (cleanId + "@globalprephigh.org");
+      }
+    }
+
+    if (isSignupMode) {
       const betaCode = (document.getElementById("betaAccessCode").value || "").trim().toUpperCase();
       if (betaCode !== "GPH2026") throw new Error("Private Beta Access Only: Enter a valid Founder Beta Code to register.");
       const legalAck = document.getElementById("legalAckCb");
       if (legalAck && !legalAck.checked) throw new Error("Please check the Home-Education Administrator acknowledgment box to continue.");
-      const fullName = document.getElementById("parentName").value.trim();
-      const academyName = document.getElementById("academyName").value.trim();
+      const fullName = (document.getElementById("parentName").value || "").trim();
+      const academyName = (document.getElementById("academyName").value || "").trim();
       if (!fullName || !academyName) throw new Error("Please enter your name and Academy name.");
 
       const authData = await sbAuth("signup", { email, password });
@@ -117,12 +130,13 @@ async function handleParentAuth() {
 
       const profData = await sbQuery("profiles", {
         method: "POST",
-        body: { id: userObj.id, family_id: famData.id, full_name: fullName, role: "parent" },
+        body: { user_id: userObj.id, family_id: famData.id, full_name: fullName, role: "parent" },
         single: true
       });
 
       currentFamily = famData;
       currentUser = profData;
+      currentUser.email = email;
       await loadParentDashboard();
     } else {
       const authData = await sbAuth("token?grant_type=password", { email, password });
@@ -139,20 +153,22 @@ async function handleParentAuth() {
         single: true
       });
 
-      currentUser = profData;    currentUser.email = email;
-    localStorage.setItem("gph_last_parent_email", email);
+      currentUser = profData;
+      currentUser.email = email;
+      localStorage.setItem("gph_last_parent_email", email);
 
       currentFamily = famData;
       await loadParentDashboard();
     }
   } catch (err) {
-    errEl.innerText = err.message;
+    if (errEl) errEl.innerText = err.message || "Sign in failed.";
   } finally {
-    btn.disabled = false;
-    btn.innerText = isSignupMode ? "Create Academy & Sign In" : "Sign In";
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = isSignupMode ? "Create Academy & Sign In" : "Sign In";
+    }
   }
 }
-function toggleAccountModal(show) {
   const modal = document.getElementById("accountModal");
   if (!modal) return;
   modal.classList.toggle("hidden", !show);
