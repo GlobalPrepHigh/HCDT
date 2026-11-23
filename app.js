@@ -139,6 +139,36 @@ async function handleParentAuth() {
     btn.innerText = isSignupMode ? "Create Academy & Sign In" : "Sign In";
   }
 }
+function toggleAccountModal(show) {
+  const modal = document.getElementById("accountModal");
+  if (!modal) return;
+  modal.classList.toggle("hidden", !show);
+  modal.style.display = show ? "flex" : "none";
+}
+
+async function recoverParentPassword(e) {
+  if (e) e.preventDefault();
+  const raw = document.getElementById("parentEmail").value.trim().toLowerCase();
+  if (!raw) return alert("Enter your Email Address (or short User ID) in the box above first, then click Forgot Password.");
+  if (!raw.includes("@")) {
+    return alert("Short User IDs (like '" + raw + "') do not have an inbox for password reset emails. Please sign in with your User ID or contact your academy administrator to reset it.");
+  }
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: raw })
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.msg || data.error_description || "Could not send password reset email.");
+    }
+    alert("Password reset link sent to " + raw + "! Please check your email inbox.");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 async function updateParentCredentials(mode) {
   const payload = {};
     if (mode === "login") {
@@ -223,7 +253,9 @@ async function loadParentDashboard() {
   document.getElementById("authSection").classList.add("hidden");
   document.getElementById("parentDashboard").classList.remove("hidden");
   document.getElementById("logoutBtn").classList.remove("hidden");
-
+    const acctBtn = document.getElementById("accountSettingsBtn");
+  if (acctBtn) acctBtn.classList.remove("hidden");
+  
   document.getElementById("dashAcademyName").innerText = currentFamily.family_name;
   document.getElementById("dashInviteCode").innerText = currentFamily.invite_code;
 
@@ -423,6 +455,7 @@ async function enrollSelectedCourses() {
         body: {
           family_id: currentFamily.id,
           student_id,
+          quarter,
           subject: course.subject,
           course_level: course.course_level || "Honors",
           credits: course.credits || 1.0,
