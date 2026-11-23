@@ -1123,43 +1123,26 @@ function renderOfficialRecords() {
 
 
 function getYouTubeEmbed(url) {
-  const base = ["https://www.", "youtube-nocookie.com", "/embed/"].join("");
+  const base = "https://youtube.com";
+  if (!url) return null;
   if (url.startsWith("yt:")) return base + url.slice(3).trim();
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
-  return m ? base + m.at(1) : null;
+  const m = url.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+  return m ? base + m[1] : null;
 }
-
-function toggleMissionStep(assignId, stepIdx) {
-  const key = "gph_steps_" + assignId;
-  const saved = JSON.parse(localStorage.getItem(key) || "{}");
-  saved[stepIdx] = !saved[stepIdx];
-  localStorage.setItem(key, JSON.stringify(saved));
-  const boxes = document.querySelectorAll(".step-cb-" + assignId);
-  const checked = Array.from(boxes).filter(b => b.checked).length;
-  const pct = Math.round((checked / boxes.length) * 100);
-  const bar = document.getElementById("prog-bar-" + assignId);
-  const lbl = document.getElementById("prog-lbl-" + assignId);
-  if (bar) bar.style.width = pct + "%";
-  if (lbl) lbl.innerText = pct === 100 ? "100% Complete! Ready to Submit 🏆" : pct + "% Mission Progress";
-}
-
-function checkQuizAnswer(assignId, qIdx, chosenIdx, correctIdx) {
-  const resEl = document.getElementById("quiz-res-" + assignId + "-" + qIdx);
-  if (!resEl) return;
-  if (chosenIdx === correctIdx) {
-    resEl.innerHTML = "<span style='color:#15803d; font-weight:600;'>✅ Spot on! +10 Honors XP</span>";
-  } else {
-    resEl.innerHTML = "<span style='color:#b91c1c; font-weight:600;'>❌ Not quite — rewatch/reread and try again!</span>";
-  }
-}
-
-let stuActiveAssignsCache = [];
-let stuSubsCache = [];
-let selectedStuSubjectIdx = 0;
 
 function switchStudentTab(tabName, btn) {
-  document.querySelectorAll("#studentDashboard .pill").forEach(b => b.classList.remove("active"));
-  if (btn) btn.classList.add("active");
+  document.querySelectorAll("#studentDashboard .pill").forEach(b => {
+    b.classList.remove("active");
+    b.style.background = "#ffffff";
+    b.style.color = "#0f172a";
+    b.style.borderColor = "#cbd5e1";
+  });
+  if (btn) {
+    btn.classList.add("active");
+    btn.style.background = "#1e3a8a";
+    btn.style.color = "#ffffff";
+    btn.style.borderColor = "#1e3a8a";
+  }
   document.querySelectorAll(".s-view").forEach(v => v.classList.add("hidden"));
   const target = document.getElementById("sView-" + tabName);
   if (target) target.classList.remove("hidden");
@@ -1169,40 +1152,53 @@ function getSubjectMediaPack(subject) {
   const s = (subject || "").toLowerCase();
   const YT = "https://youtube.com";
   if (s.includes("english") || s.includes("literature")) {
-    return { yt: YT + "MSYw502dJNY", link: "https://openstax.org", label: "OpenStax Rhetoric & Literary Analysis Chapter" };
+    return { yt: YT + "erkLXTvTrp8", label: "Ray Bradbury & Dystopian Literature Video" };
   }
-  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
-    return { yt: YT + "NybHckSEQBI", link: "https://desmos.com", label: "Interactive Desmos Graphing Calculator" };
+  if (s.includes("algebra")) {
+    return { yt: YT + "NybHckSEQBI", label: "Algebra Linear Equations Video" };
   }
-  if (s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("science") || s.includes("marine")) {
-    return { yt: YT + "8IlzKri08kk", link: "https://colorado.edu", label: "PhET Interactive Cell & Membrane Lab" };
+  if (s.includes("geometry")) {
+    return { yt: YT + "302eJ3TzJQU", label: "Geometry Proofs & Parallel Lines Video" };
+  }
+  if (s.includes("calculus") || s.includes("math")) {
+    return { yt: YT + "WUvTyaaNkzM", label: "Mathematics Visual Essence Video" };
+  }
+  if (s.includes("marine")) {
+    return { yt: YT + "3GRA70KOSPg", label: "Marine Biology & Ocean Ecosystems Video" };
+  }
+  if (s.includes("biology")) {
+    return { yt: YT + "eJ9Zjc-jdys", label: "Amoeba Sisters: Cellular Respiration Video" };
+  }
+  if (s.includes("chemistry")) {
+    return { yt: YT + "FSyAehMdpyI", label: "CrashCourse Chemistry: Atomic Structure Video" };
+  }
+  if (s.includes("physics") || s.includes("science")) {
+    return { yt: YT + "ZM8ECpBuQYE", label: "Physics Motion & Forces Video" };
   }
   if (s.includes("history") || s.includes("government") || s.includes("economics")) {
-    return { yt: YT + "Yocja_N5s1I", link: "https://louvre.fr", label: "Louvre Museum: Code of Hammurabi Artifact" };
+    return { yt: YT + "Yocja_N5s1I", label: "CrashCourse World History: Mesopotamia & Hammurabi" };
   }
   if (s.includes("mandarin") || s.includes("chinese")) {
-    return { yt: YT + "McZW0iOgSrv", link: "https://yellowbridge.com", label: "Interactive Mandarin 4-Tone Audio Trainer" };
+    return { yt: YT + "McZW0iOgSrv", label: "Mandarin Chinese 4-Tone Pronunciation Video" };
   }
   if (s.includes("hindi")) {
-    return { yt: YT + "1lrz11BbqCA", link: "https://learning-hindi.com", label: "Interactive Hindi Devanagari Script Guide" };
+    return { yt: YT + "1lrz11BbqCA", label: "Hindi Devanagari Pronunciation Video" };
   }
   if (s.includes("spanish")) {
-    return { yt: YT + "DAp_v7EH9AA", link: "https://spanishdict.com", label: "Interactive Spanish Ser vs. Estar Practice" };
+    return { yt: YT + "DAp_v7EH9AA", label: "Spanish Conversational Foundations Video" };
   }
   if (s.includes("french")) {
-    return { yt: YT + "ujDtm0hZyII", link: "https://lawlessfrench.com", label: "Interactive French Pronunciation Trainer" };
+    return { yt: YT + "ujDtm0hZyII", label: "French Pronunciation & Greetings Video" };
   }
   if (s.includes("automotive") || s.includes("mechanics")) {
-    return { yt: YT + "ZQvfHyfgBtA", link: "https://howstuffworks.com", label: "Interactive 4-Stroke Engine Diagram & Guide" };
+    return { yt: YT + "ZQvfHyfgBtA", label: "How a 4-Stroke Engine Works Video" };
   }
   if (s.includes("stock") || s.includes("financial") || s.includes("entrepreneurship")) {
-    return { yt: YT + "p7HKvqRI_Bo", link: "https://investopedia.com", label: "Investopedia Virtual Stock Market Simulator" };
+    return { yt: YT + "p7HKvqRI_Bo", label: "How the Stock Market & Equities Work Video" };
   }
-  if (s.includes("computer") || s.includes("coding")) {
-    return { yt: YT + "zOjov-2OZ0E", link: "https://khanacademy.org", label: "Interactive Coding Lesson & Sandbox" };
-  }
-  return { yt: YT + "8jPQjjsBbIc", link: "https://khanacademy.org", label: "Interactive Study Guide" };
+  return { yt: YT + "8jPQjjsBbIc", label: "Honors Study Strategy Video" };
 }
+
 function formatLessonSteps(rawDesc, subject) {
   let text = (rawDesc || "").trim();
   const s = (subject || "").toLowerCase();
@@ -1312,6 +1308,58 @@ function selectStudentSubject(idx) {
   selectedStuSubjectIdx = idx;
   renderStudentTodayPane();
 }
+function makeVideoIframeHtml(url, label) {
+  return '<div style="margin:10px 0 14px 0;">' + (label ? '<div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:4px;">🎬 ' + label + '</div>' : '') + '<div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; border:1px solid #cbd5e1; background:#000;"><iframe src="' + url + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
+}
+
+function buildInterleavedLessonHtml(rawDesc, subject, embedUrls, mathToolkitBtn) {
+  const s = (subject || "").toLowerCase();
+  let text = (rawDesc || "").trim();
+  if (s.includes("history") && !text.toLowerCase().includes("louvre")) {
+    text = "HISTORICAL BACKGROUND (THE LOUVRE & BABYLON): Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the French royal palace before opening as a public museum in 1793, the Louvre houses over 35,000 works—including the 7.4-foot basalt steel of King Hammurabi (c. 1754 BCE).\n\n" + text;
+  }
+  if (s.includes("biology") && text.toLowerCase().includes("yeast")) {
+    text += "\n\nNO-YEAST HOUSEHOLD ALTERNATIVE: If you do not have active dry yeast on hand, mix 2 tablespoons of baking soda with 1/2 cup of warm vinegar (or lemon juice) inside a clear bottle with a balloon stretched over the top to observe rapid CO2 gas expansion, then compare chemical acid-base gas release with biological cellular respiration!";
+  }
+  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
+    text += "\n\nREQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every step line-by-line, box your final answer, and upload a photo below!";
+  }
+
+  const normalized = text.replace(/\s+(?=\d+\.\s)/g, "\n\n");
+  const blocks = normalized.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+  const videosHtml = embedUrls.map((u, idx) => makeVideoIframeHtml(u, embedUrls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the video")).join("");
+  const amoebaHtml = s.includes("biology") ? makeVideoIframeHtml("https://youtube.com", "Watch Amoeba Sisters: Cellular Respiration") : "";
+
+  let videoPlaced = false;
+  let calcPlaced = false;
+  const renderedBlocks = blocks.map(blk => {
+    let styled = blk
+      .replace(/\n/g, "<br>")
+      .replace(/^(\d+\.\s[^\n<]+)/, "<strong>$1</strong>")
+      .replace(/\b([A-Z][A-Z0-9\s,&'’—-]{3,}:)/g, "<strong>$1</strong>");
+    let extraAfter = "";
+    if (!videoPlaced && (/^1\./.test(blk) || /watch/i.test(blk))) {
+      extraAfter += videosHtml;
+      videoPlaced = true;
+    }
+    if (s.includes("biology") && (/2\.1/.test(blk) || /amoeba/i.test(blk))) {
+      extraAfter += amoebaHtml;
+    }
+    if (!calcPlaced && mathToolkitBtn && /^2\./.test(blk)) {
+      extraAfter += mathToolkitBtn;
+      calcPlaced = true;
+    }
+    return '<div style="margin:10px 0;">' + styled + extraAfter + '</div>';
+  });
+
+  if (!videoPlaced) {
+    renderedBlocks.unshift('<div style="margin:10px 0;"><strong>1. WATCH THE VIDEO(S):</strong>' + videosHtml + '</div>');
+  }
+  if (!calcPlaced && mathToolkitBtn) {
+    renderedBlocks.push(mathToolkitBtn);
+  }
+  return renderedBlocks.join("");
+}
 function renderStudentTodayPane() {
   const tabsEl = document.getElementById("stuSubjectTabs");
   const paneEl = document.getElementById("stuActiveLessonPane");
@@ -1348,16 +1396,18 @@ function renderStudentTodayPane() {
   const dueBadge = a.due_date ? " &bull; Due: <b>" + a.due_date + "</b>" : "";
   const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
   const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
-  const currMod = catalog.find(m => m.subject === a.subject || a.subject.startsWith(m.subject) || m.subject.startsWith(a.subject.replace(/\s*\(\d+th\)$/, "")));
+  const baseSubj = a.subject.replace(/\s*\(\d+th\)$/, "");
+  const currMod = catalog.find(m => m.subject === a.subject || m.subject === baseSubj || a.subject.startsWith(m.subject) || m.subject.startsWith(baseSubj));
   const pack = getSubjectMediaPack(a.subject);
 
-  let embedUrl = pack.yt;
+  const embedUrls = [];
   const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
   rawLinks.forEach(u => {
     const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
     const yt = typeof getYouTubeEmbed === "function" ? getYouTubeEmbed(cleanU) : null;
-    if (yt) embedUrl = yt;
+    if (yt && !embedUrls.includes(yt)) embedUrls.push(yt);
   });
+  if (!embedUrls.length) embedUrls.push(pack.yt);
 
   const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
   const mathToolkitBtn = isMath
@@ -1365,11 +1415,9 @@ function renderStudentTodayPane() {
     : "";
 
   const pronBar = buildPronunciationBar(a.subject);
-  const parts = splitLessonParts(a.description, a.subject);
+  const bodyHtml = buildInterleavedLessonHtml(a.description, a.subject, embedUrls, mathToolkitBtn);
 
-  const videoBlock = '<div style="margin:14px 0;"><div style="font-weight:700; font-size:14px; color:#0f172a; margin-bottom:6px;">🎬 Watch the video:</div><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; border:1px solid #cbd5e1; background:#000;"><iframe src="' + embedUrl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
-
-  const steps = ["Watch the video", "Complete the step-by-step instructions", "Complete Self-Check Quiz & submit your work"];
+  const steps = ["Watch the video(s)", "Complete the step-by-step instructions", "Complete Self-Check Quiz & submit your work"];
   const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
   const doneCount = steps.filter((_, i) => savedSteps[i]).length;
   const pct = Math.round((doneCount / steps.length) * 100);
@@ -1386,10 +1434,8 @@ function renderStudentTodayPane() {
 
   const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:8px; border-radius:6px; margin-top:8px;"><small><b>Parent Feedback:</b> ' + sub.parent_feedback + '</small></div>' : '';
 
-  paneEl.innerHTML = '<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">' + a.course_level + ' (' + a.credits + ' cr)' + dueBadge + '</small></div><span class="badge" style="background:#dbeafe; color:#1e40af;">' + statusText + '</span></div>' + pronBar + mathToolkitBtn + '<div style="margin:12px 0 4px 0; font-size:14px; line-height:1.65; color:#1e293b; background:#f8fafc; padding:10px 12px; border-radius:8px; border-left:4px solid #2563eb;">' + parts.intro + '</div>' + videoBlock + '<div style="margin:12px 0; font-size:14px; line-height:1.65; color:#1e293b;">' + parts.formattedBody + '</div>' + checklistHtml + quizHtml + fbHtml + '<div style="margin-top:12px;"><label><b>✍️ Submit Today\'s Reflection, Calculations, or Essay Response:</b></label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Write your answers, summary, or reflection here...">' + (sub && sub.student_notes ? sub.student_notes : '') + '</textarea><label style="margin-top:8px;">📸 Snap or Upload Photo of Handwritten Work / Lab / Project (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="padding:6px; background:#f8fafc;" />' + (sub && sub.submission_link ? '<div style="margin-top:6px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:12px;">📎 View Uploaded Work Photo ↗</a></div>' : '') + '<button class="btn-primary" style="margin-top:10px; width:auto;" onclick="submitWork(\'' + a.id + '\')">Submit Today\'s Work</button></div></div>';
+  paneEl.innerHTML = '<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">' + a.course_level + ' (' + a.credits + ' cr)' + dueBadge + '</small></div><span class="badge" style="background:#dbeafe; color:#1e40af;">' + statusText + '</span></div>' + pronBar + '<div style="margin:12px 0; font-size:14px; line-height:1.65; color:#1e293b;">' + bodyHtml + '</div>' + checklistHtml + quizHtml + fbHtml + '<div style="margin-top:12px;"><label><b>✍️ Submit Today\'s Reflection, Calculations, or Essay Response:</b></label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Write your answers, summary, or reflection here...">' + (sub && sub.student_notes ? sub.student_notes : '') + '</textarea><label style="margin-top:8px;">📸 Snap or Upload Photo of Handwritten Work / Lab / Project (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="padding:6px; background:#f8fafc;" />' + (sub && sub.submission_link ? '<div style="margin-top:6px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:12px;">📎 View Uploaded Work Photo ↗</a></div>' : '') + '<button class="btn-primary" style="margin-top:10px; width:auto;" onclick="submitWork(\'' + a.id + '\')">Submit Today\'s Work</button></div></div>';
 }
-
-
 async function loadStudentDashboard(isPreview = false) {
   if (!isPreview) saveSession("student");
   document.getElementById("authSection").classList.add("hidden");
