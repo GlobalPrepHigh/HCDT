@@ -427,6 +427,7 @@ function populateCurriculumDropdown() {
 
   const fallbackElectives = [
     { subject: "Personal Financial Literacy & Investing", credits: 0.5 },
+    { subject: "Stock Market, Equities & Wealth Strategy", credits: 0.5 },
     { subject: "Honors Economics & Global Markets", credits: 0.5 },
     { subject: "Computer Science & Web Coding", credits: 1.0 },
     { subject: "Travel Photography & Visual Storytelling", credits: 0.5 },
@@ -442,7 +443,13 @@ function populateCurriculumDropdown() {
     { subject: "Architecture & Global Urban Design", credits: 0.5 }
   ];
 
-  const coreNames = ["Honors English Literature", "Honors Algebra I", "Honors Biology", "Honors World History"];
+    const coreNames = [
+    "Honors English Literature", "Honors English Literature I (9th)", "Honors World Literature (10th)", "Honors American Literature (11th)", "Honors British & Global Literature (12th)",
+    "Honors Algebra I", "Honors Algebra I (9th)", "Honors Geometry (10th)", "Honors Algebra II (11th)", "Honors Pre-Calculus & Statistics (12th)",
+    "Honors Biology", "Honors Biology (9th)", "Honors Chemistry (10th)", "Honors Physics (11th)", "Honors Environmental & Marine Science (12th)",
+    "Honors World History", "Honors World History (9th)", "Honors Modern World & U.S. History (10th)", "Honors U.S. History (11th)", "Honors U.S. Government & Macroeconomics (12th)"
+  ];
+
   const langNames = ["Honors Mandarin Chinese I", "Honors Hindi I", "Honors Spanish I", "Honors French I"];
 
   let list = fallbackElectives;
