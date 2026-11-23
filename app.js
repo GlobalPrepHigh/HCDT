@@ -651,14 +651,20 @@ async function deleteAssignment(id, label) {
 
 function getParentTextSnippet(subject) {
   const s = (subject || "").toLowerCase();
-  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
-    return "<b>📘 Parent Concept Refresher &amp; Worked Example:</b><br>• <b>Linear &amp; Geometric Proofs:</b> Always isolate the variable using inverse operations on both sides of the equals sign.<br>• <b>Worked Example:</b> Solve <code>3(x - 4) + 2 = 17</code> &rarr; Step 1 (Distribute): <code>3x - 12 + 2 = 17</code> &rarr; Step 2 (Combine like terms): <code>3x - 10 = 17</code> &rarr; Step 3 (Add 10): <code>3x = 27</code> &rarr; Step 4 (Divide by 3): <b><code>x = 9</code></b>.<br>• <i>Check student's uploaded paper photo to verify every intermediate line is shown!</i>";
+  if (s.includes("geometry")) {
+    return "<b>📘 Parent Geometry Concept Refresher &amp; Worked Example:</b><br>• <b>Slope &amp; Parallel/Perpendicular Lines:</b> Slope <code>m = (y2 - y1) / (x2 - x1)</code>. Parallel lines share the <b>exact same slope</b>; perpendicular lines have <b>negative reciprocal slopes</b> (e.g., <code>2/3</code> &amp; <code>-3/2</code>).<br>• <b>Worked Example:</b> Find the slope through <code>(2, 5)</code> and <code>(6, 13)</code> &rarr; Step 1: <code>m = (13 - 5) / (6 - 2)</code> &rarr; Step 2: <code>m = 8 / 4 = 2</code>. A perpendicular line has slope <b><code>-1/2</code></b>.<br>• <i>Check student's uploaded paper photo to verify every formula and intermediate step is written out!</i>";
+  }
+  if (s.includes("algebra") || s.includes("calculus") || s.includes("math")) {
+    return "<b>📘 Parent Algebra Concept Refresher &amp; Worked Example:</b><br>• <b>Multi-Step Linear Equations:</b> Distribute first, combine like terms on each side, then isolate the variable using inverse operations.<br>• <b>Worked Example:</b> Solve <code>3(x - 4) + 2 = 17</code> &rarr; Step 1 (Distribute): <code>3x - 12 + 2 = 17</code> &rarr; Step 2 (Combine): <code>3x - 10 = 17</code> &rarr; Step 3 (Add 10): <code>3x = 27</code> &rarr; Step 4 (Divide by 3): <b><code>x = 9</code></b>.<br>• <i>Check student's uploaded paper photo to verify every intermediate line is shown!</i>";
+  }
+  if (s.includes("english") || s.includes("literature")) {
+    return "<b>📘 Parent Literature &amp; Composition Refresher:</b><br>• <b>Thesis &amp; Textual Evidence Standard:</b> A strong Honors response opens with a specific debatable claim, embeds a direct quote or concrete scene detail, and explains <i>how</i> the author's word choice or structure supports the theme (not just plot summary).";
   }
   if (s.includes("chemistry") || s.includes("biology") || s.includes("physics") || s.includes("science")) {
-    return "<b>📘 Parent Concept Refresher &amp; Lab Key:</b><br>• <b>Scientific Method &amp; Cellular/Chemical Reactions:</b> A valid lab conclusion must state an independent variable (what changed), dependent variable (what was measured), and quantitative evidence.<br>• <b>Key Concept:</b> In cellular respiration (<code>C6H12O6 + 6O2 &rarr; 6CO2 + 6H2O + ATP</code>) or acid-base reactions, trapped <code>CO2</code> gas inflates the balloon proportionally to reaction rate.";
+    return "<b>📘 Parent Science Concept Refresher &amp; Lab Key:</b><br>• <b>Lab Analysis Standard:</b> Confirm the student identifies the independent variable (what changed), dependent variable (what was measured), and explains how trapped <code>CO2</code> gas or molecular energy caused the observed change.";
   }
   if (s.includes("history") || s.includes("government") || s.includes("economics")) {
-    return "<b>📘 Parent Concept Refresher — Code of Hammurabi &amp; Louvre Context:</b><br>• <b>Pronunciation:</b> <i>Hammurabi</i> (<b>hah-moo-RAH-bee</b>) &bull; <i>Louvre</i> (<b>LOOV-ruh</b>).<br>• <b>Key Historical Takeaway:</b> Carved onto a 7.4-foot basalt stele in Babylon (c. 1754 BCE) and housed today in the Louvre Museum in Paris, Hammurabi's 282 laws established written public legal standards and social-class-based restitution (<i>lex talionis</i>).";
+    return "<b>📘 Parent Concept Refresher — Code of Hammurabi &amp; Louvre Context:</b><br>• <b>Pronunciation:</b> <i>Hammurabi</i> (<b>hah-moo-RAH-bee</b>) &bull; <i>Louvre</i> (<b>LOOV-ruh</b>).<br>• <b>Key Historical Takeaway:</b> Carved onto a 7.4-foot basalt steel in Babylon (c. 1754 BCE) and housed today in the Louvre Museum in Paris, Hammurabi's 282 laws established written public legal standards and social-class-based restitution (<i>lex talionis</i>).";
   }
   if (s.includes("mandarin") || s.includes("chinese")) {
     return "<b>📘 Parent Concept Refresher — Mandarin Tones &amp; Greetings:</b><br>• <b>4 Mandarin Tones:</b> 1st tone (high flat: <code>mā</code> = mother), 2nd tone (rising: <code>má</code> = hemp), 3rd tone (dipping: <code>mǎ</code> = horse), 4th tone (sharp falling: <code>mà</code> = scold).<br>• <b>Key Phrases:</b> <i>Nǐ hǎo</i> (<b>nee HOW</b> = Hello) &bull; <i>Xièxie</i> (<b>SHYEH-shyeh</b> = Thank you) &bull; <i>Zàijiàn</i> (<b>DZAI-jyen</b> = Goodbye).";
@@ -667,10 +673,10 @@ function getParentTextSnippet(subject) {
     return "<b>📘 Parent Concept Refresher — World Language Mastery:</b><br>• Listen for clear vowel pronunciation, accurate gender/number agreement on nouns and adjectives, and complete conversational responses rather than single-word answers.";
   }
   if (s.includes("stock") || s.includes("financial") || s.includes("entrepreneurship")) {
-    return "<b>📘 Parent Concept Refresher — Equities, P/E Ratio &amp; Compound Growth:</b><br>• <b>Key Terms:</b> <b>Stock/Equity</b> = fractional ownership in a company; <b>Dividend</b> = cash profit shared per share; <b>P/E Ratio</b> = Share Price &divide; Earnings Per Share (measures how much investors pay per $1 of profit); <b>Diversification</b> = spreading capital across sectors to reduce single-company risk.";
+    return "<b>📘 Parent Concept Refresher — Equities, P/E Ratio &amp; Compound Growth:</b><br>• <b>Key Terms:</b> <b>Stock/Equity</b> = fractional ownership in a company; <b>Dividend</b> = cash profit shared per share; <b>P/E Ratio</b> = Share Price &divide; Earnings Per Share; <b>Diversification</b> = spreading capital across sectors to reduce risk.";
   }
   if (s.includes("automotive") || s.includes("engineering")) {
-    return "<b>📘 Parent Concept Refresher — 4-Stroke Engine &amp; Vehicle Systems:</b><br>• <b>4-Stroke Cycle (Suck, Squeeze, Bang, Blow):</b> 1. <b>Intake</b> (air-fuel enters) &rarr; 2. <b>Compression</b> (piston compresses mixture) &rarr; 3. <b>Power</b> (spark plug ignites mixture) &rarr; 4. <b>Exhaust</b> (spent gases exit).";
+    return "<b>📘 Parent Concept Refresher — 4-Stroke Engine &amp; Vehicle Systems:</b><br>• <b>4-Stroke Cycle:</b> 1. <b>Intake</b> (air-fuel enters) &rarr; 2. <b>Compression</b> (piston compresses mixture) &rarr; 3. <b>Power</b> (spark plug ignites mixture) &rarr; 4. <b>Exhaust</b> (spent gases exit).";
   }
   return "<b>📘 Parent Concept Refresher &amp; Grading Standard:</b><br>• Look for a clear topic sentence/claim, at least 2 specific facts or examples from today's video lesson, and complete, well-reasoned sentences.";
 }
@@ -679,7 +685,7 @@ function renderGradingQueue() {
   const pillsEl = document.getElementById("gradingStudentPills");
   if (pillsEl) {
     if (activeGradingStudentId === null && studentsCache.length) {
-      activeGradingStudentId = studentsCache.id;
+      activeGradingStudentId = studentsCache[0].id;
     }
     pillsEl.innerHTML = studentsCache.map(s => {
       const isAct = s.id === activeGradingStudentId;
@@ -705,8 +711,9 @@ function renderGradingQueue() {
     const dueText = a.due_date ? " &bull; Due: <b>" + a.due_date + "</b>" : "";
     const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
     const safeLabel = (a.subject + ": " + cleanTitle).replace(/'/g, "\\'");
-    const catMatch = catalog.find(c => c.subject === a.subject || a.subject.startsWith(c.subject));
-    const modMatch = catMatch && Array.isArray(catMatch.modules) ? catMatch.modules : catMatch;
+    const baseSubj = a.subject.replace(/\s*\(\d+th\)$/, "");
+    const catMatch = catalog.find(c => c.subject === a.subject || c.subject === baseSubj || a.subject.startsWith(c.subject) || c.subject.startsWith(baseSubj));
+    const modMatch = catMatch && Array.isArray(catMatch.modules) ? catMatch.modules[0] : catMatch;
     const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
     const defaultSteps = isMath
       ? "<b>Step-by-Step Verification:</b><br>1. Confirm student copied the original problem onto paper.<br>2. Check each algebraic/geometric step line-by-line (watch for sign flips across =).<br>3. Verify units and final boxed answer."
@@ -1249,7 +1256,7 @@ function splitLessonParts(rawDesc, subject) {
   const s = (subject || "").toLowerCase();
   let intro = "";
   if (s.includes("history")) {
-    intro = "<strong>STEP 1 — HISTORICAL BACKGROUND (THE LOUVRE &amp; BABYLON):</strong><br>Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the French royal palace before opening as a public museum in 1793, the <b>Louvre</b> houses over 35,000 works—including the 7.4-foot basalt stele of King <b>Hammurabi</b> (c. 1754 BCE). Watch the video below first to explore how early written law shaped civilization.";
+    intro = "<strong>STEP 1 — HISTORICAL BACKGROUND (THE LOUVRE &amp; BABYLON):</strong><br>Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the French royal palace before opening as a public museum in 1793, the <b>Louvre</b> houses over 35,000 works—including the 7.4-foot basalt steel of King <b>Hammurabi</b> (c. 1754 BCE). Watch the video below first to explore how early written law shaped civilization.";
   } else if (s.includes("biology") || s.includes("chemistry") || s.includes("science")) {
     intro = "<strong>STEP 1 — CONCEPT &amp; LAB BRIEFING:</strong><br>Watch the video below first to observe how molecules and energy transform during chemical and biological reactions, then complete the hands-on lab steps underneath.";
   } else if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
