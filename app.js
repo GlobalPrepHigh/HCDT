@@ -649,7 +649,6 @@ async function deleteAssignment(id, label) {
   } catch (err) {
     alert(err.message);
   }
-}
 
 function getParentTextSnippet(subject) {
   const s = (subject || "").toLowerCase();
