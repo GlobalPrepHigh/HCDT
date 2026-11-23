@@ -272,11 +272,10 @@
           <h2 id="stuDashWelcome">Welcome, Student!</h2>
           <p id="stuDashMeta" class="muted">Grade &bull; Cohort</p>
         </div>
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="triggerBrainBreak()">🧠 Brain Break</button>
-          <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="toggleMathToolkit()">🧮 Calculator &amp; Grapher</button>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;" onclick="triggerBrainBreak()">🧠 Brain Break</button>
+          <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleMathToolkit()">🧮 Calculator &amp; Grapher</button>
         </div>
-      </div>
 
       <div id="mathToolkitBox" class="card hidden" style="margin-bottom:16px; border:1px solid #cbd5e1;">
         <div class="grid-2">
@@ -302,14 +301,15 @@
               <a href="https://geogebra.org" target="_blank" style="font-size:12px;">Open GeoGeoBra ↗</a>
             </div>
           </div>
+                  </div>
         </div>
       </div>
 
-      <div class="tabs no-print" style="margin-bottom:16px;">
-        <button type="button" class="tab-btn active" onclick="switchStudentTab('today', this)">📅 Today's Focus</button>
-        <button type="button" class="tab-btn" onclick="switchStudentTab('syllabus', this)">📖 Quarter Syllabus</button>
-        <button type="button" class="tab-btn" onclick="switchStudentTab('grades', this)">📊 Grades &amp; GPA</button>
-        <button type="button" class="tab-btn" onclick="switchStudentTab('certs', this)">🏅 Certs &amp; Portfolio</button>
+      <div class="nav-pills no-print" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px;">
+        <button type="button" class="pill active" style="padding:12px 18px; font-size:15px; font-weight:700;" onclick="switchStudentTab('today', this)">📅 Today's Focus</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700;" onclick="switchStudentTab('syllabus', this)">📖 Quarter Syllabus</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700;" onclick="switchStudentTab('grades', this)">📊 Grades &amp; GPA</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700;" onclick="switchStudentTab('certs', this)">🏅 Certs &amp; Portfolio</button>
       </div>
 
       <div id="sView-today" class="s-view">
