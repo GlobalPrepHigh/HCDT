@@ -532,19 +532,29 @@ async function enrollSelectedCourses() {
     ];
   }
 
-  const coursesToEnroll = [];
+    const alreadyEnrolled = new Set(
+    (assignmentsCache || [])
+      .filter(a => a.student_id === student_id && a.quarter === quarter)
+      .map(a => (a.subject || "").toLowerCase())
+  );
+
+  const rawCourses = [];
   gradeTrack.forEach(item => {
     const found = catalog.find(c => c.subject === item.target) || catalog.find(c => c.subject === item.base);
-    if (found) coursesToEnroll.push({ ...found, subject: item.target });
+    if (found) rawCourses.push({ ...found, subject: item.target });
   });
 
   const extraSubjects = [langSubject, ...pickedElectives];
   extraSubjects.forEach(sub => {
     const found = catalog.find(c => c.subject === sub);
-    if (found) coursesToEnroll.push(found);
+    if (found) rawCourses.push(found);
   });
 
-  if (!coursesToEnroll.length) return alert("No matching courses found in catalog.");
+  const coursesToEnroll = rawCourses.filter(c => !alreadyEnrolled.has((c.subject || "").toLowerCase()));
+
+  if (!coursesToEnroll.length) {
+    return alert(`${stu ? stu.full_name : "This student"} is already enrolled in all of those courses for ${quarter}!`);
+  }
 
   try {
     for (const course of coursesToEnroll) {
@@ -565,7 +575,7 @@ async function enrollSelectedCourses() {
         }
       });
     }
-    alert(`Enrolled ${stu ? stu.full_name : "student"} in ${coursesToEnroll.length} Honors courses (4 Core + ${langSubject} + ${pickedElectives.length} Elective${pickedElectives.length > 1 ? "s" : ""})!`);
+    alert(`Added ${coursesToEnroll.length} new course${coursesToEnroll.length > 1 ? "s" : ""} for ${stu ? stu.full_name : "student"} (skipped ${rawCourses.length - coursesToEnroll.length} already-enrolled courses).`);
     const drawer = document.getElementById("enrollmentDrawer");
     if (drawer) drawer.classList.add("hidden");
     setGradingStudentFilter(student_id);
@@ -617,20 +627,50 @@ async function deleteAssignment(id) {
   }
 }
 
-let activeGradingStudentId = "ALL";
+let activeGradingStudentId = null;
 
 function setGradingStudentFilter(stuId) {
   activeGradingStudentId = stuId;
   const sel = document.getElementById("assignStudentSelect");
-  if (sel && stuId !== "ALL") sel.value = stuId;
+  if (sel && stuId && stuId !== "ALL") sel.value = stuId;
   renderGradingQueue();
+}
+
+async function deleteAssignment(id, label) {
+  if (!confirm(`Remove "${label}" from this student's coursework?`)) return;
+  try {
+    await sbQuery("assignments", { method: "DELETE", query: `id=eq.${id}` });
+    await refreshFamilyData();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function getParentGuideLink(subject) {
+  const s = (subject || "").toLowerCase();
+  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
+    return { url: "https://khanacademy.org", text: "📘 Parent Math Concept Refresher & Worked Examples (Khan Academy)" };
+  }
+  if (s.includes("english") || s.includes("literature")) {
+    return { url: "https://purdue.edu", text: "📘 Parent Essay & Literary Analysis Guide (Purdue OWL)" };
+  }
+  if (s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("science")) {
+    return { url: "https://openstax.org", text: "📘 Parent Science Reference Textbook (OpenStax)" };
+  }
+  if (s.includes("history") || s.includes("government") || s.includes("economics")) {
+    return { url: "https://openstax.org", text: "📘 Parent History & Civics Reference Guide (OpenStax)" };
+  }
+  if (s.includes("stock") || s.includes("financial")) {
+    return { url: "https://investopedia.com", text: "📘 Parent Equities & Investing Reference Guide (Investopedia)" };
+  }
+  return { url: "https://khanacademy.org", text: "📘 Parent Subject Concept Refresher Guide" };
 }
 
 function renderGradingQueue() {
   const pillsEl = document.getElementById("gradingStudentPills");
   if (pillsEl) {
-    if (activeGradingStudentId === "ALL" && studentsCache.length) {
-      activeGradingStudentId = studentsCache[0].id;
+    if (activeGradingStudentId === null && studentsCache.length) {
+      activeGradingStudentId = studentsCache.id;
     }
     pillsEl.innerHTML = studentsCache.map(s => {
       const isAct = s.id === activeGradingStudentId;
@@ -639,7 +679,7 @@ function renderGradingQueue() {
   }
 
   const container = document.getElementById("parentAssignmentList");
-  const filtered = activeGradingStudentId === "ALL"
+  const filtered = activeGradingStudentId === "ALL" || !activeGradingStudentId
     ? assignmentsCache
     : assignmentsCache.filter(a => a.student_id === activeGradingStudentId);
 
@@ -655,17 +695,24 @@ function renderGradingQueue() {
     const fbVal = sub && sub.parent_feedback ? sub.parent_feedback : "";
     const dueText = a.due_date ? " &bull; Due: <b>" + a.due_date + "</b>" : "";
     const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
-    const catMatch = catalog.find(c => c.subject === a.subject);
-    const modMatch = catMatch && Array.isArray(catMatch.modules) ? catMatch.modules[0] : catMatch;
-    const resolvedKey = a.answer_key || (modMatch && modMatch.answer_key) || (catMatch && catMatch.answer_key) || "Review student thesis/calculations for accuracy, textual evidence, and complete explanation of steps.";
-    const keyBox = '<details style="background:#fef9c3; border:1px solid #fde047; padding:8px 10px; border-radius:6px; margin-top:6px;"><summary style="cursor:pointer; font-weight:700; color:#854d0e; font-size:13px;">🔑 Parent Answer Key &amp; Grading Rubric</summary><div style="margin-top:6px; font-size:13px; color:#713f12;">' + resolvedKey + '</div></details>';
+    const safeLabel = (a.subject + ": " + cleanTitle).replace(/'/g, "\\'");
+    const catMatch = catalog.find(c => c.subject === a.subject || a.subject.startsWith(c.subject));
+    const modMatch = catMatch && Array.isArray(catMatch.modules) ? catMatch.modules : catMatch;
+    const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
+    const defaultSteps = isMath
+      ? "<b>Step-by-Step Verification:</b><br>1. Check that student wrote out the original equation/problem on paper.<br>2. Verify each algebraic/geometric transformation line-by-line (watch for sign errors when moving terms across =).<br>3. Confirm units/slope-intercept form and final boxed answer."
+      : "<b>Step-by-Step Verification:</b><br>1. Check clear thesis or hypothesis statement.<br>2. Verify supporting evidence/data from the lesson video and simulation.<br>3. Confirm complete sentences and reasoned conclusion.";
+    const resolvedKey = a.answer_key || (modMatch && modMatch.answer_key) || (catMatch && catMatch.answer_key) || defaultSteps;
+    const guide = getParentGuideLink(a.subject);
+    const keyBox = '<details style="background:#fef9c3; border:1px solid #fde047; padding:8px 10px; border-radius:6px; margin-top:6px;"><summary style="cursor:pointer; font-weight:700; color:#854d0e; font-size:13px;">🔑 Parent Answer Key, Step-by-Step Solution &amp; Refresher Guide</summary><div style="margin-top:6px; font-size:13px; color:#713f12; line-height:1.5;">' + resolvedKey + '<div style="margin-top:8px; padding-top:6px; border-top:1px dashed #eab308;"><a href="' + guide.url + '" target="_blank" rel="noopener" style="font-weight:700; color:#1d4ed8;">' + guide.text + ' ↗</a></div></div></details>';
     const subWork = sub && (sub.student_notes || sub.submission_link)
-      ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">Open Link ↗</a>' : '') + '</small></div>'
-      : '<small class="muted">Awaiting student submission</small>';
+      ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">Open Photo/Link ↗</a>' : '') + '</small></div>'
+      : '<small class="muted">Awaiting student submission (students can upload a photo of handwritten paper work)</small>';
 
-    return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">Student: <b>' + (stu ? stu.full_name : "Student") + '</b> &bull; ' + a.course_level + ' (' + a.credits + ' cr)' + dueText + '</small></div></div>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" value="' + gradeVal + '" placeholder="Grade (e.g., A or 95%)" /><input type="text" id="fb-' + a.id + '" value="' + fbVal + '" placeholder="Parent feedback..." /></div><button class="btn-primary" style="margin-top:6px; width:auto;" onclick="saveGrade(\'' + a.id + '\',\'' + a.student_id + '\')">Save Grade</button></div>';
+    return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">Student: <b>' + (stu ? stu.full_name : "Student") + '</b> &bull; ' + a.course_level + ' (' + a.credits + ' cr)' + dueText + '</small></div><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:3px 8px; font-size:12px; flex-shrink:0;" onclick="deleteAssignment(\'' + a.id + '\',\'' + safeLabel + '\')">🗑️ Remove</button></div>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" value="' + gradeVal + '" placeholder="Grade (e.g., A or 95%)" /><input type="text" id="fb-' + a.id + '" value="' + fbVal + '" placeholder="Parent feedback..." /></div><button class="btn-primary" style="margin-top:6px; width:auto;" onclick="saveGrade(\'' + a.id + '\',\'' + a.student_id + '\')">Save Grade</button></div>';
   }).join("");
 }
+
 
 
 async function saveGrade(assignment_id, student_id) {
