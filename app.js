@@ -955,6 +955,31 @@ function percentToLetterAndPoints(pct) {
   return { letter: "F", pts: 0.0 };
 }
 
+function buildGoldGlobeSealSvg() {
+  return '<svg width="96" height="96" viewBox="0 0 120 120" xmlns="http://w3.org" style="display:inline-block; vertical-align:middle;">' +
+    '<defs><linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fde047"/><stop offset="50%" stop-color="#d97706"/><stop offset="100%" stop-color="#92400e"/></linearGradient></defs>' +
+    '<circle cx="60" cy="60" r="56" fill="#0f172a" stroke="url(#goldGrad)" stroke-width="5"/>' +
+    '<circle cx="60" cy="60" r="48" fill="none" stroke="#facc15" stroke-width="1.2" stroke-dasharray="3 2"/>' +
+    '<circle cx="60" cy="60" r="26" fill="none" stroke="url(#goldGrad)" stroke-width="2.2"/>' +
+    '<ellipse cx="60" cy="60" rx="13" ry="26" fill="none" stroke="#facc15" stroke-width="1.5"/>' +
+    '<line x1="34" y1="60" x2="86" y2="60" stroke="#facc15" stroke-width="1.5"/>' +
+    '<path d="M38 48 Q60 53 82 48" fill="none" stroke="#facc15" stroke-width="1.2"/>' +
+    '<path d="M38 72 Q60 67 82 72" fill="none" stroke="#facc15" stroke-width="1.2"/>' +
+    '<text x="60" y="21" text-anchor="middle" fill="#fde047" font-size="8.5" font-weight="bold" letter-spacing="1.4">GLOBALPREP HIGH</text>' +
+    '<text x="60" y="105" text-anchor="middle" fill="#fde047" font-size="7.5" font-weight="bold" letter-spacing="1.2">HONORS ACADEMY</text>' +
+    '</svg>';
+}
+
+function getCourseStandardTag(subj) {
+  const s = (subj || "").toLowerCase();
+  if (s.includes("english") || s.includes("literature")) return "CCSS.ELA-LITERACY";
+  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) return "CCSS.MATH";
+  if (s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("marine")) return "NGSS HS-SCI";
+  if (s.includes("history") || s.includes("government") || s.includes("economics")) return "C3.SOC-STUDIES";
+  if (s.includes("mandarin") || s.includes("spanish") || s.includes("french") || s.includes("hindi")) return "ACTFL WORLD-LANG";
+  return "U.S. COLLEGE-PREP";
+}
+
 function renderOfficialRecords() {
   const stuId = document.getElementById("transStudentSelect").value;
   const stu = studentsCache.find(s => s.id === stuId);
@@ -989,17 +1014,16 @@ function renderOfficialRecords() {
   let weightedPoints = 0;
   let unweightedPoints = 0;
 
-    const courseRank = (sub) => {
+  const courseRank = (sub) => {
     const s = (sub || "").toLowerCase();
     if (s.includes("english") || s.includes("literature") || s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("history") || s.includes("government") || s.includes("economics")) return 1;
-    if (s.includes("mandarin") || s.includes("chinese") || s.includes("hindi") || s.includes("spanish") || s.includes("french") || s.includes("japanese") || s.includes("german")) return 2;
+    if (s.includes("mandarin") || s.includes("chinese") || s.includes("hindi") || s.includes("spanish") || s.includes("french") || s.includes("japanese")) return 2;
     return 3;
   };
   const sortedCourses = Object.values(courseMap).sort((a, b) => courseRank(a.subject) - courseRank(b.subject));
   const rows = sortedCourses.map(c => {
-
     let gradeDisplay = "In Progress";
-    let crEarned = "—";
+    let crEarned = "-";
     if (c.scores.length > 0) {
       const avgPct = c.scores.reduce((sum, v) => sum + v, 0) / c.scores.length;
       const { letter, pts } = percentToLetterAndPoints(avgPct);
@@ -1009,94 +1033,77 @@ function renderOfficialRecords() {
       weightedPoints += (pts + boost) * c.credits;
       gradeDisplay = letter + " (" + avgPct.toFixed(0) + "%)";
       crEarned = c.credits.toFixed(2);
-       }
+    }
     const safeSub = (c.subject || "").replace(/'/g, "\\'");
     const safeLvl = (c.course_level || "Honors").replace(/'/g, "\\'");
-    const actionBtns = '<span class="no-print" style="margin-left:8px; display:inline-flex; gap:4px;"><button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:2px 6px; font-size:11px;" onclick="editTranscriptCourse(\'' + stu.id + '\',\'' + safeSub + '\',\'' + safeLvl + '\',' + c.credits + ')">✏️</button><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:2px 6px; font-size:11px;" onclick="deleteTranscriptCourse(\'' + stu.id + '\',\'' + safeSub + '\',\'' + safeLvl + '\')">🗑️</button></span>';
-    return '<tr><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.quarter + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.subject + actionBtns + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.course_level + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + gradeDisplay + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + crEarned + '</td></tr>';
+    const stdTag = getCourseStandardTag(c.subject);
+    const actionBtns = '<span class="no-print" style="margin-left:6px; display:inline-flex; gap:4px;"><button type="button" class="btn-outline" style="width:auto; padding:1px 6px; font-size:11px; color:#1e293b;" onclick="editTranscriptCourse(\'' + stu.id + '\',\'' + c.quarter + '\',\'' + safeSub + '\',\'' + safeLvl + '\',' + c.credits + ')">✏️</button><button type="button" class="btn-outline" style="width:auto; padding:1px 6px; font-size:11px; color:#b91c1c;" onclick="deleteTranscriptCourse(\'' + stu.id + '\',\'' + c.quarter + '\',\'' + safeSub + '\')">🗑️</button></span>';
+    return '<tr><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.quarter + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;"><strong>' + c.subject + '</strong> <span style="font-size:10px; background:#f1f5f9; border:1px solid #cbd5e1; padding:1px 5px; border-radius:4px; color:#475569;">' + stdTag + '</span>' + actionBtns + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.course_level + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center;">' + c.credits.toFixed(2) + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center;">' + crEarned + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center;"><strong>' + gradeDisplay + '</strong></td></tr>';
   }).join("");
-
-
   const weightedGpa = totalCredits > 0 ? (weightedPoints / totalCredits).toFixed(2) : "N/A";
   const unweightedGpa = totalCredits > 0 ? (unweightedPoints / totalCredits).toFixed(2) : "N/A";
+  const globeSeal = buildGoldGlobeSealSvg();
 
   const achSection = stuAchs.length
-    ? '<div style="margin-top:18px; border-top:1px solid #94a3b8; padding-top:12px;"><div style="font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#1e293b; margin-bottom:6px;">Honors Enrichment, Field Studies &amp; Certifications</div><ul style="margin:0; padding-left:20px; font-size:13px; line-height:1.6;">' + stuAchs.map(x => '<li><strong>' + x.type + ':</strong> ' + x.title + (x.location ? ' — <em>' + x.location + '</em>' : '') + (x.metric ? ' (' + x.metric + ')' : '') + '</li>').join("") + '</ul></div>'
+    ? '<div style="margin-top:18px; border-top:1px solid #94a3b8; padding-top:12px;"><div style="font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#1e293b; margin-bottom:6px;">Verified Honors Certifications, Field Studies &amp; Service</div><ul style="margin:0; padding-left:18px; font-size:12px; line-height:1.6;">' + stuAchs.map(x => '<li><strong>' + x.title + '</strong> (' + x.category + (x.hours_logged ? ' &bull; ' + x.hours_logged + ' hrs' : '') + ') — ' + (x.description || '') + '</li>').join("") + '</ul></div>'
     : "";
 
+  const legalNotice = '<div style="margin-top:14px; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; font-size:10px; color:#475569; line-height:1.5;"><strong>Home-Education Legal &amp; Curriculum Disclosure:</strong> GlobalPrep High is a homeschool curriculum, gradebook, and academic recordkeeping platform and is not an accredited brick-and-mortar school. This transcript is issued directly by the Parent/Guardian Home-Education Administrator pursuant to applicable state homeschool laws. Curriculum benchmarks align with U.S. CCSS, NGSS, and C3 college-preparatory standards. Open educational reference streams provided via YouTube EDU, OpenStax (CC BY 4.0), PhET, Desmos, and Khan Academy.</div>';
+
   const transcriptHtml =
-    '<div style="font-family: Georgia, \'Times New Roman\', serif; color:#0f172a; background:#ffffff; border:2px solid #0f172a; padding:32px; border-radius:4px; margin-bottom:32px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
-      '<div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px double #0f172a; padding-bottom:14px; margin-bottom:18px;">' +
-        '<div>' +
-          '<div style="font-size:22px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;">' + currentFamily.family_name + '</div>' +
-          '<div style="font-size:12px; letter-spacing:1px; text-transform:uppercase; color:#334155; margin-top:2px;">Office of the Registrar &bull; Official High School Academic Transcript</div>' +
+    '<div style="font-family: Georgia, \'Times New Roman\', serif; color:#0f172a; background:#ffffff; border:2px solid #0f172a; padding:32px; box-shadow:0 4px 16px rgba(15,23,42,0.08); margin-bottom:28px;">' +
+      '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px double #0f172a; padding-bottom:14px; margin-bottom:18px; gap:12px;">' +
+        '<div style="display:flex; align-items:center; gap:14px;">' + globeSeal +
+          '<div><div style="font-size:21px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">' + currentFamily.family_name + '</div>' +
+          '<div style="font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#334155; margin-top:2px;">Official High School Academic Transcript</div></div>' +
         '</div>' +
-        '<div style="border:1.5px solid #0f172a; padding:6px 12px; text-align:center; font-size:11px; letter-spacing:0.8px; text-transform:uppercase;">' +
-          '<strong>Official Record</strong><br>Issued: ' + todayStr +
-        '</div>' +
+        '<div style="border:1.5px solid #0f172a; padding:6px 12px; text-align:center; font-size:11px; letter-spacing:0.8px; text-transform:uppercase;"><strong>Official Record</strong><br>Issued: ' + todayStr + '</div>' +
       '</div>' +
-
       '<table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom:18px; background:#f8fafc; border:1px solid #cbd5e1;">' +
-        '<tr>' +
-          '<td style="padding:8px 12px; border-right:1px solid #cbd5e1;"><strong>Student Legal Name:</strong> ' + stu.full_name + '</td>' +
-          '<td style="padding:8px 12px; border-right:1px solid #cbd5e1;"><strong>Grade Level:</strong> ' + stu.grade_level + '</td>' +
-          '<td style="padding:8px 12px;"><strong>Expected Graduation:</strong> Class of ' + stu.expected_grad_year + '</td>' +
-        '</tr>' +
-        '<tr style="border-top:1px solid #cbd5e1;">' +
-          '<td style="padding:8px 12px; border-right:1px solid #cbd5e1;"><strong>Weighted Cumulative GPA:</strong> ' + weightedGpa + '</td>' +
-          '<td style="padding:8px 12px; border-right:1px solid #cbd5e1;"><strong>Unweighted GPA:</strong> ' + unweightedGpa + '</td>' +
-          '<td style="padding:8px 12px;"><strong>Total Credits Earned:</strong> ' + totalCredits.toFixed(2) + '</td>' +
-        '</tr>' +
+        '<tr><td style="padding:8px 12px; border-right:1px solid #cbd5e1;"><strong>Student Legal Name:</strong> ' + stu.full_name + '</td>' +
+        '<td style="padding:8px 12px; border-right:1px solid #cbd5e1;"><strong>Grade Level:</strong> ' + stu.grade_level + '</td>' +
+        '<td style="padding:8px 12px;"><strong>Expected Graduation:</strong> Class of ' + stu.expected_grad_year + '</td></tr>' +
+        '<tr style="border-top:1px solid #cbd5e1;"><td style="padding:8px 12px; border-right:1px solid #cbd5e1;"><strong>Weighted Cumulative GPA:</strong> ' + weightedGpa + '</td>' +
+        '<td style="padding:8px 12px; border-right:1px solid #cbd5e1;"><strong>Unweighted GPA:</strong> ' + unweightedGpa + '</td>' +
+        '<td style="padding:8px 12px;"><strong>Total Credits Earned:</strong> ' + totalCredits.toFixed(2) + '</td></tr>' +
       '</table>' +
-
       '<table style="width:100%; border-collapse:collapse; font-size:13px; border:1px solid #94a3b8;">' +
-        '<thead>' +
-          '<tr style="background:#1e293b; color:#ffffff; text-transform:uppercase; font-size:11px; letter-spacing:0.8px;">' +
-            '<th style="padding:9px 10px; text-align:left;">Term</th>' +
-            '<th style="padding:9px 10px; text-align:left;">Course Title</th>' +
-            '<th style="padding:9px 10px; text-align:left;">Course Level</th>' +
-            '<th style="padding:9px 10px; text-align:center;">Attempted</th>' +
-            '<th style="padding:9px 10px; text-align:center;">Earned</th>' +
-            '<th style="padding:9px 10px; text-align:center;">Final Grade</th>' +
-          '</tr>' +
-        '</thead>' +
-        '<tbody>' +
-          (rows || '<tr><td colspan="6" style="padding:14px; text-align:center; color:#64748b;">No coursework recorded yet.</td></tr>') +
-        '</tbody>' +
+        '<thead><tr style="background:#1e293b; color:#ffffff; text-transform:uppercase; font-size:11px; letter-spacing:0.8px;">' +
+          '<th style="padding:9px 10px; text-align:left;">Term</th><th style="padding:9px 10px; text-align:left;">Course Title &amp; Standard</th><th style="padding:9px 10px; text-align:left;">Course Level</th><th style="padding:9px 10px; text-align:center;">Attempted</th><th style="padding:9px 10px; text-align:center;">Earned</th><th style="padding:9px 10px; text-align:center;">Final Grade</th>' +
+        '</tr></thead>' +
+        '<tbody>' + (rows || '<tr><td colspan="6" style="padding:14px; text-align:center; color:#64748b;">No coursework recorded yet.</td></tr>') + '</tbody>' +
       '</table>' +
-
       achSection +
-
-      '<div style="margin-top:16px; padding:8px 12px; background:#f8fafc; border:1px solid #cbd5e1; font-size:11px; color:#334155;">' +
-        '<strong>Grading &amp; Weighting Scale:</strong> A (90–100) = 4.0 &bull; B (80–89) = 3.0 &bull; C (70–79) = 2.0 &bull; D (60–69) = 1.0 &bull; F (&lt;60) = 0.0. Honors courses receive +0.50 quality-point weight; AP courses receive +1.00 quality-point weight. 1.00 Carnegie Unit = 120–150 instructional hours.' +
-      '</div>' +
-
-      '<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:32px; font-size:13px;">' +
-        '<div>_________________________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Signature of Registrar / Principal Administrator</span></div>' +
-        '<div>______________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Date Certified</span></div>' +
+      '<div style="margin-top:14px; padding:8px 12px; background:#f8fafc; border:1px solid #cbd5e1; font-size:11px; color:#334155;"><strong>Grading &amp; Weighting Scale:</strong> A (90–100) = 4.0 &bull; B (80–89) = 3.0 &bull; C (70–79) = 2.0 &bull; D (60–69) = 1.0 &bull; Honors (+0.50) &bull; AP (+1.00)</div>' +
+      legalNotice +
+      '<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:28px; font-size:13px;">' +
+        '<div>____________________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Parent / Home-Education Administrator Signature</span></div>' +
+        '<div>________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Date Certified</span></div>' +
       '</div>' +
     '</div>';
 
-      const diplomaHtml =
-    '<div style="font-family: Georgia, \'Times New Roman\', serif; color:#0f172a; background:#fffdf9; border:6px double #1e293b; padding:40px 32px; text-align:center; border-radius:4px; box-shadow:0 2px 10px rgba(0,0,0,0.06);">' +
-      '<div style="border:1px solid #94a3b8; padding:28px 24px;">' +
-        '<div style="font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#475569; margin-bottom:6px;">In Recognition of Academic Achievement</div>' +
-        '<div style="font-size:26px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#0f172a;">' + currentFamily.family_name + '</div>' +
-        '<div style="width:120px; height:2px; background:#b45309; margin:14px auto;"></div>' +
-        '<p style="font-size:15px; font-style:italic; color:#334155; margin:12px 0;">This certifies that</p>' +
-        '<div style="font-size:28px; font-weight:700; letter-spacing:1px; color:#0f172a; margin:8px 0 14px 0;">' + stu.full_name + '</div>' +
-        '<p style="font-size:14px; line-height:1.7; max-width:540px; margin:0 auto; color:#1e293b;">has satisfactorily completed the prescribed Course of Study required for Secondary Graduation and is hereby awarded this</p>' +
-        '<div style="font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#1e293b; margin:18px 0 6px 0;">High School Diploma</div>' +
-                '<div style="font-size:14px; letter-spacing:1px; color:#334155;">Class of ' + stu.expected_grad_year + '</div>' +
-        '<div style="display:flex; justify-content:space-around; align-items:flex-end; margin-top:44px; gap:24px;">' +
-          '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#475569;">Head of School / Administrator</span></div>' +
-          '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#475569;">Academic Registrar</span></div>' +
+  const diplomaHtml =
+    '<div style="font-family: Georgia, \'Times New Roman\', serif; color:#0f172a; background:#fffdf9; border:6px double #1e293b; padding:36px 28px; text-align:center; box-shadow:0 4px 16px rgba(15,23,42,0.08);">' +
+      '<div style="border:1px solid #94a3b8; padding:26px 20px;">' +
+        '<div style="margin-bottom:10px;">' + globeSeal + '</div>' +
+        '<div style="font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#475569; margin-bottom:6px;">In Recognition of Academic Excellence</div>' +
+        '<div style="font-size:25px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#0f172a;">' + currentFamily.family_name + '</div>' +
+        '<div style="width:120px; height:2px; background:#b45309; margin:12px auto;"></div>' +
+        '<p style="font-size:15px; font-style:italic; color:#334155; margin:10px 0;">This certifies that</p>' +
+        '<div style="font-size:28px; font-weight:700; letter-spacing:1px; color:#0f172a; margin:8px 0 12px 0;">' + stu.full_name + '</div>' +
+        '<p style="font-size:14px; line-height:1.7; max-width:540px; margin:0 auto; color:#1e293b;">has satisfactorily completed the prescribed U.S. College-Preparatory High School Course of Study and is hereby awarded this</p>' +
+        '<div style="font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#1e293b; margin:16px 0 6px 0;">High School Diploma</div>' +
+        '<div style="font-size:14px; letter-spacing:1px; color:#334155;">Class of ' + stu.expected_grad_year + '</div>' +
+        '<div style="display:flex; justify-content:space-around; align-items:flex-end; margin-top:38px; gap:24px; flex-wrap:wrap;">' +
+          '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Parent / Administrator</span></div>' +
+          '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Date Conferred</span></div>' +
         '</div>' +
       '</div>' +
     '</div>';
 
   preview.innerHTML = transcriptHtml + diplomaHtml;
 }
+
 
 function getYouTubeEmbed(url) {
   const base = ["https://www.", "youtube-nocookie.com", "/embed/"].join("");
