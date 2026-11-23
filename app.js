@@ -74,15 +74,22 @@ function generateInviteCode() {
 }
 
 async function handleParentAuth() {
-  const errEl = document.getElementById("authError");
-  const btn = document.getElementById("parentSubmitBtn");
-  errEl.innerText = "";
-  const rawLogin = document.getElementById("parentEmail").value.trim().toLowerCase();
+    const rawLogin = document.getElementById("parentEmail").value.trim().toLowerCase();
   const password = document.getElementById("parentPassword").value;
 
-    if (!rawLogin || !password) return (errEl.innerText = "Please enter your email or User ID and password.");
-  const email = rawLogin.includes("@") ? rawLogin : rawLogin.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.org";
-
+  if (!rawLogin || !password) return (errEl.innerText = "Please enter your email or User ID and password.");
+  const aliasMap = JSON.parse(localStorage.getItem("gph_user_aliases") || "{}");
+  let email = rawLogin;
+  if (!rawLogin.includes("@")) {
+    const cleanId = rawLogin.replace(/[^a-z0-9._-]/g, "");
+    if (aliasMap[cleanId]) {
+      email = aliasMap[cleanId];
+    } else {
+      const matchedProf = await sbQuery("profiles", { query: `role=eq.parent&select=*` }).catch(() => []);
+      const found = Array.isArray(matchedProf) ? matchedProf.find(p => (p.short_username || "").toLowerCase() === cleanId) : null;
+      email = found && found.login_email ? found.login_email : (cleanId + "@globalprephigh.org");
+    }
+  }
   try {
     btn.disabled = true;
     btn.innerText = "Connecting...";
@@ -132,7 +139,9 @@ async function handleParentAuth() {
         single: true
       });
 
-      currentUser = profData;
+      currentUser = profData;    currentUser.email = email;
+    localStorage.setItem("gph_last_parent_email", email);
+
       currentFamily = famData;
       await loadParentDashboard();
     }
@@ -166,36 +175,28 @@ async function recoverParentPassword(e) {
     if (!res.ok) {
       const data = await res.json();
       throw new Error(data.msg || data.error_description || "Could not send password reset email.");
-    }
-    alert("Password reset link sent to " + raw + "! Please check your email inbox.");
-  } catch (err) {
-    alert(err.message);
-  }
-}
-
 async function updateParentCredentials(mode) {
-  const payload = {};
   if (mode === "login") {
     const inputEl = document.getElementById("newParentLogin");
     let raw = (inputEl ? inputEl.value : "").trim().toLowerCase();
     if (!raw || (currentUser && raw === (currentUser.email || "").toLowerCase())) {
-      const typed = prompt("Enter your desired Short User ID (e.g., smithfamily or doe2026):");
+      const typed = prompt("Enter your desired Short User ID (e.g., doe or smithfamily):");
       if (!typed) return;
       raw = typed.trim().toLowerCase();
     }
-    if (raw.includes("@")) {
-      payload.email = raw;
-    } else {
-      const cleanId = raw.replace(/[^a-z0-9._-]/g, "");
-      if (cleanId.length < 3) return alert("Short User ID must be at least 3 letters or numbers (e.g., smithfamily).");
-      payload.email = cleanId + "@globalprephigh.org";
-    }
-  } else {
-    const pw = document.getElementById("newParentPassword").value;
-    if (!pw || pw.length < 6) return alert("Password must be at least 6 characters.");
-    payload.password = pw;
+    const cleanId = raw.replace(/[^a-z0-9._-]/g, "");
+    if (cleanId.length < 3) return alert("Short User ID must be at least 3 letters or numbers (e.g., doe).");
+    const activeEmail = (currentUser && currentUser.email) || localStorage.getItem("gph_last_parent_email") || "";
+    if (!activeEmail) return alert("Please sign in with your email once first so we can link your Short User ID.");
+    const aliasMap = JSON.parse(localStorage.getItem("gph_user_aliases") || "{}");
+    aliasMap[cleanId] = activeEmail;
+    localStorage.setItem("gph_user_aliases", JSON.stringify(aliasMap));
+    if (inputEl) inputEl.value = "";
+    return alert(`Short User ID "${cleanId}" saved! Next time you sign in on this device, just type "${cleanId}" and your password.`);
   }
 
+  const pw = document.getElementById("newParentPassword").value;
+  if (!pw || pw.length < 6) return alert("Password must be at least 6 characters.");
   try {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       method: "PUT",
@@ -204,12 +205,17 @@ async function updateParentCredentials(mode) {
         Authorization: `Bearer ${authToken}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ password: pw })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.msg || data.error_description || "Could not update account.");
-    document.getElementById("newParentLogin").value = "";
+    if (!res.ok) throw new Error(data.msg || data.error_description || "Could not update password.");
     document.getElementById("newParentPassword").value = "";
+    alert("Password updated successfully!");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
     alert(mode === "login"
       ? "Login updated! Next time you sign in, you can use your new short User ID or email."
       : "Password updated successfully!");
