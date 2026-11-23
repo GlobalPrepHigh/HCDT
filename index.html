@@ -123,8 +123,19 @@
         </div>
       </div>
       <div id="pView-assignments" class="p-view hidden">
-        <div class="card" style="margin-bottom:16px;">
-          <h3>🧭 Student Course Enrollment (Auto-Core + Language + Required Electives)</h3>
+                       <div class="card" style="margin-bottom:16px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <strong>👨‍🎓 Viewing Student:</strong>
+            <div id="gradingStudentPills" style="display:inline-flex; flex-wrap:wrap; gap:6px; margin-left:8px;"></div>
+          </div>
+          <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="const d=document.getElementById('enrollmentDrawer'); d.classList.toggle('hidden');">+ Enroll / Add Courses</button>
+        </div>
+
+        <div id="enrollmentDrawer" class="card hidden" style="margin-bottom:16px; border:2px solid #bfdbfe;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0;">🧭 Student Course Enrollment (Auto-Core + Language + Required Electives)</h3>
+            <button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:4px 10px;" onclick="document.getElementById('enrollmentDrawer').classList.add('hidden')">✕ Close</button>
+          </div>
           <div class="row-2">
             <div>
               <label>Select Student</label>
@@ -142,8 +153,8 @@
           </div>
 
           <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px 12px; border-radius:8px; margin:12px 0;">
-            <strong style="color:#1e3a8a;">📘 Automatic Core Honors Sequence (Included Automatically):</strong>
-            <p class="muted" style="margin:4px 0 0 0;">Honors English Literature &bull; Math Sequence (Algebra I &rarr; Geometry &rarr; Algebra II) &bull; Honors Biology &bull; Honors World History</p>
+            <strong style="color:#1e3a8a;">📘 Automatic Grade-Level Core Honors Sequence:</strong>
+            <p class="muted" style="margin:4px 0 0 0;">9th Freshman or 10th Sophomore Literature &bull; Math Sequence &bull; Science &bull; History</p>
           </div>
 
           <div class="row-2">
