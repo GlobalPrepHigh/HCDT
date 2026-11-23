@@ -81,7 +81,7 @@ async function handleParentAuth() {
   const password = document.getElementById("parentPassword").value;
 
     if (!rawLogin || !password) return (errEl.innerText = "Please enter your email or User ID and password.");
-  const email = rawLogin.includes("@") ? rawLogin : rawLogin.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.local";
+  const email = rawLogin.includes("@") ? rawLogin : rawLogin.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.org";
 
   try {
     btn.disabled = true;
@@ -174,7 +174,7 @@ async function updateParentCredentials(mode) {
     if (mode === "login") {
     const raw = document.getElementById("newParentLogin").value.trim().toLowerCase();
     if (!raw) return alert("Enter a new short User ID or email address.");
-    payload.email = raw.includes("@") ? raw : raw.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.local";
+    payload.email = raw.includes("@") ? raw : raw.replace(/[^a-z0-9._-]/g, "") + "@globalprephigh.org";
     } else {
     const pw = document.getElementById("newParentPassword").value;
     if (!pw || pw.length < 6) return alert("Password must be at least 6 characters.");
