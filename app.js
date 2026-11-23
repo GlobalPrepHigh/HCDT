@@ -347,7 +347,8 @@ function renderStudents() {
     const safeGrade = (s.grade_level || "9th").replace(/'/g, "\\'");
     const safeUser = (s.username || "").replace(/'/g, "\\'");
     const safePin = (s.pin || "").replace(/'/g, "\\'");
-    return '<div class="item-card" style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><div><strong>' + s.full_name + '</strong> <span class="badge">' + s.grade_level + '</span><br><small class="muted">User: <code>' + s.username + '</code> &bull; PIN: <code>' + s.pin + '</code> &bull; Grad: ' + (s.grad_year || "") + '</small></div><div style="display:flex; gap:6px; flex-shrink:0;"><button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:4px 8px; font-size:12px;" onclick="editStudent(\'' + s.id + '\',\'' + safeName + '\',\'' + safeGrade + '\',\'' + safeUser + '\',\'' + safePin + '\',\'' + (s.grad_year || "") + '\')">✏️ Edit</button><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:4px 8px; font-size:12px;" onclick="deleteStudent(\'' + s.id + '\',\'' + safeName + '\')">🗑️</button></div></div>';
+    const gradVal = s.expected_grad_year || s.grad_year || "";
+    return '<div class="item-card" style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;"><div><strong>' + s.full_name + '</strong> <span class="badge">' + s.grade_level + '</span><br><small class="muted">User: <code>' + s.username + '</code> &bull; PIN: <code>' + s.pin + '</code> &bull; Grad: ' + gradVal + '</small></div><div style="display:flex; gap:6px; flex-shrink:0;"><button type="button" class="btn-outline" style="width:auto; color:#1d4ed8; border-color:#bfdbfe; padding:4px 8px; font-size:12px;" onclick="previewStudentPortal(\'' + s.id + '\')">👀 Preview</button><button type="button" class="btn-outline" style="width:auto; color:#1e293b; padding:4px 8px; font-size:12px;" onclick="editStudent(\'' + s.id + '\',\'' + safeName + '\',\'' + safeGrade + '\',\'' + safeUser + '\',\'' + safePin + '\',\'' + gradVal + '\')">✏️ Edit</button><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:4px 8px; font-size:12px;" onclick="deleteStudent(\'' + s.id + '\',\'' + safeName + '\')">🗑️</button></div></div>';
   }).join("") || "<p class='muted'>No students enrolled yet.</p>";
 
   const options = studentsCache.map(s => '<option value="' + s.id + '">' + s.full_name + ' (' + s.grade_level + ')</option>').join("");
@@ -369,7 +370,7 @@ async function editStudent(id, oldName, oldGrade, oldUser, oldPin, oldGrad) {
   const grad_year = prompt("Edit Expected Graduation Year:", oldGrad);
   if (grad_year === null) return;
   try {
-    await sbQuery("students", {
+    await sbQuery("profiles", {
       method: "PATCH",
       query: `id=eq.${id}`,
       body: {
@@ -377,7 +378,7 @@ async function editStudent(id, oldName, oldGrade, oldUser, oldPin, oldGrad) {
         grade_level: grade_level.trim() || oldGrade,
         username: username.trim().toLowerCase() || oldUser,
         pin: pin.trim() || oldPin,
-        grad_year: parseInt(grad_year, 10) || oldGrad
+        expected_grad_year: parseInt(grad_year, 10) || parseInt(oldGrad, 10) || 2028
       }
     });
     await refreshFamilyData();
@@ -389,7 +390,7 @@ async function editStudent(id, oldName, oldGrade, oldUser, oldPin, oldGrad) {
 async function deleteStudent(id, name) {
   if (!confirm(`Remove ${name} from your academy?`)) return;
   try {
-    await sbQuery("students", { method: "DELETE", query: `id=eq.${id}` });
+    await sbQuery("profiles", { method: "DELETE", query: `id=eq.${id}` });
     await refreshFamilyData();
   } catch (err) {
     alert(err.message);
