@@ -305,30 +305,12 @@
         </div>
       </div>
 
-      <div class="nav-pills no-print" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px;">
-        <button type="button" class="pill active" style="padding:12px 18px; font-size:15px; font-weight:700;" onclick="switchStudentTab('today', this)">📅 Today's Focus</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700;" onclick="switchStudentTab('syllabus', this)">📖 Quarter Syllabus</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700;" onclick="switchStudentTab('grades', this)">📊 Grades &amp; GPA</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700;" onclick="switchStudentTab('certs', this)">🏅 Certs &amp; Portfolio</button>
+            <div class="nav-pills no-print" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px;">
+        <button type="button" class="pill active" style="padding:12px 18px; font-size:15px; font-weight:700; background:#1e3a8a; color:#ffffff; border:2px solid #1e3a8a;" onclick="switchStudentTab('today', this)">📅 Today's Focus</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:2px solid #cbd5e1;" onclick="switchStudentTab('syllabus', this)">📖 Quarter Syllabus</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:2px solid #cbd5e1;" onclick="switchStudentTab('grades', this)">📊 Grades &amp; GPA</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:2px solid #cbd5e1;" onclick="switchStudentTab('certs', this)">🏅 Certs &amp; Portfolio</button>
       </div>
-
-      <div id="sView-today" class="s-view">
-        <div class="card" style="margin-bottom:14px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
-            <strong style="color:#0f172a;">🎯 Today's Subjects (Tap a Subject to Load Today's Lesson &amp; Video):</strong>
-            <span id="stuTodayProgress" class="badge">0 / 0 Completed</span>
-          </div>
-          <div id="stuSubjectTabs" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
-        </div>
-        <div id="stuActiveLessonPane"></div>
-      </div>
-
-      <div id="sView-syllabus" class="s-view hidden">
-        <div class="card">
-          <h3>📖 Quarter Syllabus &amp; Course Roadmap</h3>
-          <p class="muted" style="margin-bottom:12px;">Planned modules, weekly milestones, and learning objectives for your enrolled courses.</p>
-          <div id="stuSyllabusList" class="list-box"></div>
-        </div>
       </div>
 
       <div id="sView-grades" class="s-view hidden">
