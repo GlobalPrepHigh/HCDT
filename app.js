@@ -1055,6 +1055,124 @@ function checkQuizAnswer(assignId, qIdx, chosenIdx, correctIdx) {
   }
 }
 
+let stuActiveAssignsCache = [];
+let stuSubsCache = [];
+let selectedStuSubjectIdx = 0;
+
+function switchStudentTab(tabName, btn) {
+  document.querySelectorAll("#studentDashboard .tab-btn").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  document.querySelectorAll(".s-view").forEach(v => v.classList.add("hidden"));
+  const target = document.getElementById("sView-" + tabName);
+  if (target) target.classList.remove("hidden");
+}
+
+function getSubjectMediaPack(subject) {
+  const s = (subject || "").toLowerCase();
+  if (s.includes("english") || s.includes("literature")) {
+    return { yt: "https://youtube.com", link: "https://openstax.org", label: "OpenStax Humanities & Literature Reader" };
+  }
+  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
+    return { yt: "https://youtube.com", link: "https://desmos.com", label: "Interactive Desmos Graphing Lab" };
+  }
+  if (s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("science") || s.includes("marine")) {
+    return { yt: "https://youtube.com", link: "https://colorado.edu", label: "PhET Interactive Science Simulations" };
+  }
+  if (s.includes("history") || s.includes("government") || s.includes("economics")) {
+    return { yt: "https://youtube.com", link: "https://openstax.org", label: "OpenStax World & U.S. History Textbook" };
+  }
+  if (s.includes("mandarin") || s.includes("chinese")) {
+    return { yt: "https://youtube.com", link: "https://yellowbridge.com", label: "Interactive Mandarin Pinyin & Stroke Lab" };
+  }
+  if (s.includes("hindi")) {
+    return { yt: "https://youtube.com", link: "https://learning-hindi.com", label: "Interactive Hindi Devanagari & Audio Guide" };
+  }
+  if (s.includes("spanish")) {
+    return { yt: "https://youtube.com", link: "https://spanishdict.com", label: "Interactive Spanish Grammar & Audio Lab" };
+  }
+  if (s.includes("french")) {
+    return { yt: "https://youtube.com", link: "https://lawlessfrench.com", label: "Interactive French Pronunciation & Grammar Lab" };
+  }
+  if (s.includes("stock") || s.includes("financial") || s.includes("entrepreneurship")) {
+    return { yt: "https://youtube.com", link: "https://investopedia.com", label: "Investopedia Virtual Stock Market Simulator" };
+  }
+  if (s.includes("computer") || s.includes("coding")) {
+    return { yt: "https://youtube.com", link: "https://khanacademy.org", label: "Interactive Coding Sandbox & Tutorials" };
+  }
+  return { yt: "https://youtube.com", link: "https://khanacademy.org", label: "Interactive Reference & Study Guide" };
+}
+function selectStudentSubject(idx) {
+  selectedStuSubjectIdx = idx;
+  renderStudentTodayPane();
+}
+
+function renderStudentTodayPane() {
+  const tabsEl = document.getElementById("stuSubjectTabs");
+  const paneEl = document.getElementById("stuActiveLessonPane");
+  const progEl = document.getElementById("stuTodayProgress");
+  if (!tabsEl || !paneEl) return;
+
+  if (!stuActiveAssignsCache.length) {
+    tabsEl.innerHTML = "";
+    if (progEl) progEl.innerText = "0 / 0 Completed";
+    paneEl.innerHTML = "<div class='card'><p class='muted'>All enrolled lessons for this term are complete—or ask your parent to enroll your courses! 🎉</p></div>";
+    return;
+  }
+
+  if (selectedStuSubjectIdx >= stuActiveAssignsCache.length) selectedStuSubjectIdx = 0;
+
+  let doneToday = 0;
+  tabsEl.innerHTML = stuActiveAssignsCache.map((a, idx) => {
+    const sub = stuSubsCache.find(x => x.assignment_id === a.id);
+    const isDone = sub && (sub.status === "Submitted" || sub.status === "Graded");
+    if (isDone) doneToday++;
+    const isAct = idx === selectedStuSubjectIdx;
+    return '<button type="button" class="' + (isAct ? 'btn-primary' : 'btn-outline') + '" style="width:auto; padding:6px 12px; font-size:13px;' + (isAct ? '' : ' color:#1e293b;') + '" onclick="selectStudentSubject(' + idx + ')">' + (isDone ? '✅ ' : '📘 ') + a.subject + '</button>';
+  }).join("");
+
+  if (progEl) progEl.innerText = doneToday + " / " + stuActiveAssignsCache.length + " Submitted";
+
+  const a = stuActiveAssignsCache[selectedStuSubjectIdx];
+  const sub = stuSubsCache.find(x => x.assignment_id === a.id);
+  const statusText = sub && sub.grade ? "Graded: " + sub.grade : sub ? "Submitted ✓" : "Today's Active Lesson";
+  const dueBadge = a.due_date ? " &bull; Due: <b>" + a.due_date + "</b>" : "";
+  const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
+  const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
+  const currMod = catalog.find(m => m.subject === a.subject || a.subject.startsWith(m.subject));
+  const pack = getSubjectMediaPack(a.subject);
+
+  let embedUrl = pack.yt;
+  let extLinksHtml = "";
+  const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
+  rawLinks.forEach(u => {
+    const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
+    const yt = typeof getYouTubeEmbed === "function" ? getYouTubeEmbed(cleanU) : null;
+    if (yt) {
+      embedUrl = yt;
+    } else if (cleanU.startsWith("http://") || cleanU.startsWith("https://")) {
+      extLinksHtml += '<a href="' + cleanU + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; color:#1e293b; display:inline-block; margin:4px 6px 4px 0;">🔗 Open Course Reference ↗</a>';
+    }
+  });
+  if (!extLinksHtml) {
+    extLinksHtml = '<a href="' + pack.link + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; color:#1e293b; display:inline-block; margin:4px 0;">🔗 ' + pack.label + ' ↗</a>';
+  }
+
+  const videoBlock = '<div style="margin:12px 0;"><div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:6px;">🎬 Watch Lesson Video Right Here (No Leaving Page):</div><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; border:1px solid #cbd5e1; background:#000;"><iframe src="' + embedUrl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
+
+  const steps = ["Watch Inline Video Lesson", "Read Lesson Notes & Interactive Resource", "Complete Self-Check Quiz & Submit Work"];
+  const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
+  const doneCount = steps.filter((_, i) => savedSteps[i]).length;
+  const pct = Math.round((doneCount / steps.length) * 100);
+  const checklistHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin:10px 0;"><div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:6px;"><span>📋 Today\'s Lesson Checklist</span><span id="pct-' + a.id + '">' + pct + '% Complete</span></div>' + steps.map((st, idx) => '<label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin:4px 0; cursor:pointer;"><input type="checkbox" style="width:auto; margin:0;" ' + (savedSteps[idx] ? 'checked' : '') + ' onchange="toggleLessonStep(\'' + a.id + '\',' + idx + ',' + steps.length + ',this.checked)" /> <span>' + st + '</span></label>').join("") + '</div>';
+
+  const quizHtml = currMod && currMod.quiz && currMod.quiz.length
+    ? '<div style="background:#fffbeb; border:1px solid #fde68a; padding:10px; border-radius:8px; margin:10px 0;"><strong style="color:#92400e;">⚡ Quick Self-Check Quiz:</strong>' + currMod.quiz.map((qz, qi) => '<div style="margin-top:8px;"><div style="font-size:13px; font-weight:600;">' + (qi + 1) + '. ' + qz.q + '</div>' + qz.options.map((opt, oi) => '<label style="display:block; font-weight:normal; font-size:13px; margin:3px 0 3px 12px; cursor:pointer;"><input type="radio" name="qz-' + a.id + '-' + qi + '" style="width:auto; margin-right:6px;" onclick="checkInlineQuiz(\'' + a.id + '\',' + qi + ',' + oi + ',' + qz.answer + ')" />' + opt + '</label>').join("") + '<div id="qz-fb-' + a.id + '-' + qi + '" style="font-size:12px; font-weight:700; margin-left:12px;"></div></div>').join("") + '</div>'
+    : "";
+
+  const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:8px; border-radius:6px; margin-top:8px;"><small><b>Parent Feedback:</b> ' + sub.parent_feedback + '</small></div>' : '';
+
+  paneEl.innerHTML = '<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">' + a.course_level + ' (' + a.credits + ' cr)' + dueBadge + '</small></div><span class="badge" style="background:#dbeafe; color:#1e40af;">' + statusText + '</span></div><p style="margin:10px 0; font-size:14px; line-height:1.5;">' + (a.description || "") + '</p>' + videoBlock + '<div style="margin:8px 0;">' + extLinksHtml + '</div>' + checklistHtml + quizHtml + fbHtml + '<div style="margin-top:12px;"><label><b>✍️ Submit Today\'s Reflection, Calculations, or Essay Response:</b></label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Write your answers, summary, or reflection here...">' + (sub && sub.student_notes ? sub.student_notes : '') + '</textarea><label style="margin-top:8px;">📸 Snap or Upload Photo of Handwritten Work / Lab / Project (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="padding:6px; background:#f8fafc;" />' + (sub && sub.submission_link ? '<div style="margin-top:6px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:12px;">📎 View Uploaded Work Photo ↗</a></div>' : '') + '<button class="btn-primary" style="margin-top:10px; width:auto;" onclick="submitWork(\'' + a.id + '\')">Submit Today\'s Work</button></div></div>';
+}
 async function loadStudentDashboard(isPreview = false) {
   if (!isPreview) saveSession("student");
   document.getElementById("authSection").classList.add("hidden");
@@ -1067,7 +1185,7 @@ async function loadStudentDashboard(isPreview = false) {
       banner = document.createElement("div");
       banner.id = "previewBanner";
       banner.style.cssText = "background:#fef08a; border:1px solid #eab308; padding:10px 14px; border-radius:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;";
-      banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> — Viewing as ' + currentUser.full_name + '</span><button class="btn-primary" style="width:auto; padding:6px 12px;" onclick="exitStudentPreview()">⬅️ Back to Parent Dashboard</button>';
+      banner.innerHTML = '<span><b>👀 Parent Preview Mode</b> – Viewing as ' + currentUser.full_name + '</span><button class="btn-primary" style="width:auto;" onclick="exitStudentPreview()">← Back to Parent Portal</button>';
       document.getElementById("studentDashboard").prepend(banner);
     }
   } else if (banner) {
@@ -1075,89 +1193,73 @@ async function loadStudentDashboard(isPreview = false) {
   }
 
   document.getElementById("stuDashWelcome").innerText = "Welcome, " + currentUser.full_name;
-  document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + currentUser.expected_grad_year;
+  document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + (currentUser.grad_year || "");
 
-      const allAssigns = (await sbQuery("assignments", {
-      query: `student_id=eq.${currentUser.id}&select=*&order=created_at.asc`
-    })) || [];
-    const subs = (await sbQuery("submissions", {
-      query: `student_id=eq.${currentUser.id}&select=*`
-    })) || [];
-    const achs = (await sbQuery("achievements", {
-      query: `student_id=eq.${currentUser.id}&select=*`
-    })) || [];
+  const allAssigns = (await sbQuery("assignments", {
+    query: `student_id=eq.${currentUser.id}&select=*&order=created_at.asc`
+  })) || [];
+  const subs = (await sbQuery("submissions", {
+    query: `student_id=eq.${currentUser.id}&select=*`
+  })) || [];
+  const achs = (await sbQuery("achievements", {
+    query: `student_id=eq.${currentUser.id}&select=*`
+  })) || [];
 
-    const bySubject = {};
-    allAssigns.forEach(a => {
-      if (!bySubject[a.subject]) bySubject[a.subject] = [];
-      bySubject[a.subject].push(a);
-    });
+  stuSubsCache = subs;
 
-    const activeAssigns = [];
-    let completedCount = 0;
-    Object.keys(bySubject).forEach(subj => {
-      const seq = bySubject[subj];
-      let foundNext = false;
-      seq.forEach(item => {
-        const s = subs.find(x => x.assignment_id === item.id);
-        if (s && (s.status === "Submitted" || s.status === "Graded")) {
-          completedCount++;
-        } else if (!foundNext) {
-          activeAssigns.push(item);
-          foundNext = true;
-        }
-      });
-    });
+  const bySubject = {};
+  allAssigns.forEach(a => {
+    if (!bySubject[a.subject]) bySubject[a.subject] = [];
+    bySubject[a.subject].push(a);
+  });
 
-    const progressBanner = allAssigns.length
-      ? '<div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px 12px; border-radius:8px; margin-bottom:12px;"><b>🎯 Today\'s Active Schedule:</b> ' + activeAssigns.length + ' active lesson' + (activeAssigns.length === 1 ? '' : 's') + ' &bull; <b>' + completedCount + ' of ' + allAssigns.length + '</b> enrolled lessons completed (next lesson unlocks automatically upon submission!)</div>'
-      : "";
+  const activeAssigns = [];
+  Object.keys(bySubject).forEach(subj => {
+    const seq = bySubject[subj];
+    const nextItem = seq.find(item => {
+      const s = subs.find(x => x.assignment_id === item.id);
+      return !(s && s.grade);
+    }) || seq[seq.length - 1];
+    if (nextItem) activeAssigns.push(nextItem);
+  });
 
-    document.getElementById("studentAssignmentList").innerHTML = progressBanner + (activeAssigns.map(a => {
+  stuActiveAssignsCache = activeAssigns;
+  renderStudentTodayPane();
 
-    const sub = subs.find(s => s.assignment_id === a.id);
-    const statusText = sub && sub.grade ? "Graded: " + sub.grade : sub ? "Submitted" : "Assigned";
-    const dueBadge = a.due_date ? " • 📅 Due: <b>" + a.due_date + "</b>" : "";
-    const scaleHtml = a.grading_scale ? '<br><small><b>Grading Rubric:</b> ' + a.grading_scale + '</small>' : "";
-    const codeMatch = a.title.match(/^\[([^\]]+)\]\s*(.*)$/);
-    const modCode = codeMatch ? codeMatch[1] : null;
-    const cleanTitle = codeMatch ? codeMatch[2] : a.title;
-    const currMod = (typeof HONORS_CURRICULUM !== "undefined" && modCode) ? HONORS_CURRICULUM.find(m => m.id === modCode) : null;
-    const links = a.resource_url ? a.resource_url.split(/\r?\n/).map(u => u.trim()).filter(Boolean) : [];
-
-            const mediaHtml = links.map((url, idx) => {
-      const yt = getYouTubeEmbed(url);
-      if (yt) {
-        return '<div style="margin:10px 0;"><small><b>🎬 Video Lesson ' + (idx + 1) + '</b></small><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-top:4px; background:#0f172a;"><iframe src="' + yt + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></div>';
-      }
-            const cleanHref = url.startsWith("pdf:") ? url.slice(4).trim() : url;
-      let btnLabel = "🔗 Open Interactive Resource";
-      if (url.startsWith("pdf:")) btnLabel = "📖 Open Reading / PDF Book";
-      else if (cleanHref.includes("desmos.com")) btnLabel = "📐 Open Desmos Graphing Calculator";
-      else if (cleanHref.includes("mathsisfun.com")) btnLabel = "🧮 Open Interactive Visual Lesson";
-      return '<div style="margin:8px 0;"><a href="' + cleanHref + '" target="_blank" class="btn-outline" style="display:inline-block; text-decoration:none;">' + btnLabel + '</a></div>';
-}).join("");
-
-    const steps = ["Watch Video Lesson(s)", "Complete Reading & Real-World Activity", "Pass Interactive Quick Check", "Submit Written Reflection"];
-    const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
-    const doneCount = steps.filter((_, i) => savedSteps[i]).length;
-    const pct = Math.round((doneCount / steps.length) * 100);
-          const checklistHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin-top:8px;"><div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:4px;"><span>Lesson Progress</span><span id="prog-lbl-' + a.id + '">' + pct + '% Mission Progress</span></div><div style="background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden; margin-bottom:8px;"><div id="prog-bar-' + a.id + '" style="background:#16a34a; height:100%; width:' + pct + '%; transition:width 0.2s;"></div></div>' + steps.map((st, idx) => '<label style="display:flex; align-items:center; gap:6px; font-weight:normal; margin:3px 0; cursor:pointer;"><input type="checkbox" class="step-cb-' + a.id + '" ' + (savedSteps[idx] ? "checked" : "") + ' onchange="toggleMissionStep(\'' + a.id + '\',' + idx + ')" style="width:auto; margin:0;" /> ' + st + '</label>').join("") + '</div>';
-
-      const quizHtml = currMod && currMod.quiz && currMod.quiz.length
-        ? '<div style="background:#fffbeb; border:1px solid #fde68a; padding:10px; border-radius:8px; margin-top:8px;"><strong>⚡ Interactive Quick Check:</strong>' + currMod.quiz.map((qItem, qIdx) => '<div style="margin-top:8px;"><div><b>' + qItem.q + '</b></div>' + qItem.options.map((opt, oIdx) => '<button type="button" class="btn-outline" style="color:#1e293b; text-align:left; margin:3px 0; padding:6px 10px;" onclick="checkQuizAnswer(\'' + a.id + '\',' + qIdx + ',' + oIdx + ',' + qItem.answer + ')">' + opt + '</button>').join("") + '<div id="quiz-res-' + a.id + '-' + qIdx + '" style="font-size:12px; margin-top:2px;"></div></div>').join("") + '</div>'
-        : "";
-
-      const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:6px; border-radius:6px; margin-top:6px;"><b>Instructor Feedback:</b> ' + sub.parent_feedback + '</div>' : "";
-
-      return '<div class="item-card"><strong>' + a.subject + ' (' + a.course_level + '): ' + cleanTitle + '</strong><br><small class="muted">Due: ' + (a.due_date || "Flexible") + ' &bull; ' + a.credits + ' Credit &bull; Status: <b>' + (sub ? sub.status : "Assigned") + '</b></small>' + mediaHtml + '<div style="margin:8px 0; white-space:pre-line; line-height:1.5;">' + (a.description || "") + '</div>' + checklistHtml + quizHtml + fbHtml + '<label style="margin-top:8px;">Your Written Work / Answers</label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Type your answers, reflections, or problem solutions here...">' + (sub && sub.student_notes ? sub.student_notes : "") + '</textarea><label style="margin-top:6px;">📸 Attach Photo / Screenshot of Handwritten Work (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="margin-bottom:8px;" /><button class="btn-primary" onclick="submitWork(\'' + a.id + '\')">✅ Submit Work to Parent</button></div>';
-    }).join("") || "<p class='muted'>All enrolled lessons for this term are complete! Great work! 🎉</p>");
-
-    document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
-      const met = ac.metric ? " &bull; " + ac.metric : "";
-      return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.location || "") + met + '</small></div>';
-    }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+  const syllabusEl = document.getElementById("stuSyllabusList");
+  if (syllabusEl) {
+    syllabusEl.innerHTML = Object.keys(bySubject).map(subj => {
+      const items = bySubject[subj];
+      const first = items[0];
+      return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:center;"><strong>📘 ' + subj + '</strong><span class="badge">' + first.quarter + ' &bull; ' + first.course_level + ' (' + first.credits + ' cr)</span></div><p class="muted" style="margin:6px 0;">' + (first.description || "Honors Quarter Syllabus & Mastery Roadmap") + '</p><div style="font-size:13px; background:#f8fafc; padding:8px; border-radius:6px;"><b>Planned Term Sequence:</b><ul style="margin:4px 0 0 18px;">' + items.map((m, i) => '<li>Week ' + (i * 3 + 1) + '–' + (i * 3 + 3) + ': ' + m.title.replace(/^\[[^\]]+\]\s*/, "") + '</li>').join("") + '</ul></div></div>';
+    }).join("") || "<p class='muted'>No quarter syllabus items enrolled yet.</p>";
   }
+
+  const gradesEl = document.getElementById("stuGradesList");
+  const gpaBadge = document.getElementById("stuGpaBadge");
+  if (gradesEl) {
+    let ptsSum = 0;
+    let crSum = 0;
+    gradesEl.innerHTML = allAssigns.map(a => {
+      const sub = subs.find(s => s.assignment_id === a.id);
+      const gr = sub && sub.grade ? sub.grade : "In Progress";
+      if (sub && sub.grade && typeof gradeToPoints === "function") {
+        const cr = parseFloat(a.credits) || 1.0;
+        ptsSum += gradeToPoints(sub.grade, a.course_level) * cr;
+        crSum += cr;
+      }
+      const fb = sub && sub.parent_feedback ? '<div style="margin-top:4px; font-size:13px; color:#15803d;"><b>Teacher Note:</b> ' + sub.parent_feedback + '</div>' : '';
+      return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><strong>' + a.subject + '</strong> <small class="muted">(' + a.quarter + ' &bull; ' + a.credits + ' cr)</small><br><small class="muted">' + a.title.replace(/^\[[^\]]+\]\s*/, "") + '</small></div><span class="badge" style="font-size:13px;">' + gr + '</span></div>' + fb + '</div>';
+    }).join("") || "<p class='muted'>No graded coursework yet.</p>";
+    if (gpaBadge) gpaBadge.innerText = "Cumulative GPA: " + (crSum > 0 ? (ptsSum / crSum).toFixed(2) : "—");
+  }
+
+  document.getElementById("studentPortfolioList").innerHTML = achs.map(ac => {
+    const met = ac.metric ? " &bull; " + ac.metric : "";
+    const loc = ac.location ? " &bull; 📍 " + ac.location : "";
+    return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + loc + met + '</small></div>';
+  }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+}
 
 async function compressPhotoToDataUrl(file) {
 
