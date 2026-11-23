@@ -1446,15 +1446,25 @@ async function loadStudentDashboard(isPreview = false) {
   document.getElementById("stuDashWelcome").innerText = "Welcome, " + currentUser.full_name;
   document.getElementById("stuDashMeta").innerText = currentFamily.family_name + " • " + currentUser.grade_level + " Grade • Class of " + (currentUser.grad_year || "");
 
-  const allAssigns = (await sbQuery("assignments", {
+    const freshAssigns = await sbQuery("assignments", {
     query: `student_id=eq.${currentUser.id}&select=*&order=created_at.asc`
-  })) || [];
-  const subs = (await sbQuery("submissions", {
+  }).catch(() => []);
+  const allAssigns = (Array.isArray(freshAssigns) && freshAssigns.length)
+    ? freshAssigns
+    : (isPreview && Array.isArray(assignmentsCache) ? assignmentsCache.filter(a => a.student_id === currentUser.id) : []);
+
+  const freshSubs = await sbQuery("submissions", {
     query: `student_id=eq.${currentUser.id}&select=*`
-  })) || [];
+  }).catch(() => []);
+  const subs = (Array.isArray(freshSubs) && freshSubs.length)
+    ? freshSubs
+    : (isPreview && Array.isArray(submissionsCache) ? submissionsCache.filter(s => s.student_id === currentUser.id) : []);
+
   const achs = (await sbQuery("achievements", {
     query: `student_id=eq.${currentUser.id}&select=*`
-  })) || [];
+  }).catch(() => [])) || [];
+
+  stuSubsCache = subs;
 
   stuSubsCache = subs;
 
