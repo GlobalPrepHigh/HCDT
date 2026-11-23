@@ -1205,6 +1205,83 @@ function checkInlineQuiz(assignId, qIdx, chosenIdx, correctIdx) {
   }
 }
 
+function speakPronunciation(phrase, langCode) {
+  if (!("speechSynthesis" in window)) {
+    return alert("Phonetic Pronunciation: " + phrase);
+  }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(phrase);
+  utter.lang = langCode || "en-US";
+  utter.rate = 0.85;
+  window.speechSynthesis.speak(utter);
+}
+
+function toggleLessonStep(assignId, stepIdx, totalSteps, isChecked) {
+  const key = "gph_steps_" + assignId;
+  const saved = JSON.parse(localStorage.getItem(key) || "{}");
+  saved[stepIdx] = !!isChecked;
+  localStorage.setItem(key, JSON.stringify(saved));
+  let done = 0;
+  for (let i = 0; i < totalSteps; i++) {
+    if (saved[i]) done++;
+  }
+  const pct = Math.round((done / totalSteps) * 100);
+  const el = document.getElementById("pct-" + assignId);
+  if (el) el.innerText = pct + "% Complete";
+}
+
+function buildPronunciationBar(subject) {
+  const s = (subject || "").toLowerCase();
+  if (s.includes("history")) {
+    return '<div style="background:#f0f9ff; border:1px solid #bae6fd; padding:8px 12px; border-radius:8px; margin:8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:13px;"><span>🗣️ <b>Key Pronunciations:</b></span><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'Hammurabi\', \'en-US\')">🔊 Hammurabi (hah-moo-RAH-bee)</button><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'Louvre\', \'fr-FR\')">🔊 Louvre (LOOV-ruh)</button><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'Mesopotamia\', \'en-US\')">🔊 Mesopotamia (mes-uh-puh-TAY-mee-uh)</button></div>';
+  }
+  if (s.includes("mandarin") || s.includes("chinese")) {
+    return '<div style="background:#f0f9ff; border:1px solid #bae6fd; padding:8px 12px; border-radius:8px; margin:8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:13px;"><span>🗣️ <b>Tap to Hear Mandarin Pronunciation:</b></span><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'你好\', \'zh-CN\')">🔊 Nǐ hǎo (nee HOW • Hello)</button><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'谢谢\', \'zh-CN\')">🔊 Xièxie (SHYEH-shyeh • Thank you)</button><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'再见\', \'zh-CN\')">🔊 Zàijiàn (DZAI-jyen • Goodbye)</button></div>';
+  }
+  if (s.includes("spanish")) {
+    return '<div style="background:#f0f9ff; border:1px solid #bae6fd; padding:8px 12px; border-radius:8px; margin:8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:13px;"><span>🗣️ <b>Tap to Hear Spanish Pronunciation:</b></span><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'Buenos días, ¿cómo estás?\', \'es-ES\')">🔊 Buenos días, ¿cómo estás?</button><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'Muchas gracias\', \'es-ES\')">🔊 Muchas gracias</button></div>';
+  }
+  if (s.includes("french")) {
+    return '<div style="background:#f0f9ff; border:1px solid #bae6fd; padding:8px 12px; border-radius:8px; margin:8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:13px;"><span>🗣️ <b>Tap to Hear French Pronunciation:</b></span><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'Bonjour, comment allez-vous ?\', \'fr-FR\')">🔊 Bonjour, comment allez-vous ?</button><button type="button" class="btn-outline" style="width:auto; color:#0369a1; padding:4px 10px; font-size:12px;" onclick="speakPronunciation(\'Merci beaucoup\', \'fr-FR\')">🔊 Merci beaucoup</button></div>';
+  }
+  return "";
+}
+function splitLessonParts(rawDesc, subject) {
+  const s = (subject || "").toLowerCase();
+  let intro = "";
+  if (s.includes("history")) {
+    intro = "<strong>STEP 1 — HISTORICAL BACKGROUND (THE LOUVRE &amp; BABYLON):</strong><br>Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the French royal palace before opening as a public museum in 1793, the <b>Louvre</b> houses over 35,000 works—including the 7.4-foot basalt stele of King <b>Hammurabi</b> (c. 1754 BCE). Watch the video below first to explore how early written law shaped civilization.";
+  } else if (s.includes("biology") || s.includes("chemistry") || s.includes("science")) {
+    intro = "<strong>STEP 1 — CONCEPT &amp; LAB BRIEFING:</strong><br>Watch the video below first to observe how molecules and energy transform during chemical and biological reactions, then complete the hands-on lab steps underneath.";
+  } else if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
+    intro = "<strong>STEP 1 — CONCEPT BRIEFING &amp; TOOLKIT:</strong><br>Watch the step-by-step video lesson below first. Use the <b>Calculator &amp; Line Grapher</b> button right below to verify graphs, and write out every algebraic step neatly on paper!";
+  } else if (s.includes("mandarin") || s.includes("spanish") || s.includes("french") || s.includes("hindi")) {
+    intro = "<strong>STEP 1 — LISTENING &amp; PRONUNCIATION WARM-UP:</strong><br>Tap the speaker buttons above to hear native pronunciation, then watch the video below to practice rhythm, tones, and conversational phrases.";
+  } else {
+    intro = "<strong>STEP 1 — LESSON OVERVIEW:</strong><br>Watch the video below first to master today's core concept before completing the step-by-step activity underneath.";
+  }
+
+  let body = (rawDesc || "").trim();
+  if (s.includes("biology") && body.toLowerCase().includes("yeast")) {
+    body += "\n\n🥄 NO-YEAST HOUSEHOLD ALTERNATIVE: If you do not have active dry yeast on hand, mix 2 tablespoons of baking soda with 1/2 cup of warm vinegar (or lemon juice) inside a clear bottle with a balloon stretched over the top to observe rapid CO2 gas expansion, then compare chemical acid-base gas release with biological cellular respiration!";
+  }
+  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
+    body += "\n\n✏️ REQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every step line-by-line, box your final answer, and upload a photo below!";
+  }
+
+  const formattedBody = "<strong>STEP 2 — STEP-BY-STEP INSTRUCTIONS &amp; ACTIVITY:</strong><br>" + body
+    .replace(/\s+(?=\d+\.\s)/g, "<br><br>")
+    .replace(/\n\n+/g, "<br><br>")
+    .replace(/\n/g, "<br>")
+    .replace(/\b([A-Z][A-Z0-9\s,&'’—-]{3,}:)/g, "<strong>$1</strong>");
+
+  return { intro, formattedBody };
+}
+
+function selectStudentSubject(idx) {
+  selectedStuSubjectIdx = idx;
+  renderStudentTodayPane();
+}
 function renderStudentTodayPane() {
   const tabsEl = document.getElementById("stuSubjectTabs");
   const paneEl = document.getElementById("stuActiveLessonPane");
@@ -1221,12 +1298,16 @@ function renderStudentTodayPane() {
   if (selectedStuSubjectIdx >= stuActiveAssignsCache.length) selectedStuSubjectIdx = 0;
 
   let doneToday = 0;
+  tabsEl.style.alignItems = "center";
   tabsEl.innerHTML = stuActiveAssignsCache.map((a, idx) => {
     const sub = stuSubsCache.find(x => x.assignment_id === a.id);
     const isDone = sub && (sub.status === "Submitted" || sub.status === "Graded");
     if (isDone) doneToday++;
     const isAct = idx === selectedStuSubjectIdx;
-    return '<button type="button" class="' + (isAct ? 'btn-primary' : 'btn-outline') + '" style="width:auto; padding:8px 14px; font-size:14px; font-weight:700;' + (isAct ? '' : ' color:#1e293b;') + '" onclick="selectStudentSubject(' + idx + ')">' + (isDone ? '✅ ' : '📘 ') + a.subject + '</button>';
+    const styleStr = isAct
+      ? "width:auto; min-height:46px; padding:11px 18px; font-size:15px; font-weight:800; background:#1d4ed8; color:#ffffff; border:2px solid #0f172a; box-shadow:0 3px 8px rgba(29,78,216,0.28);"
+      : "width:auto; min-height:40px; padding:8px 13px; font-size:13px; font-weight:600; background:#f8fafc; color:#1e293b; border:1px solid #cbd5e1;";
+    return '<button type="button" style="border-radius:8px; cursor:pointer; ' + styleStr + '" onclick="selectStudentSubject(' + idx + ')">' + (isDone ? '✅ ' : '📘 ') + a.subject + '</button>';
   }).join("");
 
   if (progEl) progEl.innerText = doneToday + " / " + stuActiveAssignsCache.length + " Submitted";
@@ -1241,24 +1322,24 @@ function renderStudentTodayPane() {
   const pack = getSubjectMediaPack(a.subject);
 
   let embedUrl = pack.yt;
-  let extLinksHtml = "";
   const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
   rawLinks.forEach(u => {
     const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
     const yt = typeof getYouTubeEmbed === "function" ? getYouTubeEmbed(cleanU) : null;
-    if (yt) {
-      embedUrl = yt;
-    } else if (cleanU.startsWith("http://") || cleanU.startsWith("https://")) {
-      extLinksHtml += '<a href="' + cleanU + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; color:#1e293b; display:inline-block; margin:4px 6px 4px 0;">🔗 Open Direct Lab / Activity ↗</a>';
-    }
+    if (yt) embedUrl = yt;
   });
-  if (!extLinksHtml) {
-    extLinksHtml = '<a href="' + pack.link + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; color:#1e293b; display:inline-block; margin:4px 0;">🔗 ' + pack.label + ' ↗</a>';
-  }
 
-  const videoBlock = '<div style="margin:12px 0;"><div style="font-weight:700; font-size:14px; color:#0f172a; margin-bottom:6px;">🎬 Watch the video:</div><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; border:1px solid #cbd5e1; background:#000;"><iframe src="' + embedUrl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
+  const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
+  const mathToolkitBtn = isMath
+    ? '<div style="margin:10px 0;"><button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700;" onclick="toggleMathToolkit()">🧮 Open Calculator &amp; Line Grapher</button></div>'
+    : "";
 
-  const steps = ["Watch the video", "Complete the step-by-step activity & interactive lab", "Complete Self-Check Quiz & submit your work"];
+  const pronBar = buildPronunciationBar(a.subject);
+  const parts = splitLessonParts(a.description, a.subject);
+
+  const videoBlock = '<div style="margin:14px 0;"><div style="font-weight:700; font-size:14px; color:#0f172a; margin-bottom:6px;">🎬 Watch the video:</div><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; border:1px solid #cbd5e1; background:#000;"><iframe src="' + embedUrl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
+
+  const steps = ["Watch the video", "Complete the step-by-step instructions", "Complete Self-Check Quiz & submit your work"];
   const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
   const doneCount = steps.filter((_, i) => savedSteps[i]).length;
   const pct = Math.round((doneCount / steps.length) * 100);
@@ -1275,81 +1356,10 @@ function renderStudentTodayPane() {
 
   const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:8px; border-radius:6px; margin-top:8px;"><small><b>Parent Feedback:</b> ' + sub.parent_feedback + '</small></div>' : '';
 
-  paneEl.innerHTML = '<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">' + a.course_level + ' (' + a.credits + ' cr)' + dueBadge + '</small></div><span class="badge" style="background:#dbeafe; color:#1e40af;">' + statusText + '</span></div>' + videoBlock + '<div style="margin:12px 0; font-size:14px; line-height:1.65; color:#1e293b;">' + formatLessonSteps(a.description, a.subject) + '</div><div style="margin:8px 0;">' + extLinksHtml + '</div>' + checklistHtml + quizHtml + fbHtml + '<div style="margin-top:12px;"><label><b>✍️ Submit Today\'s Reflection, Calculations, or Essay Response:</b></label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Write your answers, summary, or reflection here...">' + (sub && sub.student_notes ? sub.student_notes : '') + '</textarea><label style="margin-top:8px;">📸 Snap or Upload Photo of Handwritten Work / Lab / Project (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="padding:6px; background:#f8fafc;" />' + (sub && sub.submission_link ? '<div style="margin-top:6px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:12px;">📎 View Uploaded Work Photo ↗</a></div>' : '') + '<button class="btn-primary" style="margin-top:10px; width:auto;" onclick="submitWork(\'' + a.id + '\')">Submit Today\'s Work</button></div></div>';
+  paneEl.innerHTML = '<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">' + a.course_level + ' (' + a.credits + ' cr)' + dueBadge + '</small></div><span class="badge" style="background:#dbeafe; color:#1e40af;">' + statusText + '</span></div>' + pronBar + mathToolkitBtn + '<div style="margin:12px 0 4px 0; font-size:14px; line-height:1.65; color:#1e293b; background:#f8fafc; padding:10px 12px; border-radius:8px; border-left:4px solid #2563eb;">' + parts.intro + '</div>' + videoBlock + '<div style="margin:12px 0; font-size:14px; line-height:1.65; color:#1e293b;">' + parts.formattedBody + '</div>' + checklistHtml + quizHtml + fbHtml + '<div style="margin-top:12px;"><label><b>✍️ Submit Today\'s Reflection, Calculations, or Essay Response:</b></label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Write your answers, summary, or reflection here...">' + (sub && sub.student_notes ? sub.student_notes : '') + '</textarea><label style="margin-top:8px;">📸 Snap or Upload Photo of Handwritten Work / Lab / Project (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="padding:6px; background:#f8fafc;" />' + (sub && sub.submission_link ? '<div style="margin-top:6px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:12px;">📎 View Uploaded Work Photo ↗</a></div>' : '') + '<button class="btn-primary" style="margin-top:10px; width:auto;" onclick="submitWork(\'' + a.id + '\')">Submit Today\'s Work</button></div></div>';
 }
 
-function selectStudentSubject(idx) {
-  selectedStuSubjectIdx = idx;
-  renderStudentTodayPane();
-}
 
-function renderStudentTodayPane() {
-  const tabsEl = document.getElementById("stuSubjectTabs");
-  const paneEl = document.getElementById("stuActiveLessonPane");
-  const progEl = document.getElementById("stuTodayProgress");
-  if (!tabsEl || !paneEl) return;
-
-  if (!stuActiveAssignsCache.length) {
-    tabsEl.innerHTML = "";
-    if (progEl) progEl.innerText = "0 / 0 Completed";
-    paneEl.innerHTML = "<div class='card'><p class='muted'>All enrolled lessons for this term are complete—or ask your parent to enroll your courses! 🎉</p></div>";
-    return;
-  }
-
-  if (selectedStuSubjectIdx >= stuActiveAssignsCache.length) selectedStuSubjectIdx = 0;
-
-  let doneToday = 0;
-  tabsEl.innerHTML = stuActiveAssignsCache.map((a, idx) => {
-    const sub = stuSubsCache.find(x => x.assignment_id === a.id);
-    const isDone = sub && (sub.status === "Submitted" || sub.status === "Graded");
-    if (isDone) doneToday++;
-    const isAct = idx === selectedStuSubjectIdx;
-    return '<button type="button" class="' + (isAct ? 'btn-primary' : 'btn-outline') + '" style="width:auto; padding:6px 12px; font-size:13px;' + (isAct ? '' : ' color:#1e293b;') + '" onclick="selectStudentSubject(' + idx + ')">' + (isDone ? '✅ ' : '📘 ') + a.subject + '</button>';
-  }).join("");
-
-  if (progEl) progEl.innerText = doneToday + " / " + stuActiveAssignsCache.length + " Submitted";
-
-  const a = stuActiveAssignsCache[selectedStuSubjectIdx];
-  const sub = stuSubsCache.find(x => x.assignment_id === a.id);
-  const statusText = sub && sub.grade ? "Graded: " + sub.grade : sub ? "Submitted ✓" : "Today's Active Lesson";
-  const dueBadge = a.due_date ? " &bull; Due: <b>" + a.due_date + "</b>" : "";
-  const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
-  const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
-  const currMod = catalog.find(m => m.subject === a.subject || a.subject.startsWith(m.subject));
-  const pack = getSubjectMediaPack(a.subject);
-
-  let embedUrl = pack.yt;
-  let extLinksHtml = "";
-  const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
-  rawLinks.forEach(u => {
-    const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
-    const yt = typeof getYouTubeEmbed === "function" ? getYouTubeEmbed(cleanU) : null;
-    if (yt) {
-      embedUrl = yt;
-    } else if (cleanU.startsWith("http://") || cleanU.startsWith("https://")) {
-      extLinksHtml += '<a href="' + cleanU + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; color:#1e293b; display:inline-block; margin:4px 6px 4px 0;">🔗 Open Course Reference ↗</a>';
-    }
-  });
-  if (!extLinksHtml) {
-    extLinksHtml = '<a href="' + pack.link + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; color:#1e293b; display:inline-block; margin:4px 0;">🔗 ' + pack.label + ' ↗</a>';
-  }
-
-  const videoBlock = '<div style="margin:12px 0;"><div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:6px;">🎬 Watch Lesson Video Right Here (No Leaving Page):</div><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; border:1px solid #cbd5e1; background:#000;"><iframe src="' + embedUrl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
-
-  const steps = ["Watch Inline Video Lesson", "Read Lesson Notes & Interactive Resource", "Complete Self-Check Quiz & Submit Work"];
-  const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
-  const doneCount = steps.filter((_, i) => savedSteps[i]).length;
-  const pct = Math.round((doneCount / steps.length) * 100);
-  const checklistHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin:10px 0;"><div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:6px;"><span>📋 Today\'s Lesson Checklist</span><span id="pct-' + a.id + '">' + pct + '% Complete</span></div>' + steps.map((st, idx) => '<label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin:4px 0; cursor:pointer;"><input type="checkbox" style="width:auto; margin:0;" ' + (savedSteps[idx] ? 'checked' : '') + ' onchange="toggleLessonStep(\'' + a.id + '\',' + idx + ',' + steps.length + ',this.checked)" /> <span>' + st + '</span></label>').join("") + '</div>';
-
-  const quizHtml = currMod && currMod.quiz && currMod.quiz.length
-    ? '<div style="background:#fffbeb; border:1px solid #fde68a; padding:10px; border-radius:8px; margin:10px 0;"><strong style="color:#92400e;">⚡ Quick Self-Check Quiz:</strong>' + currMod.quiz.map((qz, qi) => '<div style="margin-top:8px;"><div style="font-size:13px; font-weight:600;">' + (qi + 1) + '. ' + qz.q + '</div>' + qz.options.map((opt, oi) => '<label style="display:block; font-weight:normal; font-size:13px; margin:3px 0 3px 12px; cursor:pointer;"><input type="radio" name="qz-' + a.id + '-' + qi + '" style="width:auto; margin-right:6px;" onclick="checkInlineQuiz(\'' + a.id + '\',' + qi + ',' + oi + ',' + qz.answer + ')" />' + opt + '</label>').join("") + '<div id="qz-fb-' + a.id + '-' + qi + '" style="font-size:12px; font-weight:700; margin-left:12px;"></div></div>').join("") + '</div>'
-    : "";
-
-  const fbHtml = sub && sub.parent_feedback ? '<div style="background:#ecfdf5; padding:8px; border-radius:6px; margin-top:8px;"><small><b>Parent Feedback:</b> ' + sub.parent_feedback + '</small></div>' : '';
-
-  paneEl.innerHTML = '<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">' + a.course_level + ' (' + a.credits + ' cr)' + dueBadge + '</small></div><span class="badge" style="background:#dbeafe; color:#1e40af;">' + statusText + '</span></div><p style="margin:10px 0; font-size:14px; line-height:1.5;">' + (a.description || "") + '</p>' + videoBlock + '<div style="margin:8px 0;">' + extLinksHtml + '</div>' + checklistHtml + quizHtml + fbHtml + '<div style="margin-top:12px;"><label><b>✍️ Submit Today\'s Reflection, Calculations, or Essay Response:</b></label><textarea id="subnote-' + a.id + '" rows="3" placeholder="Write your answers, summary, or reflection here...">' + (sub && sub.student_notes ? sub.student_notes : '') + '</textarea><label style="margin-top:8px;">📸 Snap or Upload Photo of Handwritten Work / Lab / Project (Optional)</label><input type="file" id="subphoto-' + a.id + '" accept="image/*" style="padding:6px; background:#f8fafc;" />' + (sub && sub.submission_link ? '<div style="margin-top:6px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:12px;">📎 View Uploaded Work Photo ↗</a></div>' : '') + '<button class="btn-primary" style="margin-top:10px; width:auto;" onclick="submitWork(\'' + a.id + '\')">Submit Today\'s Work</button></div></div>';
-}
 async function loadStudentDashboard(isPreview = false) {
   if (!isPreview) saveSession("student");
   document.getElementById("authSection").classList.add("hidden");
@@ -1408,7 +1418,7 @@ async function loadStudentDashboard(isPreview = false) {
   if (syllabusEl) {
     syllabusEl.innerHTML = Object.keys(bySubject).map(subj => {
       const items = bySubject[subj];
-      const first = items;
+      const first = items[0];
       const catMatch = catalog.find(m => m.subject === subj || subj.startsWith(m.subject) || m.subject.startsWith(subj.replace(/\s*\(\d+th\)$/, "")));
       const cleanFirstTitle = first.title.replace(/^\[[^\]]+\]\s*/, "");
       let weekListHtml = "";
