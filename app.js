@@ -1003,6 +1003,41 @@ function getCourseStandardTag(subj) {
   return "U.S. COLLEGE-PREP";
 }
 
+function buildDiplomaCardHtml(stu, fam) {
+  const globeSeal = buildGoldGlobeSealSvg();
+  const gradYr = (stu && (stu.expected_grad_year || stu.grad_year)) || "2028";
+  const famName = (fam && fam.family_name) || "GlobalPrep High";
+  const stuName = (stu && stu.full_name) || "Student";
+  return '<div id="printableDiplomaBox" style="font-family: Georgia, \'Times New Roman\', serif; color:#0f172a; background:#fffdf9; border:6px double #1e293b; padding:24px; margin-top:16px; text-align:center; box-sizing:border-box; max-width:100%; overflow:hidden;">' +
+    '<div style="border:1px solid #94a3b8; padding:22px 16px;">' +
+      '<div style="margin-bottom:10px;">' + globeSeal + '</div>' +
+      '<div style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#475569; margin-bottom:6px;">In Recognition of Academic Excellence</div>' +
+      '<div style="font-size:22px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#0f172a;">' + famName + '</div>' +
+      '<div style="width:120px; height:2px; background:#b45309; margin:12px auto;"></div>' +
+      '<p style="font-size:15px; font-style:italic; color:#334155; margin:10px 0;">This certifies that</p>' +
+      '<div style="font-size:26px; font-weight:700; letter-spacing:1px; color:#0f172a; margin:8px 0 12px 0;">' + stuName + '</div>' +
+      '<p style="font-size:14px; line-height:1.65; max-width:540px; margin:0 auto; color:#1e293b;">has satisfactorily completed the prescribed Course of Study for Secondary Graduation in accordance with U.S. College-Preparatory Standards and is hereby awarded this</p>' +
+      '<div style="font-size:20px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:#1e293b; margin:16px 0 6px 0;">High School Diploma</div>' +
+      '<div style="font-size:14px; letter-spacing:1px; color:#334155;">Class of ' + gradYr + '</div>' +
+      '<div style="display:flex; justify-content:space-around; align-items:flex-end; margin-top:34px; gap:20px; flex-wrap:wrap;">' +
+        '<div style="font-size:12px;">_________________________<br><span style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Home-Education Administrator</span></div>' +
+        '<div style="font-size:12px;">_________________________<br><span style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Date Conferred</span></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function printDiplomaOnly() {
+  const box = document.getElementById("printableDiplomaBox");
+  if (!box) return window.print();
+  const w = window.open("", "_blank");
+  if (!w) return window.print();
+  w.document.write('<!DOCTYPE html><html><head><title>High School Diploma</title><style>@page{size:landscape;margin:0.4in;}body{margin:0;padding:16px;background:#fff;}</style></head><body>' + box.outerHTML + '</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(() => { w.print(); w.close(); }, 300);
+}
+
 function renderOfficialRecords() {
   const stuId = document.getElementById("transStudentSelect").value;
   const stu = studentsCache.find(s => s.id === stuId);
@@ -1011,8 +1046,6 @@ function renderOfficialRecords() {
     preview.innerHTML = "<p class='muted'>Add a student first to generate their Transcript & Diploma.</p>";
     return;
   }
-
-  const stuAssigns = assignmentsCache.filter(a => a.student_id === stu.id);
   const stuAchs = achievementsCache.filter(a => a.student_id === stu.id);
   const todayStr = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
@@ -1596,10 +1629,29 @@ async function loadStudentDashboard(isPreview = false) {
     if (gpaBadge) gpaBadge.innerText = "Cumulative GPA: " + (crSum > 0 ? (ptsSum / crSum).toFixed(2) : "-");
   }
 
-  const portEl = document.getElementById("studentPortfolioList");
+    const portEl = document.getElementById("studentPortfolioList");
   if (portEl) {
-    const gradYr = currentUser.expected_grad_year || currentUser.grad_year || "2028";
     const diplomaCard =
+      '<div class="item-card" style="border:2px solid #1e3a8a; background:#f8fafc; margin-bottom:14px;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">' +
+          '<div>' +
+            '<div style="font-size:12px; font-weight:700; color:#1e3a8a; letter-spacing:0.06em;">OFFICIAL COLLEGE-PREP CREDENTIAL</div>' +
+            '<div style="font-size:17px; font-weight:800; color:#0f172a; margin:2px 0;">🎓 High School Diploma — ' + currentUser.full_name + '</div>' +
+          '</div>' +
+          '<button type="button" class="btn-primary" style="width:auto; padding:8px 14px;" onclick="printDiplomaOnly()">🖨️ Print / Save PDF</button>' +
+        '</div>' +
+        buildDiplomaCardHtml(currentUser, currentFamily) +
+      '</div>';
+
+    const achHtml = achs.map(ac => {
+      const met = ac.metric ? " &bull; " + ac.metric : "";
+      const loc = ac.location ? " &bull; 📍 " + ac.location : "";
+      return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.date_completed || "") + loc + met + '</small></div>';
+    }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+
+    portEl.innerHTML = diplomaCard + achHtml;
+  }
+}
       '<div class="item-card" style="border:2px solid #1e3a8a; background:linear-gradient(135deg,#f8fafc,#eff6ff); margin-bottom:14px;">' +
         '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">' +
           '<div>' +
