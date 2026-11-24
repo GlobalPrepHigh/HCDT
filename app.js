@@ -1607,24 +1607,64 @@ async function loadStudentDashboard(isPreview = false) {
 
     portElEarly.innerHTML = diplomaCard + achHtml;
   }
-  const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
+    const getDetailedSyllabusHtml = (subj, items) => {
+    const s = (subj || "").toLowerCase();
+    const firstTitle = String((items && items.title) || subj).replace(/^\[[^\]]+\]\s*/, "");
+    if (s.includes("literature") || s.includes("english")) {
+      return '<li><b>Weeks 1–2 (Dystopian Foundations &amp; Censorship):</b> ' + firstTitle + ' • <i>Ray Bradbury’s Fahrenheit 451</i> Part 1 (pp. 1–55) • <b>Fridays:</b> Weekly Auto-Graded Reading &amp; Literary Analysis Quiz</li>' +
+        '<li><b>Weeks 3–4 (Media Saturation &amp; Conformity):</b> <i>Fahrenheit 451</i> Part 2 (pp. 66–103) &amp; rhetorical analysis comparing mid-century print vs. 2026 algorithmic feeds • <b>Due End of Week 4:</b> Annotated Evidence Passage Portfolio</li>' +
+        '<li><b>Weeks 5–6 (Resistance, Memory &amp; Cultural Preservation):</b> <i>Fahrenheit 451</i> Part 3 (pp. 104–158) &amp; Socratic Seminar • <b>Due End of Week 6:</b> 1,200-Word Analytical Essay Draft</li>' +
+        '<li><b>Weeks 7–8 (Contemporary Voices &amp; Comparative Synthesis):</b> Paired nonfiction essays on free expression &amp; information literacy • <b>Due Week 8:</b> Final Revised Essay &amp; Multimedia Presentation</li>' +
+        '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Oral Passage Defense &amp; Transcript Review</li>';
+    }
+    if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
+      return '<li><b>Weeks 1–2 (Foundations, Expressions &amp; Linear Models):</b> ' + firstTitle + ' • Order of operations, variables, slope-intercept &amp; point-slope forms • <b>Fridays:</b> Weekly Auto-Graded Problem-Solving Quiz</li>' +
+        '<li><b>Weeks 3–4 (Systems of Equations &amp; Inequalities):</b> Substitution, elimination, linear inequalities &amp; Desmos/Line-Grapher modeling • <b>Due End of Week 4:</b> Real-World Cost &amp; Break-Even Modeling Project</li>' +
+        '<li><b>Weeks 5–6 (Exponents, Polynomials &amp; Factoring):</b> Exponent laws, polynomial operations, factoring quadratics &amp; zero-product property • <b>Week 6:</b> Mid-Quarter Cumulative Skills Check</li>' +
+        '<li><b>Weeks 7–8 (Quadratic Functions, Radicals &amp; Applications):</b> Vertex form, quadratic formula, projectile motion &amp; data regression • <b>Due Week 8:</b> Applied STEM Data Analysis Project</li>' +
+        '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam (Show-All-Steps Paper &amp; Digital Assessment)</li>';
+    }
+    if (s.includes("marine")) {
+      return '<li><b>Weeks 1–2 (Physical Oceanography, Salinity &amp; Currents):</b> ' + firstTitle + ' • Thermohaline circulation, 35 ppt seawater chemistry &amp; inland/coastal salinity lab • <b>Fridays:</b> Weekly Auto-Graded Lab &amp; Concept Quiz</li>' +
+        '<li><b>Weeks 3–4 (Pelagic Zones, Plankton &amp; Marine Food Webs):</b> Primary productivity, trophic cascades, hydrothermal vents &amp; deep-sea adaptations • <b>Due End of Week 4:</b> Marine Trophic Energy Pyramid &amp; Field/Simulation Report</li>' +
+        '<li><b>Weeks 5–6 (Coral Reefs, Estuaries &amp; Ocean Acidification):</b> Carbonate buffering, pH shifts, coastal wetlands &amp; biodiversity • <b>Week 6:</b> Mid-Quarter Lab Practical</li>' +
+        '<li><b>Weeks 7–8 (Human Impact, Fisheries &amp; Marine Conservation):</b> Sustainable fisheries, plastic gyres, coral restoration &amp; marine policy • <b>Due Week 8:</b> Ocean Conservation Action Proposal</li>' +
+        '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Lab Data Defense &amp; Portfolio Review</li>';
+    }
+    if (s.includes("biology")) {
+      return '<li><b>Weeks 1–2 (Nature of Science, Experimental Design &amp; Macromolecules):</b> ' + firstTitle + ' • Variables, controls, yeast metabolism lab &amp; biological polymers • <b>Fridays:</b> Weekly Auto-Graded Concept &amp; Lab Quiz</li>' +
+        '<li><b>Weeks 3–4 (Cell Structure, Membranes &amp; Transport):</b> Prokaryotic vs. eukaryotic cells, osmosis, diffusion &amp; cellular homeostasis • <b>Due End of Week 4:</b> Osmosis &amp; Cell Transport Lab Report (CER Format)</li>' +
+        '<li><b>Weeks 5–6 (Cellular Energetics — Photosynthesis &amp; Respiration):</b> ATP synthesis, chloroplasts, mitochondria &amp; fermentation • <b>Week 6:</b> Mid-Quarter Cumulative Assessment</li>' +
+        '<li><b>Weeks 7–8 (DNA Replication, Cell Cycle &amp; Mitosis):</b> Nucleic acids, checkpoints, cancer biology &amp; chromosome modeling • <b>Due Week 8:</b> Molecular Genetics Case Study</li>' +
+        '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Lab Notebook Audit &amp; Oral Defense</li>';
+    }
+    if (s.includes("history")) {
+      return '<li><b>Weeks 1–2 (Historical Thinking, Primary Sources &amp; Early Law Codes):</b> ' + firstTitle + ' • HIPP primary-source analysis, Hammurabi’s Code &amp; Mesopotamian/river-valley governance • <b>Fridays:</b> Weekly Auto-Graded Document &amp; Chronology Quiz</li>' +
+        '<li><b>Weeks 3–4 (Classical Empires, Trade Networks &amp; Philosophy):</b> Mediterranean, Silk Road, Indian Ocean trade &amp; comparative statecraft • <b>Due End of Week 4:</b> Primary-Source Corroboration Brief</li>' +
+        '<li><b>Weeks 5–6 (Global Encounters, Colonization &amp; Unfiltered Primary Accounts):</b> Indigenous sovereignty, transatlantic exchange &amp; firsthand chronicles • <b>Week 6:</b> Document-Based Question (DBQ) Essay</li>' +
+        '<li><b>Weeks 7–8 (Revolutions, Constitutionalism &amp; Industrial Transformation):</b> Enlightenment debates, global independence movements &amp; labor shifts • <b>Due Week 8:</b> Historical Investigation Research Project</li>' +
+        '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Primary-Source Defense &amp; Transcript Review</li>';
+    }
+    if (s.includes("mandarin") || s.includes("chinese") || s.includes("hindi") || s.includes("spanish") || s.includes("french")) {
+      return '<li><b>Weeks 1–2 (Phonetics, Tones/Script &amp; Essential Greetings):</b> ' + firstTitle + ' • Pronunciation drills, native audio practice &amp; self-introductions • <b>Fridays:</b> Weekly Auto-Graded Vocabulary &amp; Listening Quiz</li>' +
+        '<li><b>Weeks 3–4 (Family, Daily Routines &amp; Numbers/Time):</b> Core sentence structures, question words &amp; conversational dialogues • <b>Due End of Week 4:</b> Recorded 2-Minute Spoken Introduction</li>' +
+        '<li><b>Weeks 5–6 (Food, Travel, Directions &amp; Cultural Etiquette):</b> Ordering, navigating cities &amp; authentic cultural case studies • <b>Week 6:</b> Mid-Quarter Reading &amp; Dialogue Assessment</li>' +
+        '<li><b>Weeks 7–8 (Storytelling, Past/Future Expressions &amp; Media):</b> Short cultural readings, pen-pal/journal entries &amp; real-world scenarios • <b>Due Week 8:</b> Cultural Immersion &amp; Conversation Project</li>' +
+        '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam (Reading, Writing &amp; Oral Proficiency Check)</li>';
+    }
+    return '<li><b>Weeks 1–2 (Foundations &amp; Core Frameworks):</b> ' + firstTitle + ' • <b>Fridays:</b> Weekly Auto-Graded Mastery Quiz</li>' +
+      '<li><b>Weeks 3–4 (Applied Analysis &amp; Guided Practice):</b> Primary-source / quantitative problem-solving • <b>Due End of Week 4:</b> Mid-Quarter Applied Project</li>' +
+      '<li><b>Weeks 5–6 (Deep-Dive Inquiry &amp; Synthesis):</b> Comparative case studies &amp; structured exercises • <b>Week 6:</b> Cumulative Skills Check</li>' +
+      '<li><b>Weeks 7–8 (Independent Research &amp; Real-World Application):</b> Capstone investigation &amp; analytical portfolio • <b>Due Week 8:</b> Final Project Submission</li>' +
+      '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Oral Defense &amp; Transcript Review</li>';
+  };
+
   const syllabusEl = document.getElementById("stuSyllabusList");
   if (syllabusEl) {
     syllabusEl.innerHTML = Object.keys(bySubject).map(subj => {
       const items = bySubject[subj];
       const first = items || {};
-      const catMatch = catalog.find(m => m.subject === subj || subj.startsWith(m.subject) || m.subject.startsWith(subj.replace(/\s*\(\d+th\)$/, "")));
-      const cleanFirstTitle = String(first.title || subj).replace(/^\[[^\]]+\]\s*/, "");
-      let weekListHtml = "";
-      if (catMatch && Array.isArray(catMatch.modules) && catMatch.modules.length > 1) {
-        weekListHtml = catMatch.modules.map((m, i) => '<li><b>Weeks ' + (i * 3 + 1) + '-' + (i * 3 + 3) + ':</b> ' + m.title + '</li>').join("");
-      } else {
-        weekListHtml =
-          '<li><b>Weeks 1-3 (Foundations &amp; Core Concepts):</b> ' + cleanFirstTitle + '</li>' +
-          '<li><b>Weeks 4-6 (Applied Analysis &amp; Lab Inquiry):</b> Primary Source / Quantitative Problem-Solving &amp; Guided Synthesis</li>' +
-          '<li><b>Weeks 7-8 (Independent Research &amp; Project):</b> Real-World Field Application &amp; Analytical Portfolio</li>' +
-          '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Oral Defense &amp; Transcript Review</li>';
-      }
+      const weekListHtml = getDetailedSyllabusHtml(subj, items);
       return '<div class="item-card">' +
         '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">' +
           '<div><strong>' + subj + '</strong> <span class="badge">' + (first.course_level || "Honors") + ' • ' + (first.credits || 1.0) + ' Cr</span></div>' +
