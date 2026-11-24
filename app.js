@@ -1376,22 +1376,31 @@ function renderStudentTodayPane() {
   const currMod = catalog.find(m => m.subject === a.subject || m.subject === baseSubj || a.subject.startsWith(m.subject) || m.subject.startsWith(baseSubj));
   const pack = getSubjectMediaPack(a.subject);
 
-  const embedUrls = [];
+    const embedUrls = [];
+  const docLinks = [];
   const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
   rawLinks.forEach(u => {
     const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
-    const yt = typeof getYouTubeEmbed === "function" ? getYouTubeEmbed(cleanU) : null;
-    if (yt && !embedUrls.includes(yt)) embedUrls.push(yt);
+    const yt = normalizeYoutubeEmbedUrl(cleanU, a.subject);
+    if (yt) {
+      if (!embedUrls.includes(yt)) embedUrls.push(yt);
+    } else if (/^https?:\/\//i.test(cleanU) && !cleanU.includes("youtube.com")) {
+      docLinks.push(cleanU);
+    }
   });
-  if (!embedUrls.length) embedUrls.push(pack.yt);
+  if (!embedUrls.length && pack && pack.yt) embedUrls.push(normalizeYoutubeEmbedUrl(pack.yt, a.subject));
+
+  const resourceLinksHtml = docLinks.length
+    ? '<div style="margin:10px 0; display:flex; flex-wrap:wrap; gap:8px;">' + docLinks.map((lnk, idx) => '<a href="' + lnk + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; display:inline-block; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700; text-decoration:none;">📖 Open Reading / Book Resource' + (docLinks.length > 1 ? ' ' + (idx + 1) : '') + ' ↗</a>').join("") + '</div>'
+    : "";
 
   const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
   const mathToolkitBtn = isMath
-    ? '<div style="margin:10px 0;"><button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700;" onclick="toggleMathToolkit()">🧮 Open Calculator &amp; Line Grapher</button></div>'
+    ? '<div style="margin:10px 0;"><button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700;" onclick="openMathToolkitModal()">🧮 Open Calculator &amp; Line Grapher</button></div>'
     : "";
 
   const pronBar = buildPronunciationBar(a.subject);
-  const bodyHtml = buildInterleavedLessonHtml(a.description, a.subject, embedUrls, mathToolkitBtn);
+  const bodyHtml = buildInterleavedLessonHtml(a.description, a.subject, embedUrls, mathToolkitBtn, resourceLinksHtml);
 
   const steps = ["Watch the video(s)", "Complete the step-by-step instructions", "Complete Self-Check Quiz & submit your work"];
   const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
@@ -1458,35 +1467,27 @@ async function loadStudentDashboard(isPreview = false) {
 
   stuSubsCache = subs;
 
-  const bySubject = {};
+    const bySubject = {};
   allAssigns.forEach(a => {
-      const embedUrls = [];
-  const docLinks = [];
-  const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
-  rawLinks.forEach(u => {
-    const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
-    const yt = normalizeYoutubeEmbedUrl(cleanU, a.subject);
-    if (yt) {
-      if (!embedUrls.includes(yt)) embedUrls.push(yt);
-    } else if (/^https?:\/\//i.test(cleanU) && !cleanU.includes("youtube.com")) {
-      docLinks.push(cleanU);
-    }
+    const subjKey = (a.subject || "General").trim();
+    if (!bySubject[subjKey]) bySubject[subjKey] = [];
+    bySubject[subjKey].push(a);
   });
-  if (!embedUrls.length && pack && pack.yt) embedUrls.push(normalizeYoutubeEmbedUrl(pack.yt, a.subject));
 
-  const resourceLinksHtml = docLinks.length
-    ? '<div style="margin:10px 0; display:flex; flex-wrap:wrap; gap:8px;">' + docLinks.map((lnk, idx) => '<a href="' + lnk + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; display:inline-block; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700; text-decoration:none;">📖 Open Reading / Book Resource' + (docLinks.length > 1 ? ' ' + (idx + 1) : '') + ' ↗</a>').join("") + '</div>'
-    : "";
+  const activeAssigns = [];
+  Object.keys(bySubject).forEach(subj => {
+    const seq = bySubject[subj];
+    const nextItem = seq.find(item => {
+      const s = subs.find(x => x.assignment_id === item.id);
+      return !(s && s.grade);
+    }) || seq[seq.length - 1];
+    if (nextItem) activeAssigns.push(nextItem);
+  });
 
-  const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
-  const mathToolkitBtn = isMath
-    ? '<div style="margin:10px 0;"><button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700;" onclick="openMathToolkitModal()">🧮 Open Calculator &amp; Line Grapher</button></div>'
-    : "";
-
-  const pronBar = buildPronunciationBar(a.subject);
-  const bodyHtml = buildInterleavedLessonHtml(a.description, a.subject, embedUrls, mathToolkitBtn, resourceLinksHtml);
+  stuActiveAssignsCache = activeAssigns;
   selectedStuSubjectIdx = 0;
   renderStudentTodayPane();
+
 
   const portElEarly = document.getElementById("studentPortfolioList");
   if (portElEarly) {
