@@ -1380,12 +1380,12 @@ function renderStudentTodayPane() {
   const docLinks = [];
   const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
   rawLinks.forEach(u => {
-    const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
-    const yt = normalizeYoutubeEmbedUrl(cleanU, a.subject);
-    if (yt) {
-      if (!embedUrls.includes(yt)) embedUrls.push(yt);
+        const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
+    if (cleanU.startsWith("yt:") || cleanU.includes("youtu.be") || cleanU.includes("://youtube.com") || cleanU.includes("://youtube.com")) {
+      if (!embedUrls.includes(cleanU)) embedUrls.push(cleanU);
     } else if (/^https?:\/\//i.test(cleanU) && !cleanU.includes("youtube.com")) {
       docLinks.push(cleanU);
+    }
     }
   });
   if (!embedUrls.length && pack && pack.yt) embedUrls.push(normalizeYoutubeEmbedUrl(pack.yt, a.subject));
@@ -1399,8 +1399,69 @@ function renderStudentTodayPane() {
     ? '<div style="margin:10px 0;"><button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700;" onclick="openMathToolkitModal()">🧮 Open Calculator &amp; Line Grapher</button></div>'
     : "";
 
-  const pronBar = buildPronunciationBar(a.subject);
-  const bodyHtml = buildInterleavedLessonHtml(a.description, a.subject, embedUrls, mathToolkitBtn, resourceLinksHtml);
+    const pronBar = typeof buildPronunciationBar === "function" ? buildPronunciationBar(a.subject) : "";
+  const sLow = (a.subject || "").toLowerCase();
+  let rawText = (a.description || "").trim();
+  if (sLow.includes("history") && !rawText.toLowerCase().includes("louvre")) {
+    rawText = "HISTORICAL BACKGROUND (THE LOUVRE & BABYLON): Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the world's largest art museum in Paris, the Louvre houses the Stele of Hammurabi—a 7-foot black basalt monument inscribed in cuneiform with 282 laws from ancient Babylon (Mesopotamia).\n\n" + rawText;
+  }
+  if (sLow.includes("biology") && rawText.toLowerCase().includes("yeast")) {
+    rawText += "\n\nNO-YEAST HOUSEHOLD ALTERNATIVE: If you do not have active dry yeast on hand, mix 2 tablespoons of baking soda with 1/2 cup of warm vinegar inside a bottle capped with a balloon to model gas-producing chemical reactions and measure balloon circumference over 10 minutes.";
+  }
+  if (sLow.includes("algebra") || sLow.includes("geometry") || sLow.includes("calculus") || sLow.includes("math")) {
+    rawText += "\n\nREQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every step line-by-line, box your final answer, and upload a clear photo below for teacher grading.";
+  }
+
+  const fixedEmbeds = embedUrls.map(u => {
+    let clean = String(u || "").trim().replace("youtube-nocookie.com", "youtube.com");
+    if (clean.startsWith("yt:")) return "https://youtube.com" + clean.slice(3).trim() + "?rel=0&playsinline=1";
+    const m = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (m && m) return "https://youtube.com" + m + "?rel=0&playsinline=1";
+    return clean;
+  }).filter(u => u.includes("://youtube.com"));
+
+  if ((sLow.includes("literature") || sLow.includes("english")) && !fixedEmbeds.some(u => u.includes("7aKItfLeso4"))) {
+    fixedEmbeds.unshift("https://youtube.com7aKItfLeso4?rel=0&playsinline=1");
+  }
+
+  const makeVidBox = (src, lbl) =>
+    '<div style="margin:12px 0 16px 0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px;">' +
+      '<div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:6px;">🎬 ' + lbl + '</div>' +
+      '<div style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#000;">' +
+        '<iframe src="' + src + '" title="' + lbl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline></iframe>' +
+      '</div>' +
+    '</div>';
+
+  const videosHtml = fixedEmbeds.map((u, idx) => makeVidBox(u, fixedEmbeds.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video")).join("");
+  const amoebaHtml = sLow.includes("biology")
+    ? makeVidBox("https://youtube.com4Eo7JtRA7lg?rel=0&playsinline=1", "Watch Amoeba Sisters: Cellular Respiration")
+    : "";
+
+  const normBlocks = rawText.replace(/\s+(?=\d+\.\s)/g, "\n\n").split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+  let vidPlaced = false;
+  let step2Placed = false;
+  const bodyHtml = normBlocks.map(blk => {
+    const styled = blk
+      .replace(/\n/g, "<br>")
+      .replace(/^(\d+\.\s[^\n<]+)/, "<strong>$1</strong>")
+      .replace(/\b([A-Z][A-Z0-9\s,&'’-]{3,}:)/g, "<strong>$1</strong>")
+      .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#1d4ed8; font-weight:700; text-decoration:underline;">$1</a>');
+    let after = "";
+    if (!vidPlaced && (/^1\./.test(blk) || /watch/i.test(blk))) {
+      after += videosHtml;
+      vidPlaced = true;
+    }
+    if (sLow.includes("biology") && (/2\.1/.test(blk) || /amoeba/i.test(blk))) {
+      after += amoebaHtml;
+    }
+    if (!step2Placed && /^2\./.test(blk)) {
+      if (resourceLinksHtml) after += resourceLinksHtml;
+      if (mathToolkitBtn) after += mathToolkitBtn;
+      step2Placed = true;
+    }
+    return '<div style="margin:12px 0;">' + styled + after + '</div>';
+  }).join("");
+
 
   const steps = ["Watch the video(s)", "Complete the step-by-step instructions", "Complete Self-Check Quiz & submit your work"];
   const savedSteps = JSON.parse(localStorage.getItem("gph_steps_" + a.id) || "{}");
