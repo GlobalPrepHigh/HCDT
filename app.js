@@ -1138,25 +1138,7 @@ function renderOfficialRecords() {
       '</div>' +
     '</div>';
 
-  const diplomaHtml =
-    '<div style="font-family: Georgia, \'Times New Roman\', serif; color:#0f172a; background:#fffdf9; border:6px double #1e293b; padding:36px 28px; text-align:center; box-shadow:0 4px 16px rgba(15,23,42,0.08);">' +
-      '<div style="border:1px solid #94a3b8; padding:26px 20px;">' +
-        '<div style="margin-bottom:10px;">' + globeSeal + '</div>' +
-        '<div style="font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#475569; margin-bottom:6px;">In Recognition of Academic Excellence</div>' +
-        '<div style="font-size:25px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#0f172a;">' + currentFamily.family_name + '</div>' +
-        '<div style="width:120px; height:2px; background:#b45309; margin:12px auto;"></div>' +
-        '<p style="font-size:15px; font-style:italic; color:#334155; margin:10px 0;">This certifies that</p>' +
-        '<div style="font-size:28px; font-weight:700; letter-spacing:1px; color:#0f172a; margin:8px 0 12px 0;">' + stu.full_name + '</div>' +
-        '<p style="font-size:14px; line-height:1.7; max-width:540px; margin:0 auto; color:#1e293b;">has satisfactorily completed the prescribed U.S. College-Preparatory High School Course of Study and is hereby awarded this</p>' +
-        '<div style="font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#1e293b; margin:16px 0 6px 0;">High School Diploma</div>' +
-        '<div style="font-size:14px; letter-spacing:1px; color:#334155;">Class of ' + stu.expected_grad_year + '</div>' +
-        '<div style="display:flex; justify-content:space-around; align-items:flex-end; margin-top:38px; gap:24px; flex-wrap:wrap;">' +
-          '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Parent / Administrator</span></div>' +
-          '<div style="font-size:12px;">______________________________<br><span style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#334155;">Date Conferred</span></div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-
+    const diplomaHtml = buildDiplomaCardHtml(stu, currentFamily);
   preview.innerHTML = transcriptHtml + diplomaHtml;
 }
 
@@ -1570,10 +1552,32 @@ async function loadStudentDashboard(isPreview = false) {
     if (nextItem) activeAssigns.push(nextItem);
   });
 
-  stuActiveAssignsCache = activeAssigns;
+    stuActiveAssignsCache = activeAssigns;
   selectedStuSubjectIdx = 0;
   renderStudentTodayPane();
 
+  const portElEarly = document.getElementById("studentPortfolioList");
+  if (portElEarly) {
+    const diplomaCard =
+      '<div class="item-card" style="border:2px solid #1e3a8a; background:#f8fafc; margin-bottom:14px;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">' +
+          '<div>' +
+            '<div style="font-size:12px; font-weight:700; color:#1e3a8a; letter-spacing:0.06em;">OFFICIAL COLLEGE-PREP CREDENTIAL</div>' +
+            '<div style="font-size:17px; font-weight:800; color:#0f172a; margin:2px 0;">🎓 High School Diploma — ' + currentUser.full_name + '</div>' +
+          '</div>' +
+          '<button type="button" class="btn-primary" style="width:auto; padding:8px 14px;" onclick="printDiplomaOnly()">🖨️ Print / Save PDF</button>' +
+        '</div>' +
+        buildDiplomaCardHtml(currentUser, currentFamily) +
+      '</div>';
+
+    const achHtml = achs.map(ac => {
+      const met = ac.metric ? " &bull; " + ac.metric : "";
+      const loc = ac.location ? " &bull; 📍 " + ac.location : "";
+      return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.date_completed || "") + loc + met + '</small></div>';
+    }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
+
+    portElEarly.innerHTML = diplomaCard + achHtml;
+  }
   const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
   const syllabusEl = document.getElementById("stuSyllabusList");
   if (syllabusEl) {
