@@ -726,49 +726,123 @@ function renderGradingQueue() {
     }).join("") + (studentsCache.length > 1 ? '<button type="button" style="border-radius:8px; cursor:pointer; ' + (activeGradingStudentId === 'ALL' ? 'width:auto; padding:10px 16px; font-size:16px; font-weight:800; background:#1e3a8a; color:#ffffff; border:2px solid #0f172a;' : 'width:auto; padding:8px 13px; font-size:14px; font-weight:600; background:#f8fafc; color:#1e293b; border:1px solid #cbd5e1;') + '" onclick="setGradingStudentFilter(\'ALL\')">All</button>' : '');
   }
 
-  const container = document.getElementById("parentAssignmentList");
-  const filtered = activeGradingStudentId === "ALL" || !activeGradingStudentId
+    const container = document.getElementById("parentAssignmentList");
+  let filtered = activeGradingStudentId === "ALL" || !activeGradingStudentId
     ? assignmentsCache
-    : assignmentsCache.filter(a => a.student_id === activeGradingStudentId);
+    : assignmentsCache.filter(a => String(a.student_id) === String(activeGradingStudentId));
+
+  if (window.parentGradeFilter === "needs") {
+    filtered = filtered.filter(a => {
+      const s = submissionsCache.find(x => String(x.assignment_id) === String(a.id));
+      return !(s && (s.status === "Graded" || (s.grade && String(s.grade).trim() !== "")));
+    });
+  } else if (window.parentGradeFilter === "graded") {
+    filtered = filtered.filter(a => {
+      const s = submissionsCache.find(x => String(x.assignment_id) === String(a.id));
+      return !!(s && (s.status === "Graded" || (s.grade && String(s.grade).trim() !== "")));
+    });
+  }
 
   if (!filtered.length) {
-    container.innerHTML = "<p class='muted'>No courses enrolled for this student yet. Click <b>+ Enroll / Add Courses</b> above to enroll them.</p>";
+    container.innerHTML = "<p class='muted'>No assignments in this filter view.</p>";
     return;
   }
-  const catalog = window.HONORS_CURRICULUM || (typeof HONORS_CURRICULUM !== "undefined" ? HONORS_CURRICULUM : []);
+
   container.innerHTML = filtered.map(a => {
-    const stu = studentsCache.find(s => s.id === a.student_id);
-    const sub = submissionsCache.find(s => s.assignment_id === a.id);
+    const stu = studentsCache.find(s => String(s.id) === String(a.student_id));
+    const sub = submissionsCache.find(s => String(s.assignment_id) === String(a.id));
     const gradeVal = sub && sub.grade ? sub.grade : "";
     const fbVal = sub && sub.parent_feedback ? sub.parent_feedback : "";
-    const dueText = a.due_date ? " &bull; Due: <b>" + a.due_date + "</b>" : "";
+    const isGraded = !!(sub && (sub.status === "Graded" || String(gradeVal).trim() !== ""));
+    const isSubmitted = !!(sub && sub.status === "Submitted" && !isGraded);
     const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
-    const safeLabel = (a.subject + ": " + cleanTitle).replace(/'/g, "\\'");
-    const baseSubj = a.subject.replace(/\s*\(\d+th\)$/, "");
-    const catMatch = catalog.find(c => c.subject === a.subject || c.subject === baseSubj || a.subject.startsWith(c.subject) || c.subject.startsWith(baseSubj));
-    const modMatch = catMatch && Array.isArray(catMatch.modules) ? catMatch.modules[0] : catMatch;
-    const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
-    const defaultSteps = isMath
-      ? "<b>Step-by-Step Verification:</b><br>1. Confirm student copied the original problem onto paper.<br>2. Check each algebraic/geometric step line-by-line (watch for sign flips across =).<br>3. Verify units and final boxed answer."
-      : "<b>Step-by-Step Verification:</b><br>1. Check clear thesis or hypothesis statement.<br>2. Verify supporting facts/data from today's video lesson.<br>3. Confirm complete sentences and reasoned conclusion.";
-    const resolvedKey = a.answer_key || (modMatch && modMatch.answer_key) || (catMatch && catMatch.answer_key) || defaultSteps;
     const snippetHtml = getParentTextSnippet(a.subject);
-    const keyBox = '<details style="background:#fef9c3; border:1px solid #fde047; padding:8px 10px; border-radius:6px; margin-top:6px;"><summary style="cursor:pointer; font-weight:700; color:#854d0e; font-size:13px;">🔑 Parent Answer Key, Worked Steps &amp; Lesson Text Snippet</summary><div style="margin-top:6px; font-size:13px; color:#713f12; line-height:1.55;">' + resolvedKey + '<div style="margin-top:8px; padding-top:8px; border-top:1px dashed #eab308; color:#422006;">' + snippetHtml + '</div></div></details>';
-    const subWork = sub && (sub.student_notes || sub.submission_link)
-      ? '<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px;"><small><b>Student Work:</b> ' + (sub.student_notes || "") + (sub.submission_link ? ' <a href="' + sub.submission_link + '" target="_blank">Open Photo/Link ↗</a>' : '') + '</small></div>'
-      : '<small class="muted">Awaiting student submission (students can upload a photo of handwritten paper work)</small>';
 
-    return '<div class="item-card"><div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;"><div><span class="badge">' + a.quarter + '</span> <strong>' + a.subject + ': ' + cleanTitle + '</strong><br><small class="muted">Student: <b>' + (stu ? stu.full_name : "Student") + '</b> &bull; ' + a.course_level + ' (' + a.credits + ' cr)' + dueText + '</small></div><button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca; padding:3px 8px; font-size:12px; flex-shrink:0;" onclick="deleteAssignment(\'' + a.id + '\',\'' + safeLabel + '\')">🗑️ Remove</button></div>' + keyBox + subWork + '<div class="row-2" style="margin-top:8px;"><input type="text" id="grade-' + a.id + '" value="' + gradeVal + '" placeholder="Grade (e.g., A or 95%)" /><input type="text" id="fb-' + a.id + '" value="' + fbVal + '" placeholder="Parent feedback..." /></div><button class="btn-primary" style="margin-top:6px; width:auto;" onclick="saveGrade(\'' + a.id + '\',\'' + a.student_id + '\')">Save Grade</button></div>';
+    const statusPill = isGraded
+      ? `<span style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800;">✅ Graded: ${gradeVal}</span>`
+      : isSubmitted
+        ? `<span style="background:#fef3c7; color:#b45309; border:1px solid #fcd34d; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800;">⏳ Submitted — Ready to Grade</span>`
+        : `<span style="background:#f1f5f9; color:#475569; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">Not Submitted Yet</span>`;
+
+    const photoHtml = sub && sub.submission_link
+      ? `<div style="margin-top:6px;"><a href="${sub.submission_link}" target="_blank" style="font-size:12px; color:#1d4ed8; font-weight:700;">📸 View Student Uploaded Photo ↗</a></div>`
+      : "";
+
+    const subWork = sub && (sub.student_notes || sub.submission_link)
+      ? `<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:8px; font-size:13px;"><b>Student Work:</b> ${sub.student_notes || "(Photo attached)"}${photoHtml}</div>`
+      : `<div class="muted" style="font-size:12.5px; margin-top:8px;">Awaiting student submission (you can still pre-enter or edit a grade anytime).</div>`;
+
+    return `<div class="item-card" style="border-left:4px solid ${isGraded ? "#16a34a" : isSubmitted ? "#f59e0b" : "#cbd5e1"};">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap;">
+        <div>
+          <span class="badge">${a.quarter || "Q1"}</span> <strong>${a.subject}: ${cleanTitle}</strong>
+          <div class="muted" style="font-size:12.5px;">Student: <b>${stu ? stu.full_name : "Student"}</b> • ${a.course_level || "Honors"} (${a.credits || 1} cr)</div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          ${statusPill}
+          <button type="button" class="btn-outline" style="width:auto; padding:4px 8px; font-size:11px; color:#b91c1c; border-color:#fecaca;" onclick="deleteAssignment('${a.id}')">Remove</button>
+        </div>
+      </div>
+      <details style="background:#fef9c3; border:1px solid #fde047; padding:8px 10px; border-radius:6px; margin-top:8px;">
+        <summary style="cursor:pointer; font-weight:700; font-size:12.5px; color:#854d0e;">🔑 Parent Answer Key &amp; Grading Rubric</summary>
+        <div style="margin-top:6px; font-size:12.5px; line-height:1.5;">${snippetHtml}</div>
+      </details>
+      ${subWork}
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <input type="text" id="grade-${a.id}" value="${gradeVal}" placeholder="Grade (e.g., 100% or A)" style="flex:1; min-width:120px; margin:0;" />
+        <input type="text" id="fb-${a.id}" value="${fbVal}" placeholder="Parent feedback..." style="flex:2; min-width:160px; margin:0;" />
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+        <button type="button" class="btn-primary" style="width:auto;" onclick="saveGrade('${a.id}', '${a.student_id}')">${isGraded ? "🔄 Update Grade & Feedback" : "✅ Save Grade"}</button>
+        <span id="grade-saved-msg-${a.id}" style="font-size:13px; font-weight:700; color:#15803d;"></span>
+      </div>
+    </div>`;
   }).join("");
 }
 
+async function submitAutoWeeklyQuiz(assignment_id, totalQ) {
+  let correct = 0;
+  for (let i = 0; i < totalQ; i++) {
+    const picked = document.querySelector(`input[name="wquiz_${assignment_id}_${i}"]:checked`);
+    if (!picked) return alert("Please answer all quiz questions before submitting!");
+    if (String(picked.value) === "0") correct++;
+  }
+  const pct = Math.round((correct / totalQ) * 100);
+  const gradeStr = pct + "%";
+  const note = `Weekly Auto-Graded Mastery Quiz Score: ${correct}/${totalQ} (${gradeStr})`;
+  try {
+    const existing = await sbQuery("submissions", {
+      query: `assignment_id=eq.${assignment_id}&student_id=eq.${currentUser.id}&select=*`,
+      single: true
+    });
+    if (existing) {
+      await sbQuery("submissions", {
+        method: "PATCH",
+        query: `id=eq.${existing.id}`,
+        body: { student_notes: note, grade: gradeStr, parent_feedback: "Auto-graded Weekly Mastery Quiz", status: "Graded" }
+      });
+    } else {
+      await sbQuery("submissions", {
+        method: "POST",
+        body: { assignment_id, student_id: currentUser.id, student_notes: note, grade: gradeStr, parent_feedback: "Auto-graded Weekly Mastery Quiz", status: "Graded" }
+      });
+    }
+    const keepIdx = typeof selectedStuSubjectIdx === "number" ? selectedStuSubjectIdx : 0;
+    await loadStudentDashboard(false);
+    selectedStuSubjectIdx = keepIdx;
+    renderStudentTodayPane();
+    alert(`🎉 Weekly Quiz Auto-Graded: ${gradeStr}! Your score has been posted directly to your Quarter Gradebook & GPA.`);
+  } catch (err) {
+    alert(err.message);
+  }
+}
 
 async function saveGrade(assignment_id, student_id) {
   const grade = document.getElementById("grade-" + assignment_id).value.trim().toUpperCase();
   const parent_feedback = document.getElementById("fb-" + assignment_id).value.trim();
   if (!grade) return alert("Enter a grade first.");
   try {
-    const existing = submissionsCache.find(s => s.assignment_id === assignment_id);
+    const existing = submissionsCache.find(s => String(s.assignment_id) === String(assignment_id));
     if (existing) {
       await sbQuery("submissions", {
         method: "PATCH",
@@ -781,8 +855,8 @@ async function saveGrade(assignment_id, student_id) {
         body: { assignment_id, student_id, grade, parent_feedback, status: "Graded" }
       });
     }
-    await refreshFamilyData();
-    alert("Grade & feedback saved!");
+    alert("✅ Grade (" + grade + ") & feedback saved! The student's gradebook and next day's lesson are updated.");
+
   } catch (err) {
     alert(err.message);
   }
