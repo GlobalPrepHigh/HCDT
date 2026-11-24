@@ -1386,7 +1386,7 @@ function renderStudentTodayPane() {
     } else if (/^https?:\/\//i.test(cleanU) && !cleanU.includes("youtube.com")) {
       docLinks.push(cleanU);
     }
-    }
+    
   });
   if (!embedUrls.length && pack && pack.yt) embedUrls.push(normalizeYoutubeEmbedUrl(pack.yt, a.subject));
 
