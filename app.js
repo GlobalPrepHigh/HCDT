@@ -1376,19 +1376,49 @@ function renderStudentTodayPane() {
   const currMod = catalog.find(m => m.subject === a.subject || m.subject === baseSubj || a.subject.startsWith(m.subject) || m.subject.startsWith(baseSubj));
   const pack = getSubjectMediaPack(a.subject);
 
-    const embedUrls = [];
+      const toYtEmbed = (raw) => {
+    const clean = String(raw || "").trim().replace("youtube-nocookie.com", "youtube.com");
+    if (clean.startsWith("yt:")) {
+      const id = clean.slice(3).trim();
+      return id ? ["https:", "", "://youtube.com", "embed", id].join("/") + "?rel=0&playsinline=1" : "";
+    }
+    const m = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return (m && m) ? ["https:", "", "://youtube.com", "embed", m].join("/") + "?rel=0&playsinline=1" : "";
+  };
+
+  const embedUrls = [];
   const docLinks = [];
   const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
   rawLinks.forEach(u => {
-        const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
-    if (cleanU.startsWith("yt:") || cleanU.includes("youtu.be") || cleanU.includes("://youtube.com") || cleanU.includes("://youtube.com")) {
-      if (!embedUrls.includes(cleanU)) embedUrls.push(cleanU);
+    const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
+    const yt = toYtEmbed(cleanU);
+    if (yt) {
+      if (!embedUrls.includes(yt)) embedUrls.push(yt);
     } else if (/^https?:\/\//i.test(cleanU) && !cleanU.includes("youtube.com")) {
       docLinks.push(cleanU);
     }
-    
   });
-  if (!embedUrls.length && pack && pack.yt) embedUrls.push(normalizeYoutubeEmbedUrl(pack.yt, a.subject));
+  if (!embedUrls.length && pack && pack.yt) {
+    const pYt = toYtEmbed(pack.yt);
+    if (pYt) embedUrls.push(pYt);
+  }
+
+  const sLow = (a.subject || "").toLowerCase();
+  if ((sLow.includes("literature") || sLow.includes("english")) && !embedUrls.some(u => u.includes("7aKItfLeso4"))) {
+    embedUrls.unshift(["https:", "", "://youtube.com", "embed", "7aKItfLeso4"].join("/") + "?rel=0&playsinline=1");
+  }
+  if (!embedUrls.length) {
+    let fallbackId = "7aKItfLeso4";
+    if (sLow.includes("marine")) fallbackId = "1w4Z3k22_74";
+    else if (sLow.includes("biology")) fallbackId = "3nAETHZTObk";
+    else if (sLow.includes("history")) fallbackId = "sohXPx_XZ6Y";
+    else if (sLow.includes("algebra") || sLow.includes("geometry") || sLow.includes("calculus") || sLow.includes("math")) fallbackId = "MeU-KzdCBps";
+    else if (sLow.includes("mandarin") || sLow.includes("chinese")) fallbackId = "3wV8B4bx1lM";
+    else if (sLow.includes("hindi")) fallbackId = "1lrz11BbqCA";
+    else if (sLow.includes("spanish")) fallbackId = "DAp_v7EH9AA";
+    else if (sLow.includes("french")) fallbackId = "hd0_GZHHWeE";
+    embedUrls.push(["https:", "", "://youtube.com", "embed", fallbackId].join("/") + "?rel=0&playsinline=1");
+  }
 
   const resourceLinksHtml = docLinks.length
     ? '<div style="margin:10px 0; display:flex; flex-wrap:wrap; gap:8px;">' + docLinks.map((lnk, idx) => '<a href="' + lnk + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; display:inline-block; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700; text-decoration:none;">📖 Open Reading / Book Resource' + (docLinks.length > 1 ? ' ' + (idx + 1) : '') + ' ↗</a>').join("") + '</div>'
@@ -1396,32 +1426,36 @@ function renderStudentTodayPane() {
 
   const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
   const mathToolkitBtn = isMath
-    ? '<div style="margin:10px 0;"><button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700;" onclick="openMathToolkitModal()">🧮 Open Calculator &amp; Line Grapher</button></div>'
+    ? '<div style="margin:12px 0; padding:12px; background:#eff6ff; border:1px solid #93c5fd; border-radius:10px;">' +
+        '<div style="font-weight:700; font-size:13px; color:#1e3a8a; margin-bottom:6px;">🧮 Interactive Math Toolkit (Scientific Calculator &amp; Line Grapher)</div>' +
+        '<button type="button" class="btn-primary" style="width:auto; padding:8px 14px;" onclick="openMathToolkitModal()">Open Calculator &amp; Line Grapher</button>' +
+      '</div>'
     : "";
 
-    const pronBar = typeof buildPronunciationBar === "function" ? buildPronunciationBar(a.subject) : "";
-  const sLow = (a.subject || "").toLowerCase();
+  const pronBar = typeof buildPronunciationBar === "function" ? buildPronunciationBar(a.subject) : "";
   let rawText = (a.description || "").trim();
+
+  if (sLow.includes("literature") || sLow.includes("english")) {
+    rawText = rawText
+      .replace(/pages?\s*1\s*[-–to]+\s*65/gi, "Part 1 (Pages 1–55)")
+      .replace(/pages?\s*66\s*[-–to]+\s*110/gi, "Part 2 (Pages 66–103)")
+      .replace(/pages?\s*111\s*[-–to]+\s*165/gi, "Part 3 (Pages 104–158)");
+    if (!rawText.includes("Part 1 ends on page 55")) {
+      rawText = rawText.replace(/(2\.\s[^\n]+)/, "$1\n(Edition Page Guide: Part 1 runs pp. 1–55 • Part 2 begins on p. 66 • Part 3 begins on p. 104)");
+    }
+  }
   if (sLow.includes("history") && !rawText.toLowerCase().includes("louvre")) {
     rawText = "HISTORICAL BACKGROUND (THE LOUVRE & BABYLON): Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the world's largest art museum in Paris, the Louvre houses the Stele of Hammurabi—a 7-foot black basalt monument inscribed in cuneiform with 282 laws from ancient Babylon (Mesopotamia).\n\n" + rawText;
   }
-  if (sLow.includes("biology") && rawText.toLowerCase().includes("yeast")) {
+  if (sLow.includes("marine")) {
+    rawText = "TEXTBOOK READING — OCEANOGRAPHY, SALINITY & MARINE ECOSYSTEMS:\nEarth's oceans cover 71% of the planet and regulate global climate through thermohaline circulation—deep-water currents driven by differences in temperature and salinity (averaging 35 parts per thousand, or 3.5% dissolved salts). Coastal estuaries, coral reefs, and pelagic zones depend on narrow pH (~8.1) and dissolved oxygen ranges to sustain marine food webs.\n\n" +
+      rawText +
+      "\n\nINLAND / AT-HOME SEAWATER SIMULATION ALTERNATIVE: Not near the coast? Dissolve 3.5 teaspoons (17.5 g) of non-iodized sea salt in 500 mL of tap water to create standard 35 ppt synthetic seawater, plus a 15 ppt brackish cup (1.5 tsp salt) and a 0 ppt freshwater control. Test buoyancy (using a raw egg or grape), ice-melt stratification, and pH/baking-soda buffering to record identical quantitative lab data from home.";
+  } else if (sLow.includes("biology") && rawText.toLowerCase().includes("yeast")) {
     rawText += "\n\nNO-YEAST HOUSEHOLD ALTERNATIVE: If you do not have active dry yeast on hand, mix 2 tablespoons of baking soda with 1/2 cup of warm vinegar inside a bottle capped with a balloon to model gas-producing chemical reactions and measure balloon circumference over 10 minutes.";
   }
-  if (sLow.includes("algebra") || sLow.includes("geometry") || sLow.includes("calculus") || sLow.includes("math")) {
+  if (isMath) {
     rawText += "\n\nREQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every step line-by-line, box your final answer, and upload a clear photo below for teacher grading.";
-  }
-
-  const fixedEmbeds = embedUrls.map(u => {
-    let clean = String(u || "").trim().replace("youtube-nocookie.com", "youtube.com");
-    if (clean.startsWith("yt:")) return "https://youtube.com" + clean.slice(3).trim() + "?rel=0&playsinline=1";
-    const m = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (m && m) return "https://youtube.com" + m + "?rel=0&playsinline=1";
-    return clean;
-  }).filter(u => u.includes("://youtube.com"));
-
-  if ((sLow.includes("literature") || sLow.includes("english")) && !fixedEmbeds.some(u => u.includes("7aKItfLeso4"))) {
-    fixedEmbeds.unshift("https://youtube.com7aKItfLeso4?rel=0&playsinline=1");
   }
 
   const makeVidBox = (src, lbl) =>
@@ -1432,12 +1466,13 @@ function renderStudentTodayPane() {
       '</div>' +
     '</div>';
 
-  const videosHtml = fixedEmbeds.map((u, idx) => makeVidBox(u, fixedEmbeds.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video")).join("");
-  const amoebaHtml = sLow.includes("biology")
-    ? makeVidBox("https://youtube.com4Eo7JtRA7lg?rel=0&playsinline=1", "Watch Amoeba Sisters: Cellular Respiration")
+  const videosHtml = embedUrls.map((u, idx) => makeVidBox(u, embedUrls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video")).join("");
+  const amoebaHtml = (sLow.includes("biology") && !sLow.includes("marine"))
+    ? makeVidBox(["https:", "", "://youtube.com", "embed", "4Eo7JtRA7lg"].join("/") + "?rel=0&playsinline=1", "Watch Amoeba Sisters: Cellular Respiration")
     : "";
 
   const normBlocks = rawText.replace(/\s+(?=\d+\.\s)/g, "\n\n").split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+
   let vidPlaced = false;
   let step2Placed = false;
   const bodyHtml = normBlocks.map(blk => {
@@ -1528,7 +1563,7 @@ async function loadStudentDashboard(isPreview = false) {
 
   stuSubsCache = subs;
 
-    const bySubject = {};
+      const bySubject = {};
   allAssigns.forEach(a => {
     const subjKey = (a.subject || "General").trim();
     if (!bySubject[subjKey]) bySubject[subjKey] = [];
@@ -1539,8 +1574,8 @@ async function loadStudentDashboard(isPreview = false) {
   Object.keys(bySubject).forEach(subj => {
     const seq = bySubject[subj];
     const nextItem = seq.find(item => {
-      const s = subs.find(x => x.assignment_id === item.id);
-      return !(s && s.grade);
+      const s = subs.find(x => String(x.assignment_id) === String(item.id));
+      return !(s && (s.status === "Graded" || (s.grade && String(s.grade).trim() !== "")));
     }) || seq[seq.length - 1];
     if (nextItem) activeAssigns.push(nextItem);
   });
