@@ -1438,12 +1438,31 @@ function renderStudentTodayPane() {
     : "";
 
   const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
-  const mathToolkitBtn = isMath
-    ? '<div style="margin:12px 0; padding:12px; background:#eff6ff; border:1px solid #93c5fd; border-radius:10px;">' +
-        '<div style="font-weight:700; font-size:13px; color:#1e3a8a; margin-bottom:6px;">🧮 Interactive Math Toolkit (Scientific Calculator &amp; Line Grapher)</div>' +
-        '<button type="button" class="btn-primary" style="width:auto; padding:8px 14px;" onclick="openMathToolkitModal()">Open Calculator &amp; Line Grapher</button>' +
+    const mathToolkitBtn = isMath
+    ? '<div id="mathToolkitBox" style="margin:12px 0; padding:14px; background:#eff6ff; border:2px solid #93c5fd; border-radius:12px;">' +
+        '<div style="font-weight:800; font-size:14px; color:#1e3a8a; margin-bottom:10px;">🧮 Interactive Math Toolkit (Scientific Calculator &amp; Line Grapher)</div>' +
+        '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px;">' +
+          '<div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">' +
+            '<div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Expression Calculator (supports +, -, *, /, ^, parentheses)</div>' +
+            '<div style="display:flex; gap:6px;">' +
+              '<input type="text" id="calcDisplay" placeholder="e.g., (24 / 3) * 2 + (5 - 8)^2" style="margin:0; flex:1;" />' +
+              '<button type="button" class="btn-primary" style="width:auto; padding:8px 12px;" onclick="runBackpackCalc()">=</button>' +
+            '</div>' +
+            '<div id="calcResult" style="margin-top:8px; font-weight:700; color:#0f172a; font-size:14px;">Result: —</div>' +
+          '</div>' +
+          '<div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">' +
+            '<div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Linear Equation Grapher (y = mx + b)</div>' +
+            '<div style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">' +
+              '<span style="font-size:12px; font-weight:700;">m:</span><input type="number" id="graphM" value="2" step="0.5" style="width:65px; margin:0;" oninput="drawBackpackLine()" />' +
+              '<span style="font-size:12px; font-weight:700;">b:</span><input type="number" id="graphB" value="1" step="1" style="width:65px; margin:0;" oninput="drawBackpackLine()" />' +
+              '<button type="button" class="btn-outline" style="width:auto; padding:6px 10px;" onclick="drawBackpackLine()">Plot</button>' +
+            '</div>' +
+            '<canvas id="slopeCanvas" width="240" height="140" style="width:100%; max-width:260px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;"></canvas>' +
+          '</div>' +
+        '</div>' +
       '</div>'
     : "";
+
 
   const pronBar = typeof buildPronunciationBar === "function" ? buildPronunciationBar(a.subject) : "";
   let rawText = (a.description || "").trim();
