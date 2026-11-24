@@ -1929,33 +1929,72 @@ async function loadStudentDashboard(isPreview = false) {
     }).join("") || "<p class='muted'>No quarter syllabus items enrolled yet.</p>";
   }
 
+    window.stuAllBySubject = bySubject;
+  const studyKey = "gph_study_days_" + (currentUser.id || "stu");
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const studyDays = JSON.parse(localStorage.getItem(studyKey) || "[]");
+  if (!studyDays.includes(todayStr)) {
+    studyDays.push(todayStr);
+    localStorage.setItem(studyKey, JSON.stringify(studyDays));
+  }
+  const streakEl = document.getElementById("stuStudyDaysBadge");
+  if (streakEl) streakEl.innerText = "🔥 " + studyDays.length + (studyDays.length === 1 ? " Day Studied" : " Days Studied");
+
   const gradesEl = document.getElementById("stuGradesList");
   const gpaBadge = document.getElementById("stuGpaBadge");
   if (gradesEl) {
     let ptsSum = 0;
     let crSum = 0;
-    gradesEl.innerHTML = allAssigns.map(a => {
-      const sub = subs.find(s => s.assignment_id === a.id);
-      const gr = sub && sub.grade ? sub.grade : "In Progress";
-      if (sub && sub.grade && typeof gradeToPoints === "function") {
-        const cr = parseFloat(a.credits) || 1.0;
-        ptsSum += gradeToPoints(sub.grade, a.course_level) * cr;
+    const parseNumGrade = (g) => {
+      const str = String(g || "").trim().toUpperCase();
+      const m = str.match(/(\d+(?:\.\d+)?)/);
+      if (m) return parseFloat(m);
+      if (str.startsWith("A+")) return 99;
+      if (str.startsWith("A-")) return 91;
+      if (str.startsWith("A")) return 95;
+      if (str.startsWith("B+")) return 88;
+      if (str.startsWith("B-")) return 81;
+      if (str.startsWith("B")) return 85;
+      if (str.startsWith("C")) return 75;
+      if (str.startsWith("D")) return 65;
+      return null;
+    };
+
+    gradesEl.innerHTML = Object.keys(bySubject).map(subj => {
+      const items = bySubject[subj];
+      const first = items || {};
+      const gradedItems = [];
+      let subjScoreSum = 0;
+      items.forEach((item, idx) => {
+        const sub = subs.find(s => String(s.assignment_id) === String(item.id));
+        const num = sub && sub.grade ? parseNumGrade(sub.grade) : null;
+        if (num !== null) {
+          gradedItems.push({ day: idx + 1, title: item.title, grade: sub.grade, num, fb: sub.parent_feedback || "" });
+          subjScoreSum += num;
+        }
+      });
+      const avgPct = gradedItems.length ? Math.round((subjScoreSum / gradedItems.length) * 10) / 10 : null;
+      const letter = avgPct === null ? "In Progress" : avgPct >= 90 ? "A" : avgPct >= 80 ? "B" : avgPct >= 70 ? "C" : avgPct >= 60 ? "D" : "F";
+      if (avgPct !== null && typeof gradeToPoints === "function") {
+        const cr = parseFloat(first.credits) || 1.0;
+        ptsSum += gradeToPoints(String(avgPct), first.course_level) * cr;
         crSum += cr;
       }
-      const fb = sub && sub.parent_feedback
-        ? '<div style="margin-top:4px; font-size:13px; color:#15803d;"><b>Teacher Note:</b> ' + sub.parent_feedback + '</div>'
-        : '';
-      return '<div class="item-card">' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">' +
-          '<div><strong>' + a.subject + '</strong> — ' + a.title + '</div>' +
-          '<span class="badge">' + gr + '</span>' +
-        '</div>' +
-        fb +
-      '</div>';
-    }).join("") || "<p class='muted'>No graded coursework yet.</p>";
+      const badgeStr = avgPct !== null ? `${avgPct}% (${letter}) • Running Quarter Avg` : "In Progress";
+      const breakdownHtml = gradedItems.length
+        ? gradedItems.map(g => `<div style="font-size:13px; color:#334155; margin-top:6px; padding-left:10px; border-left:2px solid #93c5fd;">• <b>Day ${g.day}:</b> ${g.grade}${g.fb ? ` — <span style="color:#15803d;">"${g.fb}"</span>` : ""}</div>`).join("")
+        : `<div class="muted" style="font-size:13px; margin-top:6px;">No graded assignments recorded yet for this course.</div>`;
+
+      return `<div class="item-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div><strong style="font-size:15px; color:#0f172a;">${subj}</strong> <span class="badge">${first.course_level || "Honors"} • ${first.credits || 1} cr</span></div>
+          <span class="badge" style="background:${avgPct !== null ? "#dcfce7" : "#f1f5f9"}; color:${avgPct !== null ? "#15803d" : "#475569"}; font-weight:700;">${badgeStr}</span>
+        </div>
+        ${breakdownHtml}
+      </div>`;
+    }).join("") || "<p class='muted'>No courses enrolled yet.</p>";
     if (gpaBadge) gpaBadge.innerText = "Cumulative GPA: " + (crSum > 0 ? (ptsSum / crSum).toFixed(2) : "-");
   }
-
     const portEl = document.getElementById("studentPortfolioList");
   if (portEl) {
     const diplomaCard =
