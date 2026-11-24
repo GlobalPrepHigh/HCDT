@@ -1810,25 +1810,6 @@ async function submitWork(assignment_id) {
   }
 }
 
-
-window.addEventListener("DOMContentLoaded", async () => {
-  const saved = localStorage.getItem("gph_session");
-  if (!saved) return;
-  try {
-    const session = JSON.parse(saved);
-    authToken = session.authToken || null;
-    currentFamily = session.currentFamily;
-    currentUser = session.currentUser;
-    if (session.role === "parent" && currentFamily && currentUser) {
-      await loadParentDashboard();
-    } else if (session.role === "student" && currentFamily && currentUser) {
-      await loadStudentDashboard();
-    }
-  } catch (e) {
-    localStorage.removeItem("gph_session");
-  }
-});
-
 const BRAIN_BREAKS = [
   { type: "😂 Clean Nerd Joke", prompt: "Why was the obtuse angle always so frustrated?", reveal: "Because it was never right!" },
   { type: "😂 Clean Nerd Joke", prompt: "Why did the biologist break up with the physicist?", reveal: "They had no chemistry." },
@@ -1862,19 +1843,77 @@ function toggleMathToolkit() {
   if (!box.classList.contains("hidden")) drawBackpackLine();
 }
 
+function evalMathSafe(expr) {
+  const s = String(expr || "").replace(/\s+/g, "").replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
+  if (!s) throw new Error("Enter an expression");
+  let pos = 0;
+  function parseExpr() {
+    let val = parseTerm();
+    while (pos < s.length && (s[pos] === "+" || s[pos] === "-")) {
+      const op = s[pos++];
+      const right = parseTerm();
+      val = op === "+" ? val + right : val - right;
+    }
+    return val;
+  }
+  function parseTerm() {
+    let val = parsePower();
+    while (pos < s.length && (s[pos] === "*" || s[pos] === "/")) {
+      const op = s[pos++];
+      const right = parsePower();
+      if (op === "/" && right === 0) throw new Error("Cannot divide by zero");
+      val = op === "*" ? val * right : val / right;
+    }
+    return val;
+  }
+  function parsePower() {
+    let base = parseUnary();
+    if (pos < s.length && s[pos] === "^") {
+      pos++;
+      const exp = parsePower();
+      return Math.pow(base, exp);
+    }
+    return base;
+  }
+  function parseUnary() {
+    if (s[pos] === "+") { pos++; return parseUnary(); }
+    if (s[pos] === "-") { pos++; return -parseUnary(); }
+    return parseAtom();
+  }
+  function parseAtom() {
+    if (s[pos] === "(") {
+      pos++;
+      const val = parseExpr();
+      if (s[pos] !== ")") throw new Error("Missing closing )");
+      pos++;
+      return val;
+    }
+    const start = pos;
+    while (pos < s.length && ((s[pos] >= "0" && s[pos] <= "9") || s[pos] === ".")) pos++;
+    if (start === pos) throw new Error("Invalid character");
+    return parseFloat(s.slice(start, pos));
+  }
+  const result = parseExpr();
+  if (pos !== s.length) throw new Error("Unexpected input");
+  return Math.round(result * 1000000) / 1000000;
+}
+
 function runBackpackCalc() {
-  const raw = document.getElementById("calcDisplay").value.trim();
+  const inp = document.getElementById("calcDisplay");
   const out = document.getElementById("calcResult");
-  if (!raw) return;
+  if (!inp || !out) return;
+  const raw = inp.value.trim();
+  if (!raw) { out.innerText = "Result: —"; return; }
   try {
-    const safeExpr = raw.replace(/\^/g, "**");
-    if (!/^[0-9+\-*/().\s*]+$/.test(safeExpr)) throw new Error("Use numbers and + - * / ^ ( ) only.");
-    const val = Function('"use strict"; return (' + safeExpr + ')')();
+    const val = evalMathSafe(raw);
+    out.style.color = "#15803d";
     out.innerText = "Result: " + val;
   } catch (e) {
+    out.style.color = "#b91c1c";
     out.innerText = "Check expression: " + e.message;
   }
 }
+
 
 function drawBackpackLine() {
   const canvas = document.getElementById("slopeCanvas");
