@@ -1047,12 +1047,12 @@ function renderOfficialRecords() {
     return;
   }
   const stuAchs = achievementsCache.filter(a => a.student_id === stu.id);
+  const stuAssigns = assignmentsCache.filter(a => !a.student_id || String(a.student_id) === String(stu.id));
   const todayStr = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   const courseMap = {};
   stuAssigns.forEach(a => {
     const key = a.quarter + "||" + a.subject + "||" + a.course_level;
-    if (!courseMap[key]) {
       courseMap[key] = {
         quarter: a.quarter,
         subject: a.subject,
@@ -1138,7 +1138,13 @@ function renderOfficialRecords() {
       '</div>' +
     '</div>';
 
-    const diplomaHtml = buildDiplomaCardHtml(stu, currentFamily);
+     const diplomaHtml =
+    '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:22px; padding-top:14px; border-top:2px solid #cbd5e1;">' +
+      '<strong style="font-size:16px; color:#0f172a;">🎓 Official High School Diploma Preview</strong>' +
+      '<button type="button" class="btn-primary no-print" style="width:auto; padding:8px 14px;" onclick="printDiplomaOnly()">🖨️ Print / Save Diploma PDF</button>' +
+    '</div>' +
+    buildDiplomaCardHtml(stu, currentFamily);
+
   preview.innerHTML = transcriptHtml + diplomaHtml;
 }
 
