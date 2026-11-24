@@ -204,22 +204,35 @@
           <button type="button" class="btn-primary" style="width:auto;" onclick="enrollSelectedCourses()">⚡ Enroll Student (Auto-Core + Language + Checked Electives)</button>
         </div>
 
-        <div class="grid-2">
-          <div class="card">
-            <h4>+ Add Custom Travel Field Study / Extra Practice</h4>
-            <label>Course / Subject</label>
-            <input type="text" id="extraSubject" placeholder="e.g., Honors World History" />
-            <label>Activity Title &amp; Instructions</label>
-            <textarea id="extraDesc" rows="3" placeholder="e.g., Local museum visit reflection or bonus math practice"></textarea>
-            <button type="button" class="btn-outline" style="color:#1e293b;" onclick="assignExtraPractice()">+ Add Custom Activity</button>
-          </div>
-
-          <div class="card">
-            <h3>Active Coursework, Answer Keys &amp; Grading</h3>
-            <div id="parentAssignmentList" class="list-box"></div>
+             <div style="margin-bottom:14px;">
+          <button type="button" class="btn-outline" style="width:auto; color:#1e293b; background:#ffffff; border:1px solid #cbd5e1; font-weight:700;" onclick="document.getElementById('customPracticeDrawer').classList.toggle('hidden')">+ Add Custom Travel Field Study / Extra Practice</button>
+          <div id="customPracticeDrawer" class="card hidden" style="margin-top:10px; border:1px solid #93c5fd; background:#f8fafc;">
+            <h4 style="margin-top:0;">+ Add Custom Travel Field Study / Extra Practice</h4>
+            <div class="row-2">
+              <div>
+                <label>Course / Subject</label>
+                <input type="text" id="extraSubject" placeholder="e.g., Honors World History" />
+              </div>
+              <div>
+                <label>Activity Title &amp; Instructions</label>
+                <input type="text" id="extraDesc" placeholder="e.g., Local museum visit reflection or bonus math practice" />
+              </div>
+            </div>
+            <button type="button" class="btn-primary" style="width:auto; margin-top:8px;" onclick="assignExtraPractice()">+ Add Custom Activity</button>
           </div>
         </div>
-      </div>
+
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+            <h3 style="margin:0; color:#0f172a;">📋 Active Coursework, Answer Keys &amp; Grading</h3>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; font-size:12px; color:#0f172a;" onclick="window.parentGradeFilter='all'; renderGradingQueue();">All</button>
+              <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; font-size:12px; color:#b45309; border-color:#fcd34d; background:#fffbeb;" onclick="window.parentGradeFilter='needs'; renderGradingQueue();">Needs Grading</button>
+              <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; font-size:12px; color:#15803d; border-color:#86efac; background:#f0fdf4;" onclick="window.parentGradeFilter='graded'; renderGradingQueue();">Graded ✓</button>
+            </div>
+          </div>
+          <div id="parentAssignmentList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:14px;"></div>
+        </div>
 
       <div id="pView-transcript" class="p-view hidden">
                 <div class="card no-print" style="margin-bottom:16px;">
@@ -277,75 +290,49 @@
         <div>
           <h2 id="stuDashWelcome">Welcome, Student!</h2>
           <p id="stuDashMeta" class="muted">Grade &bull; Cohort</p>
-        </div>
-                <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;" onclick="triggerBrainBreak()">🧠 Brain Break</button>
-          <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleMathToolkit()">🧮 Calculator &amp; Grapher</button>
-        </div>
-
-      <div id="mathToolkitBox" class="card hidden" style="margin-bottom:16px; border:1px solid #cbd5e1;">
-        <div class="grid-2">
-          <div>
-            <h4>🧮 Scientific Calculator</h4>
-            <input type="text" id="calcDisplay" placeholder="e.g., (24 / 3) * 2 + (5 - 8)^2" />
-            <div style="display:flex; gap:8px; margin-top:6px;">
-              <button type="button" class="btn-primary" style="width:auto;" onclick="runBackpackCalc()">= Calculate</button>
-              <button type="button" class="btn-outline" style="width:auto; color:#1e293b;" onclick="document.getElementById('calcDisplay').value=''; document.getElementById('calcResult').innerText='';">Clear</button>
-            </div>
-            <p id="calcResult" style="font-weight:700; margin-top:8px; color:#1e293b;"></p>
-            <small class="muted">Tip: Use <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code>, or <code>Math.sqrt(16)</code></small>
-          </div>
-          <div>
-            <h4>📈 Live Line Grapher (y = mx + b)</h4>
-            <div class="row-2">
-              <div><label>Slope (m)</label><input type="number" id="graphM" value="2" step="0.5" oninput="drawBackpackGraph()" /></div>
-              <div><label>y-intercept (b)</label><input type="number" id="graphB" value="1" step="1" oninput="drawBackpackGraph()" /></div>
-            </div>
-            <canvas id="slopeCanvas" width="260" height="200" style="border:1px solid #94a3b8; border-radius:6px; margin-top:6px; background:#ffffff;"></canvas>
-            <div style="margin-top:6px;">
-              <a href="https://desmos.com" target="_blank" style="font-size:12px;">Open Full Desmos Calculator ↗</a> &bull;
-              <a href="https://geogebra.org" target="_blank" style="font-size:12px;">Open GeoGeoBra ↗</a>
-            </div>
-          </div>
-                  </div>
+                </div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+          <span id="stuStudyDaysBadge" style="background:rgba(255,255,255,0.16); color:#ffffff; border:1px solid rgba(255,255,255,0.35); padding:8px 14px; border-radius:999px; font-weight:700; font-size:13px;">🔥 1 Day Studied</span>
+          <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:999px; font-weight:700; cursor:pointer;" onclick="triggerBrainBreak()">🧠 Brain Break</button>
         </div>
       </div>
 
-            <div class="nav-pills no-print" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px;">
-        <button type="button" class="pill active" style="padding:12px 18px; font-size:15px; font-weight:700; background:#1e3a8a; color:#ffffff; border:2px solid #1e3a8a;" onclick="switchStudentTab('today', this)">📅 Today's Focus</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:2px solid #cbd5e1;" onclick="switchStudentTab('syllabus', this)">📖 Quarter Syllabus</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:2px solid #cbd5e1;" onclick="switchStudentTab('grades', this)">📊 Grades &amp; GPA</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:2px solid #cbd5e1;" onclick="switchStudentTab('certs', this)">🏅 Certs &amp; Portfolio</button>
+      <div id="brainBreakBox" class="card hidden" style="margin-bottom:16px; border:2px solid #93c5fd; background:#eff6ff;"></div>
+
+      <div class="nav-pills no-print" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px;">
+        <button type="button" class="pill active" style="padding:12px 18px; font-size:15px; font-weight:700; background:#1e3a8a; color:#ffffff;" onclick="switchStudentTab('today', this)">📚 Courses &amp; Lessons</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1;" onclick="switchStudentTab('syllabus', this)">📖 Quarter Syllabus</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1;" onclick="switchStudentTab('grades', this)">📊 Grades &amp; GPA</button>
+        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1;" onclick="switchStudentTab('certs', this)">🏅 Certs &amp; Portfolio</button>
       </div>
-      </div>
+
       <div id="sView-today" class="s-view">
-        <div class="card" style="margin-bottom:14px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
-            <h3 style="margin:0;">📅 Today's Lesson Focus</h3>
+        <div id="stuCourseMenuCard" class="card" style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+            <h3 style="margin:0; color:#0f172a;">📚 My Enrolled Honors Courses (Tap a Course to Open Lesson)</h3>
             <span id="stuTodayProgress" class="badge">0 / 0 Submitted</span>
           </div>
-          <div id="stuSubjectTabs" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+          <div id="stuSubjectTabs" style="display:flex; flex-direction:column; gap:10px;"></div>
         </div>
         <div id="stuActiveLessonPane"></div>
       </div>
 
       <div id="sView-syllabus" class="s-view hidden">
         <div class="card">
-          <h3 style="margin-top:0;">📖 Quarter Syllabus &amp; 9-Week Academic Roadmap</h3>
+          <h3 style="margin-top:0; color:#0f172a;">📖 Quarter Syllabus &amp; 9-Week Academic Roadmap</h3>
           <div id="stuSyllabusList" class="list-box"></div>
         </div>
       </div>
 
       <div id="sView-grades" class="s-view hidden">
         <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
-            <h3 style="margin:0;">📊 Official Course Grades &amp; Parent Feedback</h3>
-            <div id="stuGpaBadge" class="badge" style="font-size:14px; padding:6px 12px;">Cumulative GPA: —</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #e2e8f0;">
+            <h3 style="margin:0; color:#0f172a; font-size:18px;">📊 Official Course Grades &amp; Parent Feedback</h3>
+            <div id="stuGpaBadge" class="badge" style="font-size:14px; padding:6px 14px; background:#1e3a8a; color:#ffffff; font-weight:700;">Cumulative GPA: -</div>
           </div>
           <div id="stuGradesList" class="list-box"></div>
         </div>
       </div>
-
     <div id="sView-certs" class="s-view hidden">
   <div class="card" style="overflow-x:auto;">
     <h3>🏅 Official High School Diploma, Certifications &amp; Portfolio</h3>
