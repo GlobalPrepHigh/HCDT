@@ -1652,27 +1652,6 @@ async function loadStudentDashboard(isPreview = false) {
     portEl.innerHTML = diplomaCard + achHtml;
   }
 }
-      '<div class="item-card" style="border:2px solid #1e3a8a; background:linear-gradient(135deg,#f8fafc,#eff6ff); margin-bottom:14px;">' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">' +
-          '<div>' +
-            '<div style="font-size:12px; font-weight:700; color:#1e3a8a; letter-spacing:0.06em;">OFFICIAL COLLEGE-PREP CREDENTIAL</div>' +
-            '<div style="font-size:17px; font-weight:800; color:#0f172a; margin:2px 0;">🎓 High School Diploma — ' + currentUser.full_name + '</div>' +
-            '<div style="font-size:13px; color:#475569;">' + currentFamily.family_name + ' • Class of ' + gradYr + '</div>' +
-          '</div>' +
-          '<button type="button" class="btn-primary" style="width:auto; padding:8px 14px;" onclick="window.print()">🖨️ Print Diploma</button>' +
-        '</div>' +
-      '</div>';
-
-    const achHtml = achs.map(ac => {
-      const met = ac.metric ? " &bull; " + ac.metric : "";
-      const loc = ac.location ? " &bull; 📍 " + ac.location : "";
-      return '<div class="item-card"><strong>[' + ac.type + '] ' + ac.title + '</strong><br><small class="muted">' + (ac.date_completed || "") + loc + met + '</small></div>';
-    }).join("") || "<p class='muted'>No travel study or certifications logged yet.</p>";
-
-    portEl.innerHTML = diplomaCard + achHtml;
-  }
-}
-
 async function compressPhotoToDataUrl(file) {
 
   return new Promise((resolve) => {
