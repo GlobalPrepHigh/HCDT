@@ -1336,90 +1336,6 @@ function selectStudentSubject(idx) {
   selectedStuSubjectIdx = idx;
   renderStudentTodayPane();
 }
-function normalizeYoutubeEmbedUrl(url) {
-  if (!url) return "";
-  let clean = String(url).trim().replace("youtube-nocookie.com", "youtube.com");
-  const m = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  if (m && m) {
-    return "https://youtube.com" + m + "?rel=0&playsinline=1";
-  }
-  return clean;
-}
-
-function makeVideoIframeHtml(url, label) {
-  const safeUrl = normalizeYoutubeEmbedUrl(url);
-  if (!safeUrl) return "";
-  const titleBar = label
-    ? '<div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:6px;">🎬 ' + label + '</div>'
-    : '';
-  return '<div style="margin:12px 0 16px 0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px;">' +
-    titleBar +
-    '<div style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#000;">' +
-      '<iframe src="' + safeUrl + '" title="' + (label || "Lesson Video") + '" ' +
-      'style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" ' +
-      'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
-      'allowfullscreen playsinline></iframe>' +
-    '</div>' +
-  '</div>';
-}
-
-function buildInterleavedLessonHtml(rawDesc, subject, embedUrls, mathToolkitBtn) {
-  const s = (subject || "").toLowerCase();
-  let text = (rawDesc || "").trim();
-
-  if (s.includes("history") && !text.toLowerCase().includes("louvre")) {
-    text = "HISTORICAL BACKGROUND (THE LOUVRE & BABYLON): Originally built in 1190 as a medieval fortress by King Philip II and later transformed into the world's largest art museum in Paris, the Louvre houses the Stele of Hammurabi—a 7-foot black basalt monument inscribed in cuneiform with 282 laws from ancient Babylon (Mesopotamia).\n\n" + text;
-  }
-  if (s.includes("biology") && text.toLowerCase().includes("yeast")) {
-    text += "\n\nNO-YEAST HOUSEHOLD ALTERNATIVE: If you do not have active dry yeast on hand, mix 2 tablespoons of baking soda with 1/2 cup of warm vinegar inside a bottle capped with a balloon to model gas-producing chemical reactions and measure balloon circumference over 10 minutes.";
-  }
-  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
-    text += "\n\nREQUIRED PAPER WORK: Grab a sheet of lined or graph paper, copy each problem neatly, show every step line-by-line, box your final answer, and upload a clear photo below for teacher grading.";
-  }
-
-  let urls = Array.isArray(embedUrls) ? embedUrls.map(u => normalizeYoutubeEmbedUrl(u, subject)).filter(Boolean) : [];
-  if ((s.includes("literature") || s.includes("english")) && !urls.some(u => u.includes("7aKItfLeso4"))) {
-    urls.unshift("https://youtube.com");
-  }
-
-  const normalized = text.replace(/\s+(?=\d+\.\s)/g, "\n\n");
-  const blocks = normalized.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
-  const videosHtml = urls.map((u, idx) => makeVideoIframeHtml(u, urls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video", subject)).join("");
-  const amoebaHtml = s.includes("biology")
-    ? makeVideoIframeHtml("https://youtube.com", "Watch Amoeba Sisters: Cellular Respiration", subject)
-    : "";
-
-  let videoPlaced = false;
-  let calcPlaced = false;
-  const renderedBlocks = blocks.map(blk => {
-    let styled = blk
-      .replace(/\n/g, "<br>")
-      .replace(/^(\d+\.\s[^\n<]+)/, "<strong>$1</strong>")
-      .replace(/\b([A-Z][A-Z0-9\s,&'’-]{3,}:)/g, "<strong>$1</strong>");
-    let extraAfter = "";
-    if (!videoPlaced && (/^1\./.test(blk) || /watch/i.test(blk))) {
-      extraAfter += videosHtml;
-      videoPlaced = true;
-    }
-    if (s.includes("biology") && (/2\.1/.test(blk) || /amoeba/i.test(blk))) {
-      extraAfter += amoebaHtml;
-    }
-    if (!calcPlaced && mathToolkitBtn && /^2\./.test(blk)) {
-      extraAfter += mathToolkitBtn;
-      calcPlaced = true;
-    }
-    return '<div style="margin:12px 0;">' + styled + extraAfter + '</div>';
-  });
-
-  if (!videoPlaced && videosHtml) {
-    renderedBlocks.unshift('<div style="margin:12px 0;"><strong>1. WATCH THE VIDEO(S):</strong>' + videosHtml + '</div>');
-  }
-  if (!calcPlaced && mathToolkitBtn) {
-    renderedBlocks.push(mathToolkitBtn);
-  }
-  return renderedBlocks.join("");
-}
-
 function renderStudentTodayPane() {
   const tabsEl = document.getElementById("stuSubjectTabs");
   const paneEl = document.getElementById("stuActiveLessonPane");
@@ -1544,22 +1460,31 @@ async function loadStudentDashboard(isPreview = false) {
 
   const bySubject = {};
   allAssigns.forEach(a => {
-    const subjKey = (a.subject || "General").trim();
-    if (!bySubject[subjKey]) bySubject[subjKey] = [];
-    bySubject[subjKey].push(a);
+      const embedUrls = [];
+  const docLinks = [];
+  const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
+  rawLinks.forEach(u => {
+    const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
+    const yt = normalizeYoutubeEmbedUrl(cleanU, a.subject);
+    if (yt) {
+      if (!embedUrls.includes(yt)) embedUrls.push(yt);
+    } else if (/^https?:\/\//i.test(cleanU) && !cleanU.includes("youtube.com")) {
+      docLinks.push(cleanU);
+    }
   });
+  if (!embedUrls.length && pack && pack.yt) embedUrls.push(normalizeYoutubeEmbedUrl(pack.yt, a.subject));
 
-  const activeAssigns = [];
-  Object.keys(bySubject).forEach(subj => {
-    const seq = bySubject[subj];
-    const nextItem = seq.find(item => {
-      const s = subs.find(x => x.assignment_id === item.id);
-      return !(s && s.grade);
-    }) || seq[seq.length - 1];
-    if (nextItem) activeAssigns.push(nextItem);
-  });
+  const resourceLinksHtml = docLinks.length
+    ? '<div style="margin:10px 0; display:flex; flex-wrap:wrap; gap:8px;">' + docLinks.map((lnk, idx) => '<a href="' + lnk + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; display:inline-block; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700; text-decoration:none;">📖 Open Reading / Book Resource' + (docLinks.length > 1 ? ' ' + (idx + 1) : '') + ' ↗</a>').join("") + '</div>'
+    : "";
 
-    stuActiveAssignsCache = activeAssigns;
+  const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
+  const mathToolkitBtn = isMath
+    ? '<div style="margin:10px 0;"><button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700;" onclick="openMathToolkitModal()">🧮 Open Calculator &amp; Line Grapher</button></div>'
+    : "";
+
+  const pronBar = buildPronunciationBar(a.subject);
+  const bodyHtml = buildInterleavedLessonHtml(a.description, a.subject, embedUrls, mathToolkitBtn, resourceLinksHtml);
   selectedStuSubjectIdx = 0;
   renderStudentTodayPane();
 
