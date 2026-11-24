@@ -1500,8 +1500,8 @@ function renderStudentTodayPane() {
     '</div>';
 
   const videosHtml = embedUrls.map((u, idx) => makeVidBox(u, embedUrls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video")).join("");
-  const amoebaHtml = (sLow.includes("biology") && !sLow.includes("marine"))
-    ? makeVidBox(["https:", "", "://youtube.com", "embed", "4Eo7JtRA7lg"].join("/") + "?rel=0&playsinline=1", "Watch Amoeba Sisters: Cellular Respiration")
+    const amoebaHtml = (sLow.includes("biology") && !sLow.includes("marine"))
+    ? makeVidBox("https://" + ytHost + "/embed/4Eo7JtRA7lg?rel=0&playsinline=1", "Watch Amoeba Sisters: Cellular Respiration")
     : "";
 
   const normBlocks = rawText.replace(/\s+(?=\d+\.\s)/g, "\n\n").split(/\n\n+/).map(b => b.trim()).filter(Boolean);
