@@ -1389,14 +1389,15 @@ function renderStudentTodayPane() {
   const currMod = catalog.find(m => m.subject === a.subject || m.subject === baseSubj || a.subject.startsWith(m.subject) || m.subject.startsWith(baseSubj));
   const pack = getSubjectMediaPack(a.subject);
 
-      const toYtEmbed = (raw) => {
+        const ytHost = "www." + "youtube.com";
+  const toYtEmbed = (raw) => {
     const clean = String(raw || "").trim().replace("youtube-nocookie.com", "youtube.com");
     if (clean.startsWith("yt:")) {
       const id = clean.slice(3).trim();
-      return id ? ["https:", "", "://youtube.com", "embed", id].join("/") + "?rel=0&playsinline=1" : "";
+      return id ? "https://" + ytHost + "/embed/" + id + "?rel=0&playsinline=1" : "";
     }
     const m = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    return (m && m) ? ["https:", "", "://youtube.com", "embed", m].join("/") + "?rel=0&playsinline=1" : "";
+    return (m && m) ? "https://" + ytHost + "/embed/" + m + "?rel=0&playsinline=1" : "";
   };
 
   const embedUrls = [];
@@ -1418,7 +1419,7 @@ function renderStudentTodayPane() {
 
   const sLow = (a.subject || "").toLowerCase();
   if ((sLow.includes("literature") || sLow.includes("english")) && !embedUrls.some(u => u.includes("7aKItfLeso4"))) {
-    embedUrls.unshift(["https:", "", "://youtube.com", "embed", "7aKItfLeso4"].join("/") + "?rel=0&playsinline=1");
+    embedUrls.unshift("https://" + ytHost + "/embed/7aKItfLeso4?rel=0&playsinline=1");
   }
   if (!embedUrls.length) {
     let fallbackId = "7aKItfLeso4";
@@ -1430,7 +1431,7 @@ function renderStudentTodayPane() {
     else if (sLow.includes("hindi")) fallbackId = "1lrz11BbqCA";
     else if (sLow.includes("spanish")) fallbackId = "DAp_v7EH9AA";
     else if (sLow.includes("french")) fallbackId = "hd0_GZHHWeE";
-    embedUrls.push(["https:", "", "://youtube.com", "embed", fallbackId].join("/") + "?rel=0&playsinline=1");
+    embedUrls.push("https://" + ytHost + "/embed/" + fallbackId + "?rel=0&playsinline=1");
   }
 
   const resourceLinksHtml = docLinks.length
