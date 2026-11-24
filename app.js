@@ -1046,13 +1046,14 @@ function renderOfficialRecords() {
     preview.innerHTML = "<p class='muted'>Add a student first to generate their Transcript & Diploma.</p>";
     return;
   }
-  const stuAchs = achievementsCache.filter(a => a.student_id === stu.id);
+    const stuAchs = achievementsCache.filter(a => a.student_id === stu.id);
   const stuAssigns = assignmentsCache.filter(a => !a.student_id || String(a.student_id) === String(stu.id));
   const todayStr = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   const courseMap = {};
   stuAssigns.forEach(a => {
     const key = a.quarter + "||" + a.subject + "||" + a.course_level;
+    if (!courseMap[key]) {
       courseMap[key] = {
         quarter: a.quarter,
         subject: a.subject,
