@@ -275,10 +275,22 @@ function saveSession(role) {
   const rememberEl = document.getElementById(role === "parent" ? "rememberParentCb" : "rememberStudentCb");
   if (rememberEl && !rememberEl.checked) {
     localStorage.removeItem("gph_session");
+    localStorage.removeItem("gph_saved_creds");
     sessionStorage.setItem("gph_session", payload);
   } else {
     sessionStorage.removeItem("gph_session");
     localStorage.setItem("gph_session", payload);
+    const creds = JSON.parse(localStorage.getItem("gph_saved_creds") || "{}");
+    if (role === "parent") {
+      const pe = document.getElementById("parentEmail");
+      if (pe && pe.value.trim()) creds.parentEmail = pe.value.trim();
+    } else {
+      const sc = document.getElementById("stuInviteCode");
+      const su = document.getElementById("stuUsername");
+      if (sc && sc.value.trim()) creds.stuInviteCode = sc.value.trim().toUpperCase();
+      if (su && su.value.trim()) creds.stuUsername = su.value.trim();
+    }
+    localStorage.setItem("gph_saved_creds", JSON.stringify(creds));
   }
 }
 
@@ -287,6 +299,7 @@ function logout() {
   sessionStorage.removeItem("gph_session");
   location.reload();
 }
+
 
 async function loadParentDashboard() {
   saveSession("parent");
