@@ -1877,10 +1877,44 @@ function drawBackpackLine() {
 
   ctx.strokeStyle = "#2563eb";
   ctx.lineWidth = 2.5;
-  ctx.beginPath();
+    ctx.beginPath();
   const xMin = -cx / scale, xMax = cx / scale;
   ctx.moveTo(0, cy - (m * xMin + b) * scale);
   ctx.lineTo(w, cy - (m * xMax + b) * scale);
   ctx.stroke();
 }
 
+function openMathToolkitModal() {
+  const box = document.getElementById("mathToolkitBox");
+  if (!box) return;
+  box.classList.remove("hidden");
+  if (typeof drawBackpackLine === "function") drawBackpackLine();
+  box.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const creds = JSON.parse(localStorage.getItem("gph_saved_creds") || "{}");
+    const pe = document.getElementById("parentEmail");
+    const sc = document.getElementById("stuInviteCode");
+    const su = document.getElementById("stuUsername");
+    if (pe && creds.parentEmail) pe.value = creds.parentEmail;
+    if (sc && creds.stuInviteCode) sc.value = creds.stuInviteCode;
+    if (su && creds.stuUsername) su.value = creds.stuUsername;
+
+    const rawSess = localStorage.getItem("gph_session") || sessionStorage.getItem("gph_session");
+    if (rawSess) {
+      const sess = JSON.parse(rawSess);
+      if (sess && sess.currentFamily && sess.currentUser) {
+        authToken = sess.authToken || null;
+        currentFamily = sess.currentFamily;
+        currentUser = sess.currentUser;
+        if (sess.role === "parent") {
+          await loadParentDashboard();
+        } else if (sess.role === "student") {
+          await loadStudentDashboard();
+        }
+      }
+    }
+  } catch (e) {}
+});
