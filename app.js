@@ -1596,7 +1596,7 @@ async function loadStudentDashboard(isPreview = false) {
 
   stuSubsCache = subs;
 
-      const bySubject = {};
+        const bySubject = {};
   allAssigns.forEach(a => {
     const subjKey = (a.subject || "General").trim();
     if (!bySubject[subjKey]) bySubject[subjKey] = [];
@@ -1604,15 +1604,52 @@ async function loadStudentDashboard(isPreview = false) {
   });
 
   const activeAssigns = [];
-  Object.keys(bySubject).forEach(subj => {
+  for (const subj of Object.keys(bySubject)) {
     const seq = bySubject[subj];
-    const nextItem = seq.find(item => {
+    let nextItem = seq.find(item => {
       const s = subs.find(x => String(x.assignment_id) === String(item.id));
-      return !(s && (s.status === "Graded" || (s.grade && String(s.grade).trim() !== "")));
-    }) || seq[seq.length - 1];
+      return !(s && (s.status === "Submitted" || s.status === "Graded" || (s.grade && String(s.grade).trim() !== "")));
+    });
+    if (!nextItem && seq.length > 0 && seq.length < 45) {
+      const nextDayNum = seq.length + 1;
+      const isWeeklyQuiz = nextDayNum % 5 === 0;
+      const template = seq[0];
+      const newTitle = `[Q1 • Day ${nextDayNum}] ${subj} — ${isWeeklyQuiz ? "Weekly Auto-Graded Mastery Quiz" : "Honors Lesson & Application"}`;
+      const created = await sbQuery("assignments", {
+        method: "POST",
+        body: {
+          family_id: currentFamily.id,
+          student_id: template.student_id || currentUser.id,
+          quarter: template.quarter || "Q1",
+          subject: subj,
+          course_level: template.course_level || "Honors",
+          credits: template.credits || 1.0,
+          title: newTitle,
+          description: isWeeklyQuiz
+            ? `WEEKLY AUTO-GRADED QUIZ (DAY ${nextDayNum}): Complete the 5-question Honors Mastery Quiz below. Your score is automatically calculated and posted directly to your Quarter Gradebook.`
+            : `DAY ${nextDayNum} HONORS LESSON: Read the self-contained lesson chapter, watch the embedded video below, and complete the Honors analytical exercises & Carmen Sandiego Global Bonus.`,
+          resource_url: template.resource_url || ""
+        }
+      }).catch(() => null);
+      if (created && created.id) {
+        seq.push(created);
+        allAssigns.push(created);
+        nextItem = created;
+      } else {
+        const memItem = {
+          ...template,
+          id: "auto-" + subj.replace(/\W+/g, "") + "-d" + nextDayNum,
+          title: newTitle,
+          description: `DAY ${nextDayNum} HONORS LESSON: Read the self-contained lesson chapter, watch the embedded video below, and complete the Honors analytical exercises.`
+        };
+        seq.push(memItem);
+        allAssigns.push(memItem);
+        nextItem = memItem;
+      }
+    }
+    if (!nextItem) nextItem = seq[seq.length - 1];
     if (nextItem) activeAssigns.push(nextItem);
-  });
-
+  }
   stuActiveAssignsCache = activeAssigns;
   selectedStuSubjectIdx = 0;
   renderStudentTodayPane();
@@ -1780,8 +1817,10 @@ async function compressPhotoToDataUrl(file) {
 }
 
 async function submitWork(assignment_id) {
-  const notes = document.getElementById("subnote-" + assignment_id).value.trim();
+  const noteEl = document.getElementById("subnote-" + assignment_id);
+  const notes = noteEl ? noteEl.value.trim() : "";
   const photoInput = document.getElementById("subphoto-" + assignment_id);
+  const keepIdx = typeof selectedStuSubjectIdx === "number" ? selectedStuSubjectIdx : 0;
   let link = "";
   if (photoInput && photoInput.files && photoInput.files[0]) {
     link = await compressPhotoToDataUrl(photoInput.files[0]);
@@ -1804,12 +1843,22 @@ async function submitWork(assignment_id) {
         body: { assignment_id, student_id: currentUser.id, student_notes: notes, submission_link: finalLink, status: "Submitted" }
       });
     }
-    await loadStudentDashboard(document.getElementById("previewBanner") && !document.getElementById("previewBanner").classList.contains("hidden"));
+    const isPrev = !!(document.getElementById("previewBanner") && !document.getElementById("previewBanner").classList.contains("hidden"));
+    await loadStudentDashboard(isPrev);
+    selectedStuSubjectIdx = keepIdx;
+    renderStudentTodayPane();
+    const pane = document.getElementById("stuActiveLessonPane");
+    if (pane) {
+      const toast = document.createElement("div");
+      toast.style.cssText = "background:#ecfdf5; border:2px solid #10b981; color:#065f46; padding:12px 16px; border-radius:10px; font-weight:700; margin-bottom:14px;";
+      toast.innerText = "✅ Your work has been submitted and is awaiting parent approval!";
+      pane.prepend(toast);
+    }
+    alert("✅ Your work has been submitted and is awaiting parent approval!");
   } catch (err) {
     alert(err.message);
   }
 }
-
 const BRAIN_BREAKS = [
   { type: "😂 Clean Nerd Joke", prompt: "Why was the obtuse angle always so frustrated?", reveal: "Because it was never right!" },
   { type: "😂 Clean Nerd Joke", prompt: "Why did the biologist break up with the physicist?", reveal: "They had no chemistry." },
