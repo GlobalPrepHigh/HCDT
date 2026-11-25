@@ -773,22 +773,29 @@ function renderGradingQueue() {
     }).join("");
     return;
   }
-    const courseList = byCourse[window.activeParentCourseKey].slice().reverse();
-  const sampleItem = courseList.at(0);
+      const rawSeq = byCourse[window.activeParentCourseKey].slice().map((item, idx) => ({ item, dayNum: idx + 1 }));
+  const filteredSeq = rawSeq.filter(({ item }) => {
+    const s = submissionsCache.find(x => String(x.assignment_id) === String(item.id));
+    const hasGrade = !!(s && (s.status === "Graded" || String(s.grade || "").trim() !== ""));
+    if (parentGradingFilter === "NEEDS_GRADING") return !hasGrade;
+    if (parentGradingFilter === "GRADED") return hasGrade;
+    return true;
+  }).reverse();
+  const sampleItem = rawSeq.at(0).item;
   container.style.display = "block";
   const headerBar = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #cbd5e1;">
     <button type="button" class="btn-outline" style="width:auto; color:#0f172a; font-weight:700;" onclick="window.activeParentCourseKey=null; renderGradingQueue();">← All Courses</button>
-    <strong style="font-size:16px; color:#1e3a8a;">📘 ${sampleItem.subject} — Assignments (Newest First)</strong>
+    <strong style="font-size:16px; color:#1e3a8a;">📘 ${sampleItem.subject} — ${parentGradingFilter === "NEEDS_GRADING" ? "Needs Grading" : parentGradingFilter === "GRADED" ? "Graded Lessons" : "All Lessons"}</strong>
   </div>`;
 
-  container.innerHTML = headerBar + courseList.map((a, revIdx) => {
-    const dayNum = courseList.length - revIdx;
+  container.innerHTML = headerBar + (filteredSeq.length ? filteredSeq.map(({ item: a, dayNum }, revIdx) => {
     const sub = submissionsCache.find(s => String(s.assignment_id) === String(a.id));
     const gradeVal = sub && sub.grade ? sub.grade : "";
     const fbVal = sub && sub.parent_feedback ? sub.parent_feedback : "";
     const isGraded = !!(sub && (sub.status === "Graded" || String(gradeVal).trim() !== ""));
     const isSubmitted = !!(sub && sub.status === "Submitted" && !isGraded);
     const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
+
     const statusPill = isGraded
       ? `<span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800;">✅ Graded: ${gradeVal}</span>`
       : isSubmitted
@@ -822,15 +829,16 @@ function renderGradingQueue() {
         <span id="grade-saved-msg-${a.id}" style="font-size:13px; font-weight:800; color:#15803d;"></span>
       </div>
     </div>`;
-  }).join("");
+  }).join("") : `<p class="muted" style="padding:12px;">No lessons in this filter tab yet. Switch to <b>All</b> or <b>Graded ✓</b> above to view all lessons.</p>`);
 }
 function openStudentPhotoModal(subId) {
   const sub = submissionsCache.find(s => String(s.id) === String(subId));
   const modal = document.getElementById("photoLightboxModal");
   const img = document.getElementById("photoLightboxImg");
-  if (!sub || !sub.submission_link || !modal || !img) return alert("Photo not found.");
+    if (!sub || !sub.submission_link || !modal || !img) return alert("Photo not found.");
   img.src = sub.submission_link;
   modal.classList.remove("hidden");
+  modal.style.display = "flex";
 }
 
 async function deleteParentCourse(studentId, subject) {
@@ -1437,8 +1445,18 @@ function closeStudentCourseMenu() {
 }
 
 function shiftStudentDay(subj, delta, maxLen) {
-  const cur = typeof window.stuViewDayOffset.subj === "number" ? window.stuViewDayOffset.subj : (maxLen - 1);
-  window.stuViewDayOffset.subj = Math.max(0, Math.min(maxLen - 1, cur + delta));
+  const cur = typeof window.stuViewDayOffset[subj] === "number" ? window.stuViewDayOffset[subj] : (maxLen - 1);
+  window.stuViewDayOffset[subj] = Math.max(0, Math.min(maxLen - 1, cur + delta));
+  renderStudentTodayPane();
+}
+
+function openGradedDayLesson(subj, dayIdx) {
+  const idx = stuActiveAssignsCache.findIndex(a => a.subject === subj);
+  if (idx >= 0) selectedStuSubjectIdx = idx;
+  window.stuViewDayOffset[subj] = dayIdx;
+  window.stuCourseOpen = true;
+  const firstPill = document.querySelector(".nav-pills .pill");
+  switchStudentTab("today", firstPill);
   renderStudentTodayPane();
 }
 
@@ -1500,13 +1518,17 @@ function injectInlinePronunciations(html, subject) {
                 { w: "Foreshadowing", p: "for-SHAD-oh-ing", l: "en-US" }
               ]
             : [];
-  let out = html;
-  terms.forEach(t => {
-    const safeW = t.w.replace(/'/g, "\\'");
-    const pill = `<span onclick="speakWordInline('${safeW}','${t.l}')" style="background:#e0f2fe; color:#0369a1; border-bottom:2px dotted #0284c7; padding:1px 5px; border-radius:4px; cursor:pointer; font-weight:700;">🔊 ${t.w} <small>(${t.p})</small></span>`;
-    out = out.replace(new RegExp("\\b" + t.w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i"), pill);
-  });
-  return out;
+    const parts = String(html || "").split(/(<[^>]+>)/g);
+  return parts.map(part => {
+    if (part.startsWith("<")) return part;
+    let txt = part;
+    terms.forEach(t => {
+      const safeW = t.w.replace(/'/g, "\\'");
+      const pill = `<span onclick="speakWordInline('${safeW}','${t.l}')" style="background:#e0f2fe; color:#0369a1; border-bottom:2px dotted #0284c7; padding:0 4px; border-radius:4px; cursor:pointer; font-weight:700;" title="Tap to hear pronunciation: ${t.p}">$& 🔊 <small style="font-weight:600; opacity:0.85;">(${t.p})</small></span>`;
+      txt = txt.replace(new RegExp("\\b" + t.w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i"), pill);
+    });
+    return txt;
+  }).join("");
 }
 function getKhanLessonContent(subject, dayNum, baseDesc) {
   const s = (subject || "").toLowerCase();
@@ -1759,24 +1781,24 @@ function renderStudentTodayPane() {
   const hookHtml = `<div style="background:#fefce8; border-left:4px solid #eab308; padding:10px 14px; border-radius:8px; margin:10px 0; color:#713f12; font-size:13.5px;"><b>💡 Real-World Hook:</b> ${khan.hook}</div>`;
   const readingSection = `<div style="margin:12px 0;"><div style="font-weight:800; font-size:14.5px; color:#0f172a; margin-bottom:6px;">📖 2. Read the Textbook Chapter</div>${pdfBtnHtml}<div style="background:#f8fafc; border:1px solid #cbd5e1; padding:14px; border-radius:10px; font-size:14px; line-height:1.65; color:#1e293b;">${injectInlinePronunciations(khan.textbookHtml, a.subject)}</div></div>`;
 
-  const qcHtml = `<div style="background:#f0fdf4; border:1px solid #86efac; padding:12px 14px; border-radius:10px; margin:14px 0;"><div style="font-weight:800; color:#15803d; font-size:14px; margin-bottom:6px;">⚡ Instant Quick Check (Ungraded Self-Check)</div>${khan.qc.map((qItem, qi) => {
+    const qcHtml = `<div style="background:#f0fdf4; border:1px solid #86efac; padding:12px 14px; border-radius:10px; margin:14px 0;"><div style="font-weight:800; color:#15803d; font-size:14px; margin-bottom:6px;">⚡ Instant Quick Check (Ungraded Self-Check)</div>${khan.qc.map((qItem, qi) => {
     const safeR = qItem.r.replace(/'/g, "\\'");
     const safeW = qItem.w.replace(/'/g, "\\'");
-        return `<div style="margin:8px 0; padding:8px; background:#fff; border-radius:8px; border:1px solid #dcfce7;"><div style="font-weight:700; font-size:13.5px; color:#0f172a;">${qi + 1}. ${qItem.q}</div>${qItem.opts.map((opt, oi) => `<label style="display:block; margin:4px 0; font-size:13px; cursor:pointer;"><input type="radio" name="qc_${a.id}_${qi}" onclick="checkInstantQC('${a.id}', ${qi}, ${oi}, ${qItem.a}, '${safeR}', '${safeW}')" /> ${opt}</label>`).join("")}<div id="qc_fb_${a.id}_${qi}" style="margin-top:4px; padding:4px 8px; border-radius:6px; font-size:12.5px;"></div></div>`;
+    return `<div style="margin:8px 0; padding:10px; background:#fff; border-radius:8px; border:1px solid #dcfce7;"><div style="font-weight:700; font-size:13.5px; color:#0f172a; margin-bottom:6px;">${qi + 1}. ${qItem.q}</div>${qItem.opts.map((opt, oi) => `<label style="display:flex; align-items:center; gap:8px; margin:5px 0; font-size:13.5px; color:#1e293b; cursor:pointer;"><input type="radio" name="qc_${a.id}_${qi}" style="width:auto; margin:0; flex-shrink:0;" onclick="checkInstantQC('${a.id}', ${qi}, ${oi}, ${qItem.a}, '${safeR}', '${safeW}')" /><span>${opt}</span></label>`).join("")}<div id="qc_fb_${a.id}_${qi}" style="margin-top:4px; padding:4px 8px; border-radius:6px; font-size:12.5px;"></div></div>`;
   }).join("")}</div>`;
 
   const isMath = !!khan.isMath || /algebra|geometry|calculus|math/i.test(a.subject || "");
   const mathToolkitHtml = isMath
-    ? `<div style="margin:12px 0; padding:12px; background:#eff6ff; border:2px solid #93c5fd; border-radius:10px;"><div style="font-weight:800; color:#1e3a8a; margin-bottom:8px;">🧮 Interactive Math Toolkit &amp; Click-to-Plot Coordinate Grid</div><div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;"><div style="background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;"><div style="font-size:12px; font-weight:700; margin-bottom:4px;">Expression Calculator</div><div style="display:flex; gap:6px;"><input type="text" id="calcDisplay" placeholder="e.g., 24 / 3 * 2 + (5 - 8)^2" style="margin:0; flex:1;" /><button type="button" class="btn-primary" style="width:auto; padding:6px 12px;" onclick="runBackpackCalc()">=</button></div><div id="calcResult" style="margin-top:6px; font-weight:700; font-size:13px;">Result: —</div></div><div style="background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;"><div style="font-size:12px; font-weight:700; margin-bottom:4px;">Interactive Grapher (Tap Grid to Plot Points or Enter m &amp; b)</div><div style="display:flex; gap:4px; align-items:center; margin-bottom:6px;"><b>m:</b><input type="number" id="graphM" value="2" step="0.5" style="width:55px; margin:0;" oninput="drawBackpackLine()" /><b>b:</b><input type="number" id="graphB" value="0" step="1" style="width:55px; margin:0;" oninput="drawBackpackLine()" /><button type="button" class="btn-outline" style="width:auto; padding:4px 8px; font-size:11px;" onclick="window.stuGridPoints['${a.id}']=[]; drawInteractiveGrid('${a.id}')">Clear</button></div><canvas id="slopeCanvas" width="240" height="160" onclick="handleGridTap(event, '${a.id}')" style="width:100%; max-width:260px; border:1px solid #94a3b8; border-radius:6px; background:#fff; cursor:crosshair;"></canvas><div id="gridCoords-${a.id}" style="font-size:11.5px; color:#1e3a8a; font-weight:700; margin-top:4px;">Plotted Points: None (tap grid to plot)</div></div></div></div>`
+    ? `<div style="margin:12px 0; padding:12px; background:#eff6ff; border:2px solid #93c5fd; border-radius:10px;"><div style="font-weight:800; color:#1e3a8a; margin-bottom:8px;">🧮 Interactive Math Toolkit &amp; Click-to-Plot Coordinate Grid</div><div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;"><div style="background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;"><div style="font-size:12px; font-weight:700; margin-bottom:4px;">Expression Calculator</div><div style="display:flex; gap:6px;"><input type="text" id="calcDisplay" placeholder="e.g., 24 / 3 * 2 + (5 - 8)^2" style="margin:0; flex:1;" /><button type="button" class="btn-primary" style="width:auto; padding:6px 12px;" onclick="runBackpackCalc()">=</button><button type="button" class="btn-outline" style="width:auto; padding:6px 10px; color:#0f172a;" onclick="document.getElementById('calcDisplay').value='';document.getElementById('calcResult').innerText='Result: —';">C</button></div><div id="calcResult" style="margin-top:6px; font-weight:700; font-size:13px;">Result: —</div></div><div style="background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;"><div style="font-size:12px; font-weight:700; margin-bottom:4px;">Interactive Grapher (Tap Grid to Plot Points or Enter m &amp; b)</div><div style="display:flex; gap:4px; align-items:center; margin-bottom:6px;"><b>m:</b><input type="number" id="graphM" value="2" step="0.5" style="width:55px; margin:0;" oninput="drawInteractiveGrid('${a.id}')" /><b>b:</b><input type="number" id="graphB" value="0" step="1" style="width:55px; margin:0;" oninput="drawInteractiveGrid('${a.id}')" /><button type="button" class="btn-outline" style="width:auto; padding:4px 8px; font-size:11px; color:#0f172a;" onclick="window.stuGridPoints['${a.id}']=[]; drawInteractiveGrid('${a.id}')">Clear Grid</button></div><canvas id="slopeCanvas" width="240" height="160" onclick="handleGridTap(event, '${a.id}')" style="width:100%; max-width:260px; border:1px solid #94a3b8; border-radius:6px; background:#fff; cursor:crosshair;"></canvas><div id="gridCoords-${a.id}" style="font-size:11.5px; color:#1e3a8a; font-weight:700; margin-top:4px;">Plotted Points: None (tap grid to plot)</div></div></div></div>`
     : "";
 
-  const promptsHtml = `<div style="margin:14px 0;"><div style="font-weight:800; font-size:14.5px; color:#0f172a; margin-bottom:8px;">✍️ 3. Honors Workbook &amp; Application Prompts</div>${khan.prompts.map((pr, pi) => `<div style="margin:10px 0; padding:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px;"><div style="font-weight:700; font-size:13.5px; color:#0f172a; margin-bottom:6px;">${injectInlinePronunciations(pr, a.subject)}</div><textarea class="wb-ans-${a.id}" data-q="${pr.replace(/"/g, "&quot;")}" rows="${isMath ? 2 : 4}" placeholder="Enter your answer here..."></textarea></div>`).join("")}</div>`;
+  const promptsHtml = `<div style="margin:14px 0;"><div style="font-weight:800; font-size:14.5px; color:#0f172a; margin-bottom:8px;">✍️ 3. Honors Workbook &amp; Application Prompts</div>${khan.prompts.map((pr, pi) => `<div style="margin:10px 0; padding:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px;"><div style="font-weight:700; font-size:13.5px; color:#0f172a; margin-bottom:6px;">${injectInlinePronunciations(pr, a.subject)}</div><textarea class="wb-ans-${a.id}" data-q="${pr.replace(/"/g, "&quot;")}" rows="${isMath ? 2 : 4}" placeholder="Enter your answer here...">${sub && sub.student_notes ? "" : ""}</textarea></div>`).join("")}</div>`;
 
   const fbHtml = sub && sub.parent_feedback ? `<div style="background:#ecfdf5; border:1px solid #86efac; padding:10px; border-radius:8px; margin-top:10px; color:#065f46;"><b>💬 Parent Feedback:</b> ${sub.parent_feedback}</div>` : "";
   const safeSubjAttr = a.subject.replace(/'/g, "\\'");
-  const navBar = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #e2e8f0;"><button type="button" class="btn-outline" style="width:auto; color:#0f172a; font-weight:700;" onclick="closeStudentCourseMenu()">← All Courses</button><div style="display:flex; align-items:center; gap:8px;"><button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a;" ${dayIdx === 0 ? "disabled" : ""} onclick="shiftStudentDay('${safeSubjAttr}', -1, ${seq.length})">◀ Day ${Math.max(1, dayNum - 1)}</button><span class="badge" style="background:#1e3a8a; color:#ffffff;">Day ${dayNum} of ${seq.length}</span><button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a;" ${dayIdx >= seq.length - 1 ? "disabled" : ""} onclick="shiftStudentDay('${safeSubjAttr}', 1, ${seq.length})">Day ${Math.min(seq.length, dayNum + 1)} ▶</button></div></div>`;
+  const navBar = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #e2e8f0;"><button type="button" class="btn-outline" style="width:auto; color:#0f172a; font-weight:700;" onclick="closeStudentCourseMenu()">← All Courses</button><div style="display:flex; align-items:center; gap:8px;"><button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a; font-weight:700;" ${dayIdx === 0 ? "disabled" : ""} onclick="shiftStudentDay('${safeSubjAttr}', -1, ${seq.length})">◀ Day ${Math.max(1, dayNum - 1)}</button><span style="background:#1e3a8a; color:#ffffff; padding:6px 12px; border-radius:999px; font-size:12.5px; font-weight:800;">Day ${dayNum} of ${seq.length}</span><button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a; font-weight:700;" ${dayIdx >= seq.length - 1 ? "disabled" : ""} onclick="shiftStudentDay('${safeSubjAttr}', 1, ${seq.length})">Day ${Math.min(seq.length, dayNum + 1)} ▶</button></div></div>`;
 
-  paneEl.innerHTML = `<div class="card">${navBar}<div style="background:#1e3a8a; color:#ffffff; padding:14px; border-radius:10px; margin-bottom:10px;"><div style="font-size:11.5px; letter-spacing:0.6px; text-transform:uppercase; opacity:0.85;">${a.subject} • ${a.course_level || "Honors"} (${a.credits || 1} cr) • ${statusText}</div><div style="font-size:17px; font-weight:800; margin-top:4px;">${khan.unitTitle}</div></div>${objHtml}${hookHtml}${vidHtml}${readingSection}${mathToolkitHtml}${qcHtml}${promptsHtml}<textarea id="subnote-${a.id}" class="hidden">${sub && sub.student_notes ? sub.student_notes : ""}</textarea><label style="font-weight:700; color:#0f172a;">📸 Upload Photo of Paper Work / Lab Setup (Optional):</label><input type="file" id="subphoto-${a.id}" accept="image/*" /><button type="button" class="btn-primary" style="margin-top:10px;" onclick="collectAndSubmitWork('${a.id}')">${sub ? "🔄 Update & Re-Submit Work" : "✅ Submit Work for Parent Approval"}</button>${fbHtml}</div>`;
+  paneEl.innerHTML = `<div class="card">${navBar}<div style="background:#0f172a; color:#ffffff; padding:16px; border-radius:10px; margin-bottom:12px;"><div style="font-size:12px; letter-spacing:0.6px; text-transform:uppercase; color:#93c5fd; font-weight:800;">${a.subject} • ${a.course_level || "Honors"} (${a.credits || 1} cr) • ${statusText}</div><div style="font-size:17.5px; font-weight:800; color:#ffffff; margin-top:4px;">${khan.unitTitle}</div></div>${objHtml}${hookHtml}${vidHtml}${readingSection}${mathToolkitHtml}${qcHtml}${promptsHtml}<textarea id="subnote-${a.id}" class="hidden">${sub && sub.student_notes ? sub.student_notes : ""}</textarea><label style="font-weight:700; color:#0f172a;">📸 Upload Photo of Paper Work / Lab Setup (Optional):</label><input type="file" id="subphoto-${a.id}" accept="image/*" /><button type="button" class="btn-primary" style="margin-top:10px;" onclick="collectAndSubmitWork('${a.id}')">${sub ? "🔄 Update & Re-Submit Work" : "✅ Submit Work for Parent Approval"}</button>${fbHtml}</div>`;
   if (isMath && typeof drawInteractiveGrid === "function") setTimeout(() => drawInteractiveGrid(a.id), 50);
 }
 
@@ -1954,13 +1976,14 @@ async function loadStudentDashboard(isPreview = false) {
   }
     const getDetailedSyllabusHtml = (subj, items) => {
     const s = (subj || "").toLowerCase();
-    const firstTitle = String((items && items.title) || subj).replace(/^\[[^\]]+\]\s*/, "");
+        const firstTitle = String((items.at(0) && items.at(0).title) || subj).replace(/^\[[^\]]+\]\s*/, "");
     if (s.includes("literature") || s.includes("english")) {
-      return '<li><b>Weeks 1–2 (Dystopian Foundations &amp; Censorship):</b> ' + firstTitle + ' • <i>Ray Bradbury’s Fahrenheit 451</i> Part 1 (pp. 1–55) • <b>Fridays:</b> Weekly Auto-Graded Reading &amp; Literary Analysis Quiz</li>' +
-        '<li><b>Weeks 3–4 (Media Saturation &amp; Conformity):</b> <i>Fahrenheit 451</i> Part 2 (pp. 66–103) &amp; rhetorical analysis comparing mid-century print vs. 2026 algorithmic feeds • <b>Due End of Week 4:</b> Annotated Evidence Passage Portfolio</li>' +
-        '<li><b>Weeks 5–6 (Resistance, Memory &amp; Cultural Preservation):</b> <i>Fahrenheit 451</i> Part 3 (pp. 104–158) &amp; Socratic Seminar • <b>Due End of Week 6:</b> 1,200-Word Analytical Essay Draft</li>' +
-        '<li><b>Weeks 7–8 (Contemporary Voices &amp; Comparative Synthesis):</b> Paired nonfiction essays on free expression &amp; information literacy • <b>Due Week 8:</b> Final Revised Essay &amp; Multimedia Presentation</li>' +
-        '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Oral Passage Defense &amp; Transcript Review</li>';
+      return '<li><b>Week 1 (Dystopian Literature):</b> <i>Fahrenheit 451</i> by Ray Bradbury (Days 1–2 Part 1, Days 3–4 Part 2, Day 5 Part 3 &amp; Synthesis)</li>' +
+        '<li><b>Week 2 (Classical &amp; Modern Rhetoric):</b> Aristotelian Appeals (Ethos, Pathos, Logos) &amp; global persuasive speeches</li>' +
+        '<li><b>Weeks 3–5 (Epic Poetry &amp; The Hero\'s Journey):</b> Homer\'s <i>The Odyssey</i> (Open-Access Edition — Books 1–24)</li>' +
+        '<li><b>Weeks 6–7 (Global Short Fiction):</b> Comparative close reading of Chekhov, Borges, Achebe &amp; Lahiri</li>' +
+        '<li><b>Week 8 (World Poetry &amp; Poetic Craft):</b> Sonnets, haiku, metaphor, meter &amp; imagery analysis</li>' +
+        '<li><b>Week 9 (Quarter Mastery &amp; Capstone):</b> Comprehensive Quarter Exam, Analytical Essay &amp; Transcript Review</li>';
     }
     if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
       return '<li><b>Weeks 1–2 (Foundations, Expressions &amp; Linear Models):</b> ' + firstTitle + ' • Order of operations, variables, slope-intercept &amp; point-slope forms • <b>Fridays:</b> Weekly Auto-Graded Problem-Solving Quiz</li>' +
@@ -2072,9 +2095,10 @@ async function loadStudentDashboard(isPreview = false) {
         crSum += cr;
       }
       const badgeStr = avgPct !== null ? `${avgPct}% (${letter}) • Running Quarter Avg` : "In Progress";
-      const breakdownHtml = gradedItems.length
-        ? gradedItems.map(g => `<div style="font-size:13px; color:#334155; margin-top:6px; padding-left:10px; border-left:2px solid #93c5fd;">• <b>Day ${g.day}:</b> ${g.grade}${g.fb ? ` — <span style="color:#15803d;">"${g.fb}"</span>` : ""}</div>`).join("")
-        : `<div class="muted" style="font-size:13px; margin-top:6px;">No graded assignments recorded yet for this course.</div>`;
+          const safeS = subj.replace(/'/g, "\\'");
+    const breakdownHtml = gradedItems.length
+      ? gradedItems.map(g => `<div onclick="openGradedDayLesson('${safeS}', ${g.day - 1})" style="font-size:13px; color:#1d4ed8; margin-top:6px; padding:4px 10px; border-left:3px solid #2563eb; background:#eff6ff; border-radius:0 6px 6px 0; cursor:pointer; font-weight:600;">• Day ${g.day}: <b>${g.grade}</b> ${g.fb ? '— <span style="color:#065f46;">"' + g.fb + '"</span>' : ""} <span style="font-size:11.5px; text-decoration:underline; margin-left:6px;">View Graded Lesson →</span></div>`).join("")
+      : `<div class="muted" style="font-size:13px; margin-top:6px;">No graded assignments recorded yet for this course.</div>`;
 
       return `<div class="item-card">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
