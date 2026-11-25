@@ -443,4 +443,326 @@ HONORS_CURRICULUM.push(
 );
 
 window.HONORS_CURRICULUM = HONORS_CURRICULUM;
+window.getGradeYearNum = function(gradeStr) {
+  const g = String(gradeStr || "9").toLowerCase();
+  if (g.includes("12")) return 12;
+  if (g.includes("11")) return 11;
+  if (g.includes("10")) return 10;
+  return 9;
+};
+
+window.buildFullHonorsLesson = function(subject, dayNum, gradeStr, quarterStr) {
+  const s = (subject || "").toLowerCase();
+  const yr = window.getGradeYearNum(gradeStr);
+  const qNum = parseInt(String(quarterStr || "Q1").replace(/\D/g, ""), 10) || 1;
+  const dInQ = Math.max(1, Math.min(45, parseInt(dayNum, 10) || 1));
+  const absDay = (qNum - 1) * 45 + dInQ;
+  const weekInQ = Math.ceil(dInQ / 5);
+  const dayInW = ((dInQ - 1) % 5) + 1;
+  const isWeeklyQuiz = dayInW === 5 && weekInQ < 9;
+  const isQuarterExam = weekInQ === 9 && dayInW === 5;
+  const tag = `Q${qNum} • Week ${weekInQ} • Day ${dayInW} (School Day ${absDay}/180)`;
+
+  if (s.includes("literature") || s.includes("english")) {
+    return window.buildEnglishLesson(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam);
+  }
+  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
+    return window.buildMathLesson(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam, subject);
+  }
+  if (s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("marine") || s.includes("science")) {
+    return window.buildScienceLesson(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam, subject);
+  }
+  if (s.includes("history") || s.includes("government") || s.includes("econ") || s.includes("civics")) {
+    return window.buildHistoryLesson(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam, subject);
+  }
+  if (s.includes("mechanic") || s.includes("auto")) {
+    return window.buildMechanicsLesson(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam);
+  }
+  if (s.includes("stock") || s.includes("finance") || s.includes("invest")) {
+    return window.buildFinanceLesson(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam);
+  }
+  return window.buildWorldLangOrElectiveLesson(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam, subject);
+};
+window.buildEnglishLesson = function(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam) {
+  const f451Book = "https://archive.org";
+  const gutBase = "https://gutenberg.org";
+  const tracks = {
+    9: [
+      { title: "Fahrenheit 451: Part 1 — The Hearth and the Salamander (pp. 1–28)", book: f451Book, yt: "7aKItfLeso4", ytLabel: "Watch: Ray Bradbury on Fahrenheit 451 & Censorship", topic: "Dystopian World-Building, Guy Montag & Clarisse McClellan" },
+      { title: "Fahrenheit 451: Part 1 — Parlor Walls & The Mechanical Hound (pp. 29–55)", book: f451Book, yt: "YMZcp0EQO2s", ytLabel: "Watch: TED-Ed — Why Should You Read Fahrenheit 451?", topic: "Media Saturation, Mildred's Seashells & Beatty's Speech" },
+      { title: "Fahrenheit 451: Part 2 — The Sieve and the Sand (pp. 66–84)", book: f451Book, yt: "7aKItfLeso4", ytLabel: "Watch: Faber's Three Pillars of Meaningful Books", topic: "Faber's 3 Pillars (Quality, Leisure, Action) & Cognitive Overload" },
+      { title: "Fahrenheit 451: Part 2 — Dover Beach & Confrontation (pp. 85–103)", book: f451Book, yt: "YMZcp0EQO2s", ytLabel: "Watch: Symbolism of Fire, Mirrors & The Salamander", topic: "Matthew Arnold's 'Dover Beach' & Montag's Awakening" },
+      { title: "Fahrenheit 451: Part 3 — Burning Bright & Week 1 Mastery Synthesis (pp. 104–158)", book: f451Book, yt: "7aKItfLeso4", ytLabel: "Watch: The Phoenix Myth & Bradbury's Warning for 2026", topic: "The Phoenix Symbol, Book People & Week 1 Capstone Synthesis" }
+    ],
+    10: [
+      { title: "Things Fall Apart: Part 1 — Okonkwo, Unoka & Igbo Society (Ch. 1–4)", book: gutBase + "5199", yt: "o2a1R4_iE_A", ytLabel: "Watch: World Literature — Chinua Achebe & Igbo Oral Tradition", topic: "Character Foils, Proverbs as Palm-Oil & Tragedy" },
+      { title: "Things Fall Apart: Part 1 — Week of Peace & Ikemefuna (Ch. 5–9)", book: gutBase + "5199", yt: "o2a1R4_iE_A", ytLabel: "Watch: Tragic Flaws (Hamartia) in World Literature", topic: "Fear of Weakness vs. Community Law" },
+      { title: "Things Fall Apart: Part 2 — Exile in Mbanta & Uchendu's Wisdom (Ch. 14–19)", book: gutBase + "5199", yt: "o2a1R4_iE_A", ytLabel: "Watch: Cultural Collision & Narrative Perspective", topic: "Matrilineal Refuge & Arrival of the Missionaries" },
+      { title: "Things Fall Apart: Part 3 — Colonial Administration & Tragic Climax (Ch. 20–25)", book: gutBase + "5199", yt: "o2a1R4_iE_A", ytLabel: "Watch: Irony of the District Commissioner's Final Paragraph", topic: "Dramatic Irony & Reclaiming African Voice" },
+      { title: "World Literature Week 1 Mastery Synthesis & Comparative Essay", book: gutBase + "5199", yt: "o2a1R4_iE_A", ytLabel: "Watch: Crafting a Thesis-Driven Comparative Analysis", topic: "Week 1 Cumulative Synthesis & Mastery Check" }
+    ],
+    11: [
+      { title: "American Rhetoric: The Declaration of Independence & Jefferson's Syllogism", book: gutBase + "1", yt: "LK3CSs5wG0o", ytLabel: "Watch: Rhetoric of the American Revolution", topic: "Deductive Logic, Parallelism & Grievances" },
+      { title: "Frederick Douglass: 'What to the Slave Is the Fourth of July?' (1852)", book: gutBase + "23", yt: "LK3CSs5wG0o", ytLabel: "Watch: Frederick Douglass & Persuasive Irony", topic: "Ethos, Scathing Irony & Moral Urgency" },
+      { title: "American Transcendentalism: Emerson's 'Self-Reliance' & Thoreau's 'Walden'", book: gutBase + "205", yt: "LK3CSs5wG0o", ytLabel: "Watch: Transcendentalism & Civil Disobedience", topic: "Nonconformity, Nature & Conscience" },
+      { title: "The Great Gatsby / American Realism: Illusion vs. The American Dream", book: gutBase + "64317", yt: "LK3CSs5wG0o", ytLabel: "Watch: Symbolism in American Modernism", topic: "The Green Light, East vs. West Egg & Unreliable Narration" },
+      { title: "American Literature Week 1 Mastery Synthesis & Rhetorical Essay", book: gutBase + "64317", yt: "LK3CSs5wG0o", ytLabel: "Watch: Rhetorical Analysis Paragraph Structure", topic: "Week 1 Cumulative Synthesis & Mastery Check" }
+    ],
+    12: [
+      { title: "Mary Shelley's Frankenstein: Walton's Letters & Victor's Ambition (Letters 1–Ch. 4)", book: gutBase + "84", yt: "Sy82_i1_l-U", ytLabel: "Watch: Gothic Romanticism & Prometheus Myth", topic: "Frame Narrative, Hubris & Scientific Ethics" },
+      { title: "Frankenstein: Creation, Rejection & The Creature's Education (Ch. 5–15)", book: gutBase + "84", yt: "Sy82_i1_l-U", ytLabel: "Watch: Nature vs. Nurture in Frankenstein", topic: "Paradise Lost Allusions & Moral Responsibility" },
+      { title: "Shakespeare's Macbeth: Ambition, Prophecy & Lady Macbeth (Act I–II)", book: gutBase + "1533", yt: "rD5goS69LT4", ytLabel: "Watch: Shakespeare's Macbeth — Ambition & Equivocation", topic: "Blank Verse, Soliloquy & Psychological Guilt" },
+      { title: "Macbeth: Tyranny, Banquo's Ghost & Tragic Downfall (Act III–V)", book: gutBase + "1533", yt: "rD5goS69LT4", ytLabel: "Watch: Tragic Catharsis in Shakespearean Drama", topic: "Motif of Blood, Sleep & 'Tomorrow, and tomorrow, and tomorrow'" },
+      { title: "British & AP Literature Week 1 Mastery Synthesis & Timed Essay", book: gutBase + "1533", yt: "rD5goS69LT4", ytLabel: "Watch: AP Literature Line of Reasoning", topic: "Week 1 Cumulative Synthesis & Mastery Check" }
+    ]
+  };
+   const qUnits = [
+    ["Dystopian & Foundational Novels", "Aristotelian Rhetoric (Ethos, Pathos, Logos)", "Epic Poetry: Homer's The Odyssey (Project Gutenberg #1727)", "Classical Drama & Tragic Heroism (Antigone / Julius Caesar)", "Global Short Fiction (Chekhov, Borges, Tagore)", "World Poetry, Sonnets & Meter", "Persuasive Nonfiction & Speeches", "Comparative Literary Synthesis", "Quarter 1 Exam & Portfolio"],
+    ["Shakespearean Drama (Romeo & Juliet / Hamlet — Gutenberg #1513/#1524)", "Allegory & Political Satire (Animal Farm / Gulliver's Travels #829)", "Autobiography & Human Dignity (Frederick Douglass #23)", "19th-Century Realism & Psychological Fiction", "Journalism, Media Literacy & Bias Detection", "Argumentative Research & Counterclaims", "Global Mythology & Archetypes", "Socratic Seminar & Analytical Essay", "Quarter 2 Exam & Portfolio"],
+    ["Modernist & Postcolonial Voices", "Investigative Nonfiction & Primary Documents", "Poetic Voice, Irony & Figurative Language", "Dramatic Monologue & Stagecraft", "Multi-Source Synthesis Research Paper", "Philosophical Essays & Ethics in Literature", "World Folktales & Oral Storytelling", "Peer Critique & Revision Workshop", "Quarter 3 Exam & Portfolio"],
+    ["Capstone Novel Study (The Old Man and the Sea / Pride & Prejudice #1342)", "Comparative Cross-Cultural Themes", "Creative Nonfiction & Travelogue Writing", "Rhetorical Debate & Public Speaking", "Literary Criticism Lenses (Historical, Psychological)", "Global Anthology Curation Project", "Senior/Honors Thesis Defense Prep", "Annual Portfolio Polish", "Final Year-End Honors Exam"]
+  ];
+  const wk1List = tracks[yr] || tracks[9];
+  const isWk1 = qNum === 1 && weekInQ === 1;
+  const item = isWk1 ? wk1List[dayInW - 1] : {
+    title: `${qUnits[qNum - 1][weekInQ - 1]} — Lesson ${dayInW}`,
+    book: gutBase + (qNum === 1 && weekInQ === 3 ? "1727" : qNum === 2 && weekInQ <= 2 ? "1513" : qNum === 2 && weekInQ === 3 ? "23" : "1342"),
+    yt: "YMZcp0EQO2s",
+    ytLabel: "Watch: Literary Analysis & Close Reading Masterclass",
+    topic: qUnits[qNum - 1][weekInQ - 1]
+  };
+  const jokes = [
+    "Fun fact: Before smartphones existed, Ray Bradbury wrote Fahrenheit 451 on a coin-operated typewriter in a basement library—spending $9.80 in dimes! Imagine explaining 'I ran out of dimes' as an excuse for late homework.",
+    "Imagine living in a house where all four walls are giant TikTok screens screaming at you 24/7 and nobody talks at dinner. Congratulations—you just described Mildred Montag's living room from 1953!",
+    "Faber says books need three things: quality, leisure to digest them, and the right to act. Basically, scrolling 400 memes in 3 minutes gives you zero of the three!",
+    "Ever read a poem so intense it makes a grown adult cry in the middle of a living room? That's literally what happens when Montag reads 'Dover Beach' out loud!",
+    "Weekly Boss Battle unlocked! Today you connect the whole week's themes like a literary detective with a magnifying glass (deerstalker hat optional)."
+  ];
+  const textbookHtml = `<h4 style="color:#9a3412; margin:0 0 6px 0;">1. Honors Textbook Chapter — ${item.topic} (${tag})</h4>` +
+    `<p><b>Core Concept &amp; Literary Context:</b> In today's Honors Literature chapter, we examine <b>${item.topic}</b>. Great authors never choose details by accident—every setting, symbol, character foil, and rhetorical shift serves a deliberate purpose. When analyzing any passage, ask three questions: <i>(1) What literal conflict is unfolding? (2) What figurative motif or rhetorical appeal (Ethos, Pathos, Logos) shapes the reader's reaction? (3) How does this moment build upon yesterday's chapter?</i></p>` +
+    `<p><b>Close-Reading Model &amp; Vocabulary:</b> <b>Motif</b> (a recurring image or idea that reinforces theme), <b>Foil</b> (a character whose contrasting traits highlight the protagonist's flaws or growth), and <b>Dramatic Irony</b> (when the audience grasps a truth the character misses). Notice how this week's progression moves step-by-step from initial world-building (Days 1–2) to rising moral tension (Days 3–4) and cumulative synthesis (Day 5).</p>` +
+    `<div style="margin-top:8px; padding:10px; background:#eff6ff; border-left:4px solid #2563eb; border-radius:6px;"><b>📖 Open-Access Reading (No Library Card Needed):</b> <a href="${item.book}" target="_blank" rel="noopener" style="color:#1d4ed8; font-weight:800; text-decoration:underline;">Open Full Free Online Book / Primary Text ↗</a></div>`;
+  const parentKey = `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">📋 1-Minute Parent Briefing (${tag}):</div><div style="margin-bottom:8px;">Today's lesson covers <b>${item.title}</b>. Even if you haven't read the book, look for the student to cite specific details from the reading and connect them to real-world critical thinking.</div>` +
+    `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Verbatim A+ Sample Student Response:</div><div style="background:#ffffff; padding:8px; border-radius:6px; border:1px solid #bbf7d0; margin-bottom:6px;">"In <i>${item.title}</i>, the author uses contrasting imagery and character choices to expose how passive conformity weakens independent thought. For example, when the protagonist questions accepted rules rather than blindly obeying, the tension reveals that true wisdom requires active reflection and courage. Today's global connection shows how access to diverse books and open dialogue remains essential for free societies."</div>` +
+    `<div style="font-weight:800; color:#14532d;">🎯 Grading Checklist (95–100%):</div>• Uses 6–8 complete sentences with at least 2 specific examples from today's reading.<br>• Clearly explains <i>why</i> the author's choice matters (not just plot summary).<br>• Bonus (+5%): Mentions a real-world historical or global example.`;
+
+  return {
+    unitTitle: `${tag} • ${item.title}`,
+    objectives: [`Analyze ${item.topic} using concrete textual evidence.`, `Connect today's reading (${tag}) to the cumulative weekly theme.`, `Compose an evidence-backed Honors analytical response.`],
+    hook: jokes[(dayInW - 1) % jokes.length],
+    yt: item.yt, ytLabel: item.ytLabel, textbookHtml, parentKey,
+    qc: [
+      { q: `What is the central analytical focus of today's lesson (${item.topic})?`, opts: ["Examining how deliberate literary choices and evidence reveal deeper meaning", "Memorizing page numbers without analyzing character motives", "Skipping primary texts in favor of guessing"], a: 0, r: "Spot on! Honors analysis always links concrete textual details to the author's larger theme.", w: "Look closer at Section 1—Honors reading focuses on *why* authors use specific motifs, foils, and rhetorical choices." },
+      { q: "What is a 'character foil' in literature?", opts: ["A character whose contrasting traits highlight the protagonist's qualities or flaws", "Shiny aluminum wrap used to protect hardcover books", "The final page of an index"], a: 0, r: "Exactly! Just like Clarisse contrasts with Mildred, foils make key traits stand out.", w: "Think of how two opposite characters side-by-side make each other's personalities clearer!" },
+      { q: "How does today's lesson build on the rest of the week?", opts: ["Each day progresses sequentially from foundation to deeper conflict and Day 5 synthesis", "Each day is completely unrelated to yesterday", "Only Day 1 counts"], a: 0, r: "Yes! Every lesson builds step-by-step across the week and quarter.", w: "Every day in GlobalPrep High builds directly on the previous day's reading and concepts." }
+    ],
+    prompts: [
+      `1. Close Reading Analysis (6–8 sentences): Using today's reading (${item.title}), explain two specific textual details or character choices that advance the central theme.`,
+      `2. Cumulative Connection (4–5 sentences): How does today's lesson (${tag}) build on what you learned earlier this week or quarter?`,
+      `3. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Name a real-world library, museum, or historical event anywhere in the world connected to preserving books, free speech, or storytelling.`
+    ]
+  };
+};
+window.buildMathLesson = function(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam, subject) {
+  const mathYears = {
+    9: { name: "Honors Algebra I", yt: "NybHckSEQBI", units: ["Order of Operations & Linear Equations", "Slope, Rate of Change & y = mx + b", "Systems of Linear Equations (Graphing, Substitution, Elimination)", "Linear Inequalities & Absolute Value", "Laws of Exponents & Scientific Notation", "Polynomial Operations & Factoring Quadratics", "Quadratic Functions, Vertex Form & Quadratic Formula", "Radical Expressions & Data Modeling", "Quarter Mastery & Cumulative Algebra Exam"] },
+    10: { name: "Honors Geometry", yt: "302eJ3TzJQU", units: ["Points, Lines, Planes & Angle Relationships", "Parallel Lines, Transversals & Geometric Proofs", "Triangle Congruence (SSS, SAS, ASA, AAS)", "Similarity, Proportions & Dilations", "Right Triangles, Pythagorean Theorem & Special Right Triangles", "Introduction to Right-Triangle Trigonometry (SOH-CAH-TOA)", "Quadrilaterals, Polygons & Area Proofs", "Circles: Arcs, Chords, Tangents & Sectors", "Quarter Mastery & Cumulative Geometry Exam"] },
+    11: { name: "Honors Algebra II & Trigonometry", yt: "NybHckSEQBI", units: ["Functions, Domain/Range & Transformations", "Complex Numbers & Quadratic Systems", "Polynomial Division, Roots & End Behavior", "Rational Functions & Asymptotes", "Exponential Growth/Decay & Compound Interest", "Logarithms & Natural Base e", "Sequences, Series & Sigma Notation", "Unit Circle & Trigonometric Identities", "Quarter Mastery & Cumulative Algebra II Exam"] },
+    12: { name: "Honors Pre-Calculus & Statistics", yt: "NybHckSEQBI", units: ["Parametric Equations & Polar Coordinates", "Vectors, Dot Products & Matrices", "Conic Sections (Parabolas, Ellipses, Hyperbolas)", "Limits, Continuity & Instantaneous Rate of Change", "Descriptive Statistics, Standard Deviation & Z-Scores", "Probability Distributions & Expected Value", "Confidence Intervals & Hypothesis Testing", "Linear Regression & Correlation Analysis", "Quarter Mastery & Cumulative Pre-Calculus Exam"] }
+  };
+  const track = mathYears[yr] || mathYears;
+  const uIdx = (weekInQ - 1) % track.units.length;
+  const unitName = track.units[uIdx];
+  const shift = (qNum - 1) * 2;
+  const mVal = dayInW + 1 + (shift % 4);
+  const bVal = dayInW * 2 - 3;
+  const xTest = dayInW + 3;
+  const yAns = mVal * xTest + bVal;
+  const jokes = [
+    "Why was the equal sign so humble? Because he knew he wasn't less than or greater than anyone else! Today we keep both sides of every equation perfectly balanced.",
+    "Slope is basically how dramatic a line is: a slope of 0 is a nap on the couch, while a slope of 10 is climbing Mount Everest before breakfast!",
+    "Think of systems of equations like two friends walking across a city map—today we find the exact street corner where they bump into each other.",
+    "Day 4 challenge: Real engineers, pilots, and game designers use this exact math every single day so bridges don't wobble and rockets hit orbit!",
+    "Weekly Math Boss Battle! Put away the guesswork—show every step cleanly like a NASA flight director."
+  ];
+  const textbookHtml = `<h4 style="color:#1e3a8a; margin:0 0 6px 0;">1. ${track.name} Textbook Chapter — ${unitName} (${tag})</h4>` +
+    `<p><b>Core Concept &amp; Step-by-Step Theory:</b> In today's sequential lesson on <b>${unitName}</b> (Quarter ${qNum}, Week ${weekInQ}, Day ${dayInW}), we build directly on yesterday's foundation. Every algebraic or geometric relationship follows strict logical equivalence: whatever operation you apply to one side of an equation or figure must preserve balance on the other side.</p>` +
+    `<p><b>Worked Step-by-Step Model (Today's Unique Practice Parameters):</b><br>` +
+    `• <b>Model Equation:</b> Given slope/rate <code>m = ${mVal}</code> and starting value <code>b = ${bVal}</code>, our linear model is <code>y = ${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)}</code>.<br>` +
+    `• <b>Step 1 (Substitute x = ${xTest}):</b> <code>y = ${mVal}(${xTest}) ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} = ${mVal * xTest} ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} = <b>${yAns}</b></code>.<br>` +
+    `• <b>Step 2 (Inverse Check):</b> Solve <code>${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} = ${yAns}</code> → subtract/add <code>${Math.abs(bVal)}</code> to get <code>${mVal}x = ${yAns - bVal}</code> → divide by <code>${mVal}</code> → <code><b>x = ${xTest}</b></code> ✓.</p>`;
+  const parentKey = `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">📋 1-Minute Parent Briefing (${tag}):</div><div style="margin-bottom:8px;">Even if you haven't done high school math in years, every exact answer for today's unique numbers is solved below!</div>` +
+    `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Exact Step-by-Step Answer Key (Day ${absDay}):</div><div style="background:#ffffff; padding:8px; border-radius:6px; border:1px solid #bbf7d0; margin-bottom:6px;">` +
+    `• <b>Problem 1 (Evaluate y when x = ${xTest}):</b> y = ${mVal}(${xTest}) + (${bVal}) = <b>${yAns}</b>.<br>` +
+    `• <b>Problem 2 (Solve for x):</b> ${mVal}x + (${bVal}) = ${yAns + mVal * 2} → ${mVal}x = ${yAns + mVal * 2 - bVal} → <b>x = ${xTest + 2}</b>.<br>` +
+    `• <b>Problem 3 (Rate of Change / Slope):</b> Between (0, ${bVal}) and (${xTest}, ${yAns}), slope m = (${yAns} − (${bVal})) ÷ (${xTest} − 0) = <b>${mVal}</b>.<br>` +
+    `• <b>Problem 4 (Interactive Graph):</b> Line crosses y-axis at (0, ${bVal}) and rises ${mVal} units for every 1 unit right.</div>` +
+    `<div style="font-weight:800; color:#14532d;">🎯 Grading Checklist:</div>• Full credit (95–100%) requires showing intermediate steps, not just a single final number.`;
+
+  return {
+    isMath: true,
+    unitTitle: `${tag} • ${track.name}: ${unitName}`,
+    objectives: [`Master ${unitName} step by step.`, `Verify solutions using inverse operations and visual graphing.`, `Apply ${unitName} to a real-world quantitative scenario.`],
+    hook: jokes[(dayInW - 1) % jokes.length],
+    yt: track.yt, ytLabel: `Watch: ${track.name} — ${unitName}`, textbookHtml, parentKey,
+    qc: [
+      { q: `In y = ${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)}, what is the value of y when x = ${xTest}?`, opts: [`${yAns}`, `${yAns + mVal}`, `${mVal + bVal}`], a: 0, r: `Nailed it! ${mVal}(${xTest}) + (${bVal}) = ${yAns}.`, w: `Multiply ${mVal} × ${xTest} first (= ${mVal * xTest}), then add (${bVal}) to get ${yAns}.` },
+      { q: `In y = mx + b, what does 'm' represent on a graph?`, opts: ["The slope (rate of change / steepness of the line)", "The horizontal x-axis label", "The square root of the area"], a: 0, r: "Exactly! 'm' is the rate of change (rise over run).", w: "'m' controls how steep the line is (rise divided by run)." },
+      { q: "Why does Honors Math require showing every step?", opts: ["It proves logical reasoning and catches sign errors before they cascade", "To waste extra pencil lead", "Only the final digit ever matters"], a: 0, r: "Spot on! Clear step-by-step work is how mathematicians and engineers verify accuracy.", w: "Showing steps lets you verify each transformation and earn partial credit even if a small arithmetic slip happens." }
+    ],
+    prompts: [
+      `1. Solve & Show Every Step: Evaluate y = ${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} when x = ${xTest}, and then solve ${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} = ${yAns + mVal * 2} for x.`,
+      `2. Interactive Graph & Slope Check: Enter m = ${mVal} and b = ${bVal} into the Interactive Grapher above, plot two points on the line, and explain what happens to the line if m becomes negative (-${mVal}).`,
+      `3. 🌍 Global Explorer Bonus (+5 Extra Credit Points): A high-speed train travels ${mVal * 100} km in 2 hours. Write a linear equation for distance d after t hours and find how far it travels in 3.5 hours.`
+    ]
+  };
+};
+window.buildMathLesson = function(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam, subject) {
+  const mathYears = {
+    9: { name: "Honors Algebra I", yt: "NybHckSEQBI", units: ["Order of Operations & Linear Equations", "Slope, Rate of Change & y = mx + b", "Systems of Linear Equations (Graphing, Substitution, Elimination)", "Linear Inequalities & Absolute Value", "Laws of Exponents & Scientific Notation", "Polynomial Operations & Factoring Quadratics", "Quadratic Functions, Vertex Form & Quadratic Formula", "Radical Expressions & Data Modeling", "Quarter Mastery & Cumulative Algebra Exam"] },
+    10: { name: "Honors Geometry", yt: "302eJ3TzJQU", units: ["Points, Lines, Planes & Angle Relationships", "Parallel Lines, Transversals & Geometric Proofs", "Triangle Congruence (SSS, SAS, ASA, AAS)", "Similarity, Proportions & Dilations", "Right Triangles, Pythagorean Theorem & Special Right Triangles", "Introduction to Right-Triangle Trigonometry (SOH-CAH-TOA)", "Quadrilaterals, Polygons & Area Proofs", "Circles: Arcs, Chords, Tangents & Sectors", "Quarter Mastery & Cumulative Geometry Exam"] },
+    11: { name: "Honors Algebra II & Trigonometry", yt: "NybHckSEQBI", units: ["Functions, Domain/Range & Transformations", "Complex Numbers & Quadratic Systems", "Polynomial Division, Roots & End Behavior", "Rational Functions & Asymptotes", "Exponential Growth/Decay & Compound Interest", "Logarithms & Natural Base e", "Sequences, Series & Sigma Notation", "Unit Circle & Trigonometric Identities", "Quarter Mastery & Cumulative Algebra II Exam"] },
+    12: { name: "Honors Pre-Calculus & Statistics", yt: "NybHckSEQBI", units: ["Parametric Equations & Polar Coordinates", "Vectors, Dot Products & Matrices", "Conic Sections (Parabolas, Ellipses, Hyperbolas)", "Limits, Continuity & Instantaneous Rate of Change", "Descriptive Statistics, Standard Deviation & Z-Scores", "Probability Distributions & Expected Value", "Confidence Intervals & Hypothesis Testing", "Linear Regression & Correlation Analysis", "Quarter Mastery & Cumulative Pre-Calculus Exam"] }
+  };
+  const track = mathYears[yr] || mathYears;
+  const uIdx = (weekInQ - 1) % track.units.length;
+  const unitName = track.units[uIdx];
+  const mVal = dayInW + 1 + (((qNum - 1) * 2) % 4);
+  const bVal = dayInW * 2 - 3;
+  const xTest = dayInW + 3;
+  const yAns = mVal * xTest + bVal;
+  const jokes = [
+    "Why was the equal sign so humble? Because he knew he wasn't less than or greater than anyone else! Today we keep both sides of every equation perfectly balanced.",
+    "Slope is basically how dramatic a line is: a slope of 0 is a nap on the couch, while a slope of 10 is climbing Mount Everest before breakfast!",
+    "Think of systems of equations like two friends walking across a city map—today we find the exact street corner where they bump into each other.",
+    "Day 4 challenge: Real engineers, pilots, and game designers use this exact math every single day so bridges don't wobble and rockets hit orbit!",
+    "Weekly Math Boss Battle! Put away the guesswork—show every step cleanly like a NASA flight director."
+  ];
+  const textbookHtml = `<h4 style="color:#1e3a8a; margin:0 0 6px 0;">1. ${track.name} Textbook Chapter — ${unitName} (${tag})</h4>` +
+    `<p><b>Core Concept &amp; Step-by-Step Theory:</b> In today's sequential lesson on <b>${unitName}</b> (Quarter ${qNum}, Week ${weekInQ}, Day ${dayInW}), we build directly on yesterday's foundation. Every algebraic or geometric relationship follows strict logical equivalence: whatever operation you apply to one side of an equation or figure must preserve balance on the other side.</p>` +
+    `<p><b>Worked Step-by-Step Model (Today's Unique Practice Parameters):</b><br>` +
+    `• <b>Model Equation:</b> Given slope/rate <code>m = ${mVal}</code> and starting value <code>b = ${bVal}</code>, our linear model is <code>y = ${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)}</code>.<br>` +
+    `• <b>Step 1 (Substitute x = ${xTest}):</b> <code>y = ${mVal}(${xTest}) ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} = ${mVal * xTest} ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} = <b>${yAns}</b></code>.<br>` +
+    `• <b>Step 2 (Inverse Check):</b> Solve <code>${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} = ${yAns}</code> → subtract/add <code>${Math.abs(bVal)}</code> to get <code>${mVal}x = ${yAns - bVal}</code> → divide by <code>${mVal}</code> → <code><b>x = ${xTest}</b></code> ✓.</p>`;
+  const parentKey = `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">📋 1-Minute Parent Briefing (${tag}):</div><div style="margin-bottom:8px;">Even if you haven't done high school math in years, every exact answer for today's unique numbers is solved below!</div>` +
+    `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Exact Step-by-Step Answer Key (Day ${absDay}):</div><div style="background:#ffffff; padding:8px; border-radius:6px; border:1px solid #bbf7d0; margin-bottom:6px;">` +
+    `• <b>Problem 1 (Evaluate y when x = ${xTest}):</b> y = ${mVal}(${xTest}) + (${bVal}) = <b>${yAns}</b>.<br>` +
+    `• <b>Problem 2 (Solve for x):</b> ${mVal}x + (${bVal}) = ${yAns + mVal * 2} → ${mVal}x = ${yAns + mVal * 2 - bVal} → <b>x = ${xTest + 2}</b>.<br>` +
+    `• <b>Problem 3 (Rate of Change / Slope):</b> Between (0, ${bVal}) and (${xTest}, ${yAns}), slope m = (${yAns} − (${bVal})) ÷ (${xTest} − 0) = <b>${mVal}</b>.<br>` +
+    `• <b>Problem 4 (Interactive Graph):</b> Line crosses y-axis at (0, ${bVal}) and rises ${mVal} units for every 1 unit right.</div>` +
+    `<div style="font-weight:800; color:#14532d;">🎯 Grading Checklist:</div>• Full credit (95–100%) requires showing intermediate steps, not just a single final number.`;
+
+  return {
+    isMath: true,
+    unitTitle: `${tag} • ${track.name}: ${unitName}`,
+    objectives: [`Master ${unitName} step by step.`, `Verify solutions using inverse operations and visual graphing.`, `Apply ${unitName} to a real-world quantitative scenario.`],
+    hook: jokes[(dayInW - 1) % jokes.length],
+    yt: track.yt, ytLabel: `Watch: ${track.name} — ${unitName}`, textbookHtml, parentKey,
+    qc: [
+      { q: `In y = ${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)}, what is the value of y when x = ${xTest}?`, opts: [`${yAns}`, `${yAns + mVal}`, `${mVal + bVal}`], a: 0, r: `Nailed it! ${mVal}(${xTest}) + (${bVal}) = ${yAns}.`, w: `Multiply ${mVal} × ${xTest} first (= ${mVal * xTest}), then add (${bVal}) to get ${yAns}.` },
+      { q: `In y = mx + b, what does 'm' represent on a graph?`, opts: ["The slope (rate of change / steepness of the line)", "The horizontal x-axis label", "The square root of the area"], a: 0, r: "Exactly! 'm' is the rate of change (rise over run).", w: "'m' controls how steep the line is (rise divided by run)." },
+      { q: "Why does Honors Math require showing every step?", opts: ["It proves logical reasoning and catches sign errors before they cascade", "To waste extra pencil lead", "Only the final digit ever matters"], a: 0, r: "Spot on! Clear step-by-step work is how mathematicians and engineers verify accuracy.", w: "Showing steps lets you verify each transformation and earn partial credit even if a small arithmetic slip happens." }
+    ],
+    prompts: [
+      `1. Solve & Show Every Step: Evaluate y = ${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} when x = ${xTest}, and then solve ${mVal}x ${bVal >= 0 ? "+ " + bVal : "- " + Math.abs(bVal)} = ${yAns + mVal * 2} for x.`,
+      `2. Interactive Graph & Slope Check: Enter m = ${mVal} and b = ${bVal} into the Interactive Grapher above, plot two points on the line, and explain what happens to the line if m becomes negative (-${mVal}).`,
+      `3. 🌍 Global Explorer Bonus (+5 Extra Credit Points): A high-speed train travels ${mVal * 100} km in 2 hours. Write a linear equation for distance d after t hours and find how far it travels in 3.5 hours.`
+    ]
+  };
+};
+window.buildMechanicsLesson = function(yr, qNum, weekInQ, dayInW, absDay, tag) {
+  const units = ["Four-Stroke Engine Cycle (Intake, Compression, Power, Exhaust)", "Torque, Horsepower & Gear Ratios", "Hydraulic Braking Systems & Pascal's Principle", "Automotive Electrical Systems, Alternators & Ohm's Law", "Suspension Geometry, Steering & Tire Traction", "Cooling Systems, Radiators & Thermodynamics", "Transmission Mechanics (Manual, Automatic & CVT)", "Hybrid & Electric Vehicle (EV) Drivetrains", "Quarter Mastery & Diagnostic Troubleshooting Exam"];
+  const unitName = units[(weekInQ - 1) % units.length];
+  const textbookHtml = `<h4 style="color:#1e3a8a; margin:0 0 6px 0;">1. Automotive &amp; Applied Mechanics Textbook — ${unitName} (${tag})</h4>` +
+    `<p><b>Engineering Principle:</b> Today's Honors workshop explores <b>${unitName}</b>. Every vehicle converts stored chemical or electrical energy into controlled rotational torque and linear motion. Remember the golden mechanic rule: <i>Suck, Squeeze, Bang, Blow</i> (Intake, Compression, Power, Exhaust) for 4-stroke engines, and <code>HP = (Torque × RPM) ÷ 5252</code> for rotational power!</p>`;
+  const parentKey = `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">📋 1-Minute Parent Briefing (${tag}):</div><div style="margin-bottom:8px;">Today covers <b>${unitName}</b>. No garage tools needed—look for clear step-by-step mechanical reasoning.</div>` +
+    `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Verbatim A+ Sample Student Response:</div><div style="background:#ffffff; padding:8px; border-radius:6px; border:1px solid #bbf7d0;">"In ${unitName}, energy transfers systematically through mechanical advantage and fluid/electrical pressure. During troubleshooting, isolating one subsystem at a time (fuel, air, spark, or compression) prevents unnecessary part replacement and pinpoints the root fault."</div>`;
+  return {
+    unitTitle: `${tag} • Automotive & Applied Mechanics: ${unitName}`,
+    objectives: [`Explain the physics and engineering of ${unitName}.`, `Diagnose mechanical faults systematically.`, `Apply torque, pressure, or electrical formulas to real vehicles.`],
+    hook: "Mechanic's rule #1: Never hit a sensor with a hammer when a $10 multimeter will tell you the truth in 5 seconds!",
+    yt: "ZQvfHyfgBtA", ytLabel: `Watch: How a Car Engine & Drivetrain Work — ${unitName}`, textbookHtml, parentKey,
+    qc: [
+      { q: "What are the four strokes of a 4-stroke internal combustion engine in order?", opts: ["Intake, Compression, Power, Exhaust", "Exhaust, Ignition, Braking, Cooling", "Steering, Shifting, Honking, Parking"], a: 0, r: "Spot on! Intake, Compression, Power, Exhaust ('Suck, Squeeze, Bang, Blow').", w: "Remember the cycle order: Intake draws air/fuel in, Compression squeezes it, Power ignites it, Exhaust clears it out." },
+      { q: "At what RPM do Horsepower and Torque numbers always cross on a dyno chart?", opts: ["5,252 RPM", "1,000 RPM", "10,000 RPM"], a: 0, r: "Nailed it! Because HP = (Torque × RPM) ÷ 5252.", w: "The formula HP = (Torque × RPM) ÷ 5252 makes them equal at 5,252 RPM." },
+      { q: "Why do hydraulic brakes multiply foot force so effectively?", opts: ["Pascal's Principle transmits fluid pressure equally to larger caliper pistons", "Brake fluid is magnetic", "Air compresses inside brake lines"], a: 0, r: "Exactly! Incompressible brake fluid multiplies force across larger piston area.", w: "Hydraulic systems rely on incompressible fluid and Pascal's Principle." }
+    ],
+    prompts: [
+      `1. Systems Engineering Analysis (6–8 sentences): Explain how ${unitName} works and what happens if one key component fails.`,
+      `2. Diagnostic Troubleshooting Scenario: A driver notices sluggish acceleration and unusual noise related to ${unitName}. Walk through 3 safe diagnostic checks before replacing parts.`,
+      `3. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Name a famous automotive engineering hub or race circuit (e.g., Stuttgart, Modena, Toyota City, Nürburgring) and one innovation pioneered there.`
+    ]
+  };
+};
+
+window.buildFinanceLesson = function(yr, qNum, weekInQ, dayInW, absDay, tag) {
+  const units = ["Compound Interest & The Time Value of Money", "Stocks, Ticker Symbols & Market Capitalization", "Index Funds, ETFs & Diversification", "Reading Balance Sheets & Income Statements", "P/E Ratios, Dividends & Valuation Basics", "Budgeting, Emergency Funds & Credit Scores", "Inflation, Central Banks & Interest Rates", "Behavioral Finance & Avoiding Emotional Trading", "Quarter Mastery & Simulated Portfolio Defense"];
+  const unitName = units[(weekInQ - 1) % units.length];
+  const textbookHtml = `<h4 style="color:#065f46; margin:0 0 6px 0;">1. Stock Market &amp; Personal Finance Textbook — ${unitName} (${tag})</h4>` +
+    `<p><b>Wealth-Building Principle:</b> Today's chapter covers <b>${unitName}</b>. Compound interest is the eighth wonder of the world: <code>A = P(1 + r)^t</code>. Investing $100/month starting at age 16 instead of 36 can more than triple retirement wealth simply because time multiplies compounding!</p>`;
+  const parentKey = `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">📋 1-Minute Parent Briefing (${tag}):</div><div style="margin-bottom:8px;">Today covers <b>${unitName}</b>. Look for realistic math and sound diversification principles.</div>` +
+    `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Verbatim A+ Sample Student Response:</div><div style="background:#ffffff; padding:8px; border-radius:6px; border:1px solid #bbf7d0;">"Diversifying across a broad S&P 500 index fund spreads risk across 500 companies so one company's downturn cannot wipe out long-term savings, while compound growth rewards consistent early investing."</div>`;
+  return {
+    unitTitle: `${tag} • Stock Market & Personal Finance: ${unitName}`,
+    objectives: [`Master ${unitName} using real market metrics.`, `Compare single-stock risk vs. index diversification.`, `Calculate compound growth over multi-year horizons.`],
+    hook: "Warren Buffett bought his first stock at age 11—and still jokes he started too late! Today we put compound math on your side.",
+    yt: "p7HKvqRI_Bo", ytLabel: `Watch: How The Stock Market & Investing Work — ${unitName}`, textbookHtml, parentKey,
+    qc: [
+      { q: "Why does an S&P 500 Index Fund reduce risk compared to buying one single stock?", opts: ["It spreads your money across 500 major companies automatically", "It guarantees stocks never go down on Tuesday", "It eliminates all math"], a: 0, r: "Spot on! Diversification protects you if one company stumbles.", w: "Owning 500 companies spreads risk so one bad company can't sink your whole portfolio." },
+      { q: "In A = P(1 + r)^t, what variable gives young investors their biggest advantage?", opts: ["t (Time — years of compounding)", "Spending every paycheck immediately", "Guessing daily ticker colors"], a: 0, r: "Exactly! Time (t) is in the exponent, making growth exponential.", w: "Because 't' is an exponent, starting early multiplies growth dramatically." },
+      { q: "What does a company's stock ticker symbol represent?", opts: ["Partial ownership (equity) in a real publicly traded business", "A lottery ticket with no underlying business", "A bank loan you owe"], a: 0, r: "Yes! Every share represents real ownership in an actual business.", w: "Buying a share of stock means owning a fractional piece of that company." }
+    ],
+    prompts: [
+      `1. Market & Portfolio Analysis (6–8 sentences): Explain how ${unitName} helps an investor build long-term financial independence.`,
+      `2. Quantitative Scenario: If $1,000 grows at 8% annually (1.08^10 ≈ 2.16), compare the value after 10 years vs. 20 years (1.08^20 ≈ 4.66).`,
+      `3. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Name a major global stock exchange outside New York (e.g., Tokyo, London, Frankfurt, Hong Kong) and its primary market index.`
+    ]
+  };
+};
+window.buildWorldLangOrElectiveLesson = function(yr, qNum, weekInQ, dayInW, absDay, tag, isWeeklyQuiz, isQuarterExam, subject) {
+  const s = (subject || "").toLowerCase();
+  const isMandarin = s.includes("mandarin") || s.includes("chinese");
+  const isFrench = s.includes("french");
+  const isSpanish = s.includes("spanish");
+  const langName = isMandarin ? "Mandarin Chinese" : isFrench ? "French" : isSpanish ? "Spanish" : (subject || "Honors Elective");
+  const yt = isMandarin ? "McZW0iOg2Wc" : isFrench ? "hd0_GZHHWeE" : isSpanish ? "DAp_v7EH9AA" : "YMZcp0EQO2s";
+  const units = ["Greetings, Polite Requests & Phonetics", "Numbers, Time, Dates & Daily Schedules", "Family, Descriptions & Essential Verbs", "Ordering Food, Cafes & Market Etiquette", "Directions, Transportation & World Travel", "Weather, Seasons & Outdoor Adventure", "Storytelling in Past & Future Tenses", "Cultural Traditions, Arts & Global Perspectives", "Quarter Mastery & Oral/Written Proficiency Check"];
+  const unitName = units[(weekInQ - 1) % units.length];
+  const vocabBlock = isSpanish
+    ? `<p><b>Core Immersion Phrases:</b> <i>Buenos días</i> (Good morning) • <i>Quisiera un café, por favor</i> (I would like a coffee, please) • <i>¿Dónde está la estación?</i> (Where is the station?) • <i>La cuenta, por favor. Muchas gracias.</i> (The check, please. Thank you very much.)</p>`
+    : isMandarin
+    ? `<p><b>Core Immersion Phrases &amp; Pinyin:</b> <i>Nǐ hǎo (你好)</i> — Hello • <i>Xièxie (谢谢)</i> — Thank you • <i>Qǐngwèn (请问)</i> — Excuse me / May I ask • <i>Wǒ yào zhège (我要这个)</i> — I would like this one • <i>Duōshao qián? (多少钱？)</i> — How much does it cost?</p>`
+    : isFrench
+    ? `<p><b>Core Immersion Phrases:</b> <i>Bonjour</i> (Hello) • <i>Je voudrais un croissant, s'il vous plaît</i> (I would like a croissant, please) • <i>Où est la gare ?</i> (Where is the train station?) • <i>L'addition, s'il vous plaît. Merci beaucoup.</i></p>`
+    : `<p><b>Core Applied Framework:</b> Today's Honors workshop explores <b>${unitName}</b> through real-world global case studies, active problem-solving, and structured reflection.</p>`;
+  const textbookHtml = `<h4 style="color:#0369a1; margin:0 0 6px 0;">1. ${langName} Textbook Chapter — ${unitName} (${tag})</h4>` +
+    `<p><b>Immersion &amp; Communication Strategy:</b> Language and practical skills grow through active pattern building, not rote memorization. Today's lesson builds directly on yesterday's vocabulary and grammar so you can navigate real-world travel, dining, and cultural conversations with confidence.</p>${vocabBlock}`;
+  const parentKey = `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">📋 1-Minute Parent Briefing (${tag}):</div><div style="margin-bottom:8px;">Today covers <b>${langName}: ${unitName}</b>. Look for complete, polite sentences using today's vocabulary rather than one-word answers.</div>` +
+    `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Verbatim A+ Sample Student Response:</div><div style="background:#ffffff; padding:8px; border-radius:6px; border:1px solid #bbf7d0;">` +
+    (isSpanish ? `"— ¡Buenos días! ¿Qué desea tomar?<br>— Buenos días. Quisiera un jugo de naranja y una tortilla, por favor.<br>— Aquí tiene. ¿Algo más?<br>— No, gracias. La cuenta, por favor. ¡Muchas gracias!"`
+      : isMandarin ? `"— Nǐ hǎo! Nǐ yào shénme? (你好！你要什么？)<br>— Nǐ hǎo! Wǒ yào yī bēi chá, xièxie. (你好！我要一杯茶，谢谢。)<br>— Duōshao qián? (多少钱？)<br>— Shí kuài qián. Xièxie! (十块钱。谢谢！)"`
+      : `"Complete 8-line structured dialogue or field analysis applying all key terms from ${unitName} accurately and politely."`) + `</div>`;
+  return {
+    unitTitle: `${tag} • ${langName} (Level ${yr - 8}): ${unitName}`,
+    objectives: [`Master core expressions and structures for ${unitName}.`, `Communicate politely and accurately in real-world scenarios.`, `Connect language fluency to global cultural awareness.`],
+    hook: "Worldschooler superpower: Learning just 10 polite phrases in the local language instantly turns strangers into smiling hosts anywhere on Earth!",
+    yt, ytLabel: `Watch: ${langName} Immersion — ${unitName}`, textbookHtml, parentKey,
+    qc: [
+      { q: `What is the primary goal of today's ${langName} lesson (${unitName})?`, opts: ["Communicating clearly and politely in real-world everyday situations", "Memorizing random dictionary words without context", "Never speaking out loud"], a: 0, r: "Spot on! Real fluency comes from using phrases in authentic conversations.", w: "Focus on practical, polite sentences you can use immediately in real life." },
+      { q: "Why do worldschoolers practice polite greetings and requests first?", opts: ["Polite openings build immediate rapport and respect across cultures", "Polite words are optional when traveling", "Only grammar charts matter"], a: 0, r: "Exactly! Polite greetings open doors everywhere.", w: "Greetings and polite requests ('please', 'thank you', 'excuse me') are the foundation of respectful communication." },
+      { q: "How does today's lesson build on earlier days?", opts: ["Each day adds new vocabulary and sentence patterns onto previous dialogues", "Each day erases yesterday's words", "Only Week 9 matters"], a: 0, r: "Yes! Cumulative practice locks vocabulary into long-term memory.", w: "Every day recycles earlier phrases while adding new conversational structures." }
+    ],
+    prompts: [
+      `1. Real-World Dialogue / Application (8–10 lines): Write a realistic conversation or field response for ${unitName} using today's vocabulary and polite expressions.`,
+      `2. Cultural & Grammatical Reflection (4–5 sentences): Explain two key pronunciation, tone, or cultural etiquette rules from today's lesson.`,
+      `3. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Name a major city or landmark where ${langName} is spoken (or where ${subject} is world-famous) and share one cultural fact about it.`
+    ]
+  };
+};
+
+
+
+
+
+
 
