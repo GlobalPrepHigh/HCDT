@@ -824,7 +824,6 @@ function renderGradingQueue() {
     </div>`;
   }).join("");
 }
-}
 function openStudentPhotoModal(subId) {
   const sub = submissionsCache.find(s => String(s.id) === String(subId));
   const modal = document.getElementById("photoLightboxModal");
