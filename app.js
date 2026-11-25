@@ -1422,6 +1422,7 @@ function splitLessonParts(rawDesc, subject) {
 window.stuCourseOpen = false;
 window.stuViewDayOffset = {};
 window.stuAllBySubject = {};
+window.stuGridPoints = {};
 
 function openStudentCourse(idx) {
   selectedStuSubjectIdx = idx;
@@ -1435,8 +1436,8 @@ function closeStudentCourseMenu() {
 }
 
 function shiftStudentDay(subj, delta, maxLen) {
-  const cur = typeof window.stuViewDayOffset[subj] === "number" ? window.stuViewDayOffset[subj] : (maxLen - 1);
-  window.stuViewDayOffset[subj] = Math.max(0, Math.min(maxLen - 1, cur + delta));
+  const cur = typeof window.stuViewDayOffset.subj === "number" ? window.stuViewDayOffset.subj : (maxLen - 1);
+  window.stuViewDayOffset.subj = Math.max(0, Math.min(maxLen - 1, cur + delta));
   renderStudentTodayPane();
 }
 
@@ -1449,61 +1450,59 @@ function speakWordInline(word, langCode) {
   window.speechSynthesis.speak(u);
 }
 
+function checkInstantQC(assignId, qIdx, optIdx, correctIdx, whyRight, whyWrong) {
+  const box = document.getElementById("qc_fb_" + assignId + "_" + qIdx);
+  if (!box) return;
+  if (optIdx === correctIdx) {
+    box.style.background = "#dcfce7";
+    box.style.color = "#15803d";
+    box.innerHTML = "✅ <b>Correct!</b> " + whyRight;
+  } else {
+    box.style.background = "#fee2e2";
+    box.style.color = "#b91c1c";
+    box.innerHTML = "❌ <b>Not quite — try again!</b> " + whyWrong;
+  }
+}
 function injectInlinePronunciations(html, subject) {
   const s = (subject || "").toLowerCase();
-  let terms = [];
-  if (s.includes("spanish")) {
-    terms = [
-      { w: "Buenos días", p: "BWEH-nohs DEE-ahs", l: "es-ES" },
-      { w: "Por favor", p: "por fah-VOR", l: "es-ES" },
-      { w: "Muchas gracias", p: "MOO-chahs GRAH-syahs", l: "es-ES" },
-      { w: "Quisiera", p: "kee-SYEH-rah", l: "es-ES" },
-      { w: "La cuenta", p: "lah KWEN-tah", l: "es-ES" }
-    ];
-  } else if (s.includes("mandarin") || s.includes("chinese")) {
-    terms = [
-      { w: "Nǐ hǎo", p: "nee-how", l: "zh-CN" },
-      { w: "Xièxie", p: "shyeh-shyeh", l: "zh-CN" }
-    ];
-  } else if (s.includes("french")) {
-    terms = [
-      { w: "Bonjour", p: "bohn-ZHOOR", l: "fr-FR" },
-      { w: "Merci beaucoup", p: "mehr-SEE boh-KOO", l: "fr-FR" }
-    ];
-  } else if (s.includes("hindi")) {
-    terms = [
-      { w: "Namaste", p: "nuh-muh-STAY", l: "hi-IN" },
-      { w: "Dhanyavaad", p: "dhun-yuh-VAAD", l: "hi-IN" }
-    ];
-  } else if (s.includes("history")) {
-    terms = [
-      { w: "Hammurabi", p: "hah-moo-RAH-bee", l: "en-US" },
-      { w: "Cuneiform", p: "kyoo-NEE-uh-form", l: "en-US" },
-      { w: "Mesopotamia", p: "mes-uh-puh-TAY-mee-uh", l: "en-US" }
-    ];
-  } else if (s.includes("marine")) {
-    terms = [
-      { w: "Thermohaline", p: "thur-moh-HAY-leen", l: "en-US" },
-      { w: "Pelagic", p: "puh-LAJ-ik", l: "en-US" },
-      { w: "Salinity", p: "suh-LIN-ih-tee", l: "en-US" }
-    ];
-  } else if (s.includes("biology")) {
-    terms = [
-      { w: "Anaerobic", p: "an-uh-ROH-bik", l: "en-US" },
-      { w: "Hypothesis", p: "hy-POTH-uh-sis", l: "en-US" },
-      { w: "Metabolism", p: "muh-TAB-uh-liz-um", l: "en-US" }
-    ];
-  } else if (s.includes("literature") || s.includes("english")) {
-    terms = [
-      { w: "Dystopia", p: "dis-TOH-pee-uh", l: "en-US" },
-      { w: "Censorship", p: "SEN-ser-ship", l: "en-US" },
-      { w: "Foreshadowing", p: "for-SHAD-oh-ing", l: "en-US" }
-    ];
-  }
+  const terms = s.includes("spanish")
+    ? [
+        { w: "Buenos días", p: "BWEH-nohs DEE-ahs", l: "es-ES" },
+        { w: "Por favor", p: "por fah-VOR", l: "es-ES" },
+        { w: "Muchas gracias", p: "MOO-chahs GRAH-syahs", l: "es-ES" },
+        { w: "Quisiera", p: "kee-SYEH-rah", l: "es-ES" },
+        { w: "La cuenta", p: "lah KWEN-tah", l: "es-ES" }
+      ]
+    : s.includes("history")
+      ? [
+          { w: "Hammurabi", p: "hah-moo-RAH-bee", l: "en-US" },
+          { w: "Cuneiform", p: "kyoo-NEE-uh-form", l: "en-US" },
+          { w: "Mesopotamia", p: "mes-uh-puh-TAY-mee-uh", l: "en-US" },
+          { w: "Lex Talionis", p: "leks tah-lee-OH-nis", l: "en-US" }
+        ]
+      : s.includes("marine")
+        ? [
+            { w: "Thermohaline", p: "thur-moh-HAY-leen", l: "en-US" },
+            { w: "Zooxanthellae", p: "zoh-uh-zan-THEL-ee", l: "en-US" },
+            { w: "Salinity", p: "suh-LIN-ih-tee", l: "en-US" }
+          ]
+        : s.includes("biology")
+          ? [
+              { w: "Saccharomyces", p: "sak-uh-roh-MY-seez", l: "en-US" },
+              { w: "Hypothesis", p: "hy-POTH-uh-sis", l: "en-US" },
+              { w: "Metabolism", p: "muh-TAB-uh-liz-um", l: "en-US" }
+            ]
+          : (s.includes("literature") || s.includes("english"))
+            ? [
+                { w: "Dystopia", p: "dis-TOH-pee-uh", l: "en-US" },
+                { w: "Censorship", p: "SEN-ser-ship", l: "en-US" },
+                { w: "Foreshadowing", p: "for-SHAD-oh-ing", l: "en-US" }
+              ]
+            : [];
   let out = html;
   terms.forEach(t => {
     const safeW = t.w.replace(/'/g, "\\'");
-    const pill = `<span onclick="speakWordInline('${safeW}','${t.l}')" title="Tap to hear pronunciation" style="background:#e0f2fe; color:#0369a1; border-bottom:2px dotted #0284c7; padding:1px 5px; border-radius:4px; cursor:pointer; font-weight:700;">🔊 ${t.w} <small style="font-weight:500; color:#475569;">[${t.p}]</small></span>`;
+    const pill = `<span onclick="speakWordInline('${safeW}','${t.l}')" style="background:#e0f2fe; color:#0369a1; border-bottom:2px dotted #0284c7; padding:1px 5px; border-radius:4px; cursor:pointer; font-weight:700;">🔊 ${t.w} <small>(${t.p})</small></span>`;
     out = out.replace(new RegExp("\\b" + t.w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i"), pill);
   });
   return out;
@@ -1511,138 +1510,214 @@ function injectInlinePronunciations(html, subject) {
 function getKhanLessonContent(subject, dayNum, baseDesc) {
   const s = (subject || "").toLowerCase();
 
-  if (s.includes("literature") || s.includes("english")) {
-    const litDays = {
-      1: {
-        why: "Why This Matters: In 2026, algorithms curate what you see every second. Ray Bradbury wrote Fahrenheit 451 in 1953 warning about a society that trades deep reading for wall-sized screens—today you'll spot how his prediction mirrors modern media.",
-        yt: ["7aKItfLeso4"],
-        reading: "TEXTBOOK READING — DYSTOPIAN FICTION & BRADBURY'S WARNING:\nRay Bradbury’s Fahrenheit 451 opens with fireman Guy Montag enjoying his job burning books—until his 17-year-old neighbor Clarisse McClellan asks him one simple question: 'Are you happy?' Unlike Orwell’s 1984 (where government force bans books), Bradbury imagined a world where fast cars, parlor-wall TVs, and Seashell earbuds made people stop caring about books on their own. Notice the contrast between Clarisse’s curiosity about nature and Mildred’s obsession with her interactive screen 'family.'",
-        steps: "1. WATCH THE VIDEO BELOW (40 min total lesson): Watch Ray Bradbury explain what truly inspired Fahrenheit 451.\n2. READ THE NOVEL: Tap the Fahrenheit 451 PDF button below and read pages 1–55. Notice how Guy Montag thinks he's happy until 17-year-old neighbor Clarisse asks one simple question.\n3. HONORS ANALYSIS & 2026 CONNECTION (Write 8–12 well-crafted sentences): Compare Clarisse’s way of observing the world to Mildred’s screen addiction, citing two specific moments from pages 1–55 and connecting them to modern 2026 short-form media.\n4. CARMEN SANDIEGO GLOBAL BONUS: Bradbury set his novel in an unnamed American city, yet his books were banned in real life across several countries. Name one real city where Fahrenheit 451 faced censorship and why!"
-      },
-      2: {
-        why: "Why This Matters: Great writers use symbols (fire, salamanders, mechanical hounds) to carry hidden arguments without preaching. Spotting symbolism turns you from a passive reader into a sharp critical thinker.",
-        yt: ["7aKItfLeso4"],
-        reading: "TEXTBOOK READING — PART 2: THE SIEVE AND THE SAND (PAGES 66–103):\nIn Part 2, Montag tries to memorize lines from the Bible on a subway while blaring Denham’s Dentifrice jingles drown out his thoughts—like trying to fill a sieve with sand. Former English professor Faber explains that books aren't magic; what matters are three things: (1) quality of information, (2) leisure to digest it, and (3) the right to act on what we learn.",
-        steps: "1. WATCH THE VIDEO BELOW: Review Bradbury’s commentary on distraction vs. deep thought.\n2. READ PART 2: Tap the Fahrenheit 451 PDF button below and read Part 2 (pages 66–103).\n3. HONORS ANALYSIS (8–12 sentences): Explain Faber’s three requirements for a thoughtful society and analyze why Montag’s subway scene illustrates modern digital distraction.\n4. CARMEN SANDIEGO GLOBAL BONUS: Where in the world is the ancient Library of Alexandria located, and what happened to its scrolls?"
-      },
-      3: {
-        why: "Why This Matters: Turning points in literature reveal what a character truly values when everything comfortable is stripped away.",
-        yt: ["7aKItfLeso4"],
-        reading: "TEXTBOOK READING — PART 3: BURNING BRIGHT (PAGES 104–158):\nCaptain Beatty forces Montag to burn his own house, revealing Beatty actually knows literature well—and uses quotes as weapons to argue that conflicting books only make people unhappy. Escaping down the river, Montag meets Granger and the Book People, who each memorize an entire book to keep human memory alive after war destroys the city.",
-        steps: "1. WATCH THE VIDEO BELOW: Reflect on Bradbury’s message about preserving human knowledge.\n2. READ PART 3: Tap the Fahrenheit 451 PDF button below and finish Part 3 (pages 104–158) to complete the novel in Week 1!\n3. HONORS SYNTHESIS (8–12 sentences): Analyze how the symbol of fire transforms from destruction at the start of the novel to warmth and rebirth with Granger’s camp at the end.\n4. CARMEN SANDIEGO GLOBAL BONUS: If you joined Granger’s traveling Book People in Kyoto, Japan, which book would you memorize and why?"
-      }
-    };
-    return litDays[dayNum] || {
-      why: `Why This Matters (Week ${Math.ceil(dayNum / 5)} Honors Literature): Moving beyond Fahrenheit 451, strong writers analyze rhetoric, poetry, and global short fiction to see how voice and structure shape persuasion.`,
-      yt: ["7aKItfLeso4"],
-      reading: "TEXTBOOK READING — RHETORIC, VOICE & COMPARATIVE FICTION:\nIn Week 2 and beyond, Honors Literature explores how authors use ethos (credibility), pathos (emotion), and logos (evidence) alongside irony and point of view. Compare how dystopian fiction warns through imagination while nonfiction essays persuade through historical evidence.",
-      steps: "1. WATCH THE VIDEO BELOW: Study how authors craft memorable themes.\n2. CLOSE READING: Review the textbook passage above and identify one example of irony and one appeal to logos.\n3. HONORS WRITING EXERCISE (8–12 sentences): Write a comparative paragraph contrasting how fiction and journalism expose truth in society.\n4. CARMEN SANDIEGO GLOBAL BONUS: Which European capital hosts the Nobel Prize in Literature ceremony every December?"
-    };
-  }
-
-  if (s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("math")) {
-    if (dayNum === 1) {
-      return {
-        why: "Why This Matters: Linear equations power everything from calculating flight fuel burn and currency exchange rates while traveling to predicting monthly savings. Mastering slope and y-intercept lets you model real-world change.",
-        yt: ["MeU-KzdCBps", "uk7gS3cZVp4"],
-        reading: "TEXTBOOK READING — SLOPE, INTERCEPTS & ORDER OF OPERATIONS:\nA linear function follows y = mx + b, where m is the slope (rise/run = (y₂ - y₁)/(x₂ - x₁)) and b is the y-intercept (starting value when x = 0). Remember PEMDAS: Parentheses, Exponents, Multiplication/Division left-to-right, Addition/Subtraction left-to-right. Joke break: Why was the equal sign so humble? Because it knew it wasn't less than or greater than anyone else!",
-        steps: (baseDesc || "").replace(/above/gi, "below").replace(/Desmond/gi, "Desmos")
-      };
-    }
-    return {
-      why: `Why This Matters (Day ${dayNum} Honors Algebra): Systems of equations and inequalities let you compare two competing options—like two international phone plans or travel routes—and find the exact break-even point.`,
-      yt: ["MeU-KzdCBps"],
-      reading: `TEXTBOOK READING — DAY ${dayNum}: SYSTEMS OF LINEAR EQUATIONS & MODELING:\nWhen two linear equations intersect on a coordinate plane, their intersection point (x, y) satisfies both equations simultaneously. Use the Interactive Calculator & Line Grapher below to test slopes (m) and intercepts (b) visually!`,
-      steps: `1. WATCH THE VIDEO BELOW: Review linear graphing and equation solving.\n2. USE THE MATH TOOLKIT BELOW: Graph y = 2x + 1 and compare its steepness to y = 0.5x + 4.\n3. SHOW-YOUR-WORK PAPER PROBLEMS (Solve & explain in 8–12 lines): (a) Solve 3(x - 4) + 2x = 18; (b) Find the slope between (-2, 5) and (4, 17); (c) Write the equation in y = mx + b form; (d) Model a travel train pass costing $25 upfront plus $3 per ride.\n4. CARMEN SANDIEGO GLOBAL BONUS: If a Shinkansen bullet train travels 320 km/h from Tokyo to Kyoto (450 km), write a linear distance equation d = rt and solve for travel time!`
-    };
-  }
-  if (s.includes("marine")) {
-    return {
-      why: `Why This Matters (Day ${dayNum} Marine Biology): Oceans produce over 50% of Earth's oxygen and regulate global weather. Understanding salinity, density, and marine symbiosis explains how coastal reefs and deep-sea ecosystems survive.`,
-      yt: ["3nAETHZTObk"],
-      reading: dayNum === 1
-        ? "TEXTBOOK READING — OCEANOGRAPHY, SALINITY & CORAL REEF SYMBIOSIS:\nEarth's oceans cover 71% of the planet and average 35 parts per thousand (35 ppt, or 3.5%) dissolved Salinity. Cold, salty water is denser and sinks, driving global Thermohaline circulation—a massive conveyor belt moving heat around Earth. In shallow tropical waters, reef-building corals share a mutualistic symbiosis with photosynthetic algae called zooxanthellae: the algae provide up to 90% of the coral's energy via sunlight, while the coral provides shelter and nutrients. Joke break: What did the ocean say to the beach? Nothing, it just waved!"
-        : `TEXTBOOK READING — DAY ${dayNum}: PELAGIC ZONES & MARINE FOOD WEBS:\nThe open Pelagic ocean divides into sunlight (epipelagic), twilight (mesopelagic), and midnight (bathypelagic) zones. Phytoplankton form the base of marine food webs, transferring energy up to zooplankton, schooling fish, and apex predators.`,
-      steps: dayNum === 1
-        ? "1. WATCH THE VIDEO BELOW: Watch how scientific experiments and ecosystem variables are tested cleanly.\n2. READ THE TEXTBOOK CHAPTER ABOVE: Study 35 ppt salinity, thermohaline density, and coral-zooxanthellae symbiosis.\n3. HANDS-ON LAB (COASTAL OR INLAND AT-HOME SEAWATER SIMULATION): Near the ocean? Collect a coastal water sample and measure temperature, clarity, and float buoyancy. Not near an ocean? Create three test cups at home: (A) 35 ppt synthetic seawater (3.5 tsp non-iodized sea salt in 500 mL water), (B) 15 ppt brackish water (1.5 tsp salt), and (C) 0 ppt freshwater control. Test how high a raw egg or grape floats in each cup and record your measurements!\n4. HONORS REFLECTION (8–12 sentences): Explain how salinity changes water density and why coral reefs depend on narrow temperature and salinity ranges.\n5. CARMEN SANDIEGO GLOBAL BONUS: Name the country home to the Great Barrier Reef—the largest coral reef system on Earth!"
-        : `1. WATCH THE VIDEO BELOW: Observe how energy flows through living ecosystems.\n2. READ THE TEXTBOOK CHAPTER ABOVE: Compare the epipelagic and bathypelagic zones.\n3. HONORS LAB & ANALYSIS (8–12 sentences): Construct a 4-level marine food pyramid and explain what happens to top predators if ocean warming reduces phytoplankton by 30%.\n4. CARMEN SANDIEGO GLOBAL BONUS: Which trench in the western Pacific reaches nearly 11,000 meters deep?`
-    };
-  }
-
-  if (s.includes("biology")) {
-    if (dayNum === 1) {
-      const cleanedBio = (baseDesc || "").replace(/above/gi, "below").replace(/\n3\.\s*Stir,\s*add/gi, "\n   • Stir, add");
-      return {
-        why: "Why This Matters: Every medical breakthrough, vaccine, and athletic nutrition plan starts with controlled experiments. Today you'll design a real test of cellular Metabolism using living yeast.",
-        yt: ["3nAETHZTObk", "4Eo7JtRA7lg"],
-        reading: "TEXTBOOK READING — EXPERIMENTAL DESIGN & CELLULAR METABOLISM:\nA valid scientific Hypothesis isolates one Independent Variable (what you change, like sugar amount) while measuring a Dependent Variable (what responds, like CO₂ balloon circumference) against an unchanged Control group. Living yeast cells perform Anaerobic fermentation when oxygen is limited, breaking down glucose into ATP energy and releasing carbon dioxide (CO₂) gas.",
-        steps: cleanedBio + "\n\nNO-YEAST HOUSEHOLD ALTERNATIVE: No yeast on hand? Mix 2 tbsp baking soda with 1/2 cup warm vinegar inside a bottle capped with a balloon to measure gas volume expansion over 10 minutes.\n\nCARMEN SANDIEGO GLOBAL BONUS: Louis Pasteur discovered that yeast causes fermentation while working in which French city famous for the Eiffel Tower?"
-      };
-    }
-    return {
-      why: `Why This Matters (Day ${dayNum} Honors Biology): Your body contains ~37 trillion cells, each enclosed by a selectively permeable plasma membrane that controls what enters and exits to keep you alive.`,
-      yt: ["3nAETHZTObk"],
-      reading: `TEXTBOOK READING — DAY ${dayNum}: CELL MEMBRANES, OSMOSIS & HOMEOSTASIS:\nCell membranes are phospholipid bilayers embedded with transport proteins. Water moves across membranes via osmosis from higher water concentration (hypotonic) to lower water concentration (hypertonic) until reaching equilibrium.`,
-      steps: `1. WATCH THE VIDEO BELOW: Review cellular structure and experimental reasoning.\n2. READ THE TEXTBOOK CHAPTER ABOVE: Trace how water moves in hypotonic vs. hypertonic solutions.\n3. HONORS LAB & ANALYSIS (8–12 sentences): Explain why placing a freshwater plant cell in 35 ppt salt water causes plasmolysis (shrinking), using Claim-Evidence-Reasoning.\n4. CARMEN SANDIEGO GLOBAL BONUS: Robert Hooke first coined the term 'cell' while looking at cork under a microscope in which European capital?`
-    };
-  }
-
   if (s.includes("history")) {
     if (dayNum === 1) {
       return {
-        why: "Why This Matters: Every modern constitution, court system, and bill of rights traces back to the first written law codes. Studying Hammurabi’s Code reveals both how early states created order—and how laws protected social inequality.",
-        yt: ["sohXPx_XZ6Y"],
-        reading: "TEXTBOOK READING — MESOPOTAMIA, CUNEIFORM & HAMMURABI'S CODE (1754 BCE):\nIn ancient Mesopotamia (modern-day Iraq), Babylonian King Hammurabi carved 282 laws onto a 7-foot black basalt stele written in wedge-shaped Cuneiform script (now preserved in the Louvre Museum in Paris). Unlike modern equality before the law, Hammurabi’s laws enforced strict class hierarchy:\n• Law 196: 'If a man put out the eye of another man (noble), his eye shall be put out.'\n• Law 198: 'If he put out the eye of a freed man (commoner), he shall pay one gold mina.'\n• Law 199: 'If he put out the eye of a man's slave, he shall pay one-half of its value.'\n• Law 229: 'If a builder builds a house for someone and does not construct it properly, and the house collapses and kills its owner, that builder shall be put to death.'\nNotice how the code established early consumer accountability (Law 229) while coding unequal human worth by social class (Laws 196–199).",
-        steps: "1. WATCH THE VIDEO BELOW: Watch Crash Course World History on Mesopotamia & Hammurabi’s Code.\n2. READ THE PRIMARY-SOURCE LAWS ABOVE: Study Laws 196, 198, 199, and 229 in the textbook passage right above.\n3. ROYAL JUDGE ROLEPLAY & HONORS ANALYSIS (8–12 sentences): Using the exact laws in the reading above, rule on two cases: (a) a noble injures a commoner vs. another noble, and (b) a poorly built roof collapses. Then evaluate whether Hammurabi’s Code achieved true justice or primarily protected wealth and status.\n4. CARMEN SANDIEGO GLOBAL BONUS: The Stele of Hammurabi was originally erected in Babylon (near Baghdad, Iraq) but is displayed today in which famous glass-pyramid museum in Paris?"
+        unitTitle: "UNIT 1 • CHAPTER 1.1: Historical Thinking, Primary Sources & The Code of Hammurabi (c. 1750 BCE)",
+        objectives: [
+          "Distinguish between primary and secondary historical sources.",
+          "Apply the AP/Honors HIPP historical analysis framework.",
+          "Evaluate what Hammurabi's Code reveals about social hierarchy and justice."
+        ],
+        hook: "In 1901, archaeologists excavating Susa uncovered a 7-foot black basalt stele carved in wedge-shaped Cuneiform script. At the top, Shamash—the Mesopotamian god of justice—hands royal authority directly to Babylonian King Hammurabi.",
+        yt: "xVf5kZA0HtQ",
+        ytLabel: "Watch: Ancient Mesopotamia 101 | National Geographic",
+        textbookHtml: `<h4 style="color:#9a3412; margin:0 0 6px 0;">1. Thinking Like a Historian &amp; The HIPP Method</h4><p>Scholars divide evidence into <b>Primary Sources</b> (firsthand artifacts created during the era—law tablets, letters, treaties) and <b>Secondary Sources</b> (interpretations written later). Honors historians interrogate every primary source using <b>HIPP</b>:</p><div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:8px; margin:8px 0;"><div style="background:#9a3412; color:#fff; padding:8px; border-radius:6px;"><b>H — Historical Context</b><br><small>c. 1750 BCE Babylon unifying city-states</small></div><div style="background:#b45309; color:#fff; padding:8px; border-radius:6px;"><b>I — Intended Audience</b><br><small>Subjects, judges &amp; future kings</small></div><div style="background:#c2410c; color:#fff; padding:8px; border-radius:6px;"><b>P — Purpose</b><br><small>Standardize justice &amp; assert authority</small></div><div style="background:#7c2d12; color:#fff; padding:8px; border-radius:6px;"><b>P — Point of View</b><br><small>Absolute monarch claiming divine backing</small></div></div><h4 style="color:#9a3412; margin:10px 0 6px 0;">2. Mesopotamia &amp; Primary Source Laws (Lex Talionis)</h4><p>Located between the Tigris and Euphrates rivers in modern-day Iraq, Mesopotamia developed cuneiform literacy, base-60 time, and Hammurabi's 282 laws. While introducing <b>Lex Talionis</b> ("an eye for an eye"), punishments depended strictly on class (Awilum nobles, Mushkenum commoners, Wardum enslaved):</p><div style="background:#fff; border-left:4px solid #b45309; padding:8px 12px; border-radius:6px; margin:8px 0; font-size:13.5px;">• <b>Law 196:</b> "If a man put out the eye of another man [a noble], his eye shall be put out."<br>• <b>Law 198:</b> "If he put out the eye of a freed commoner, he shall pay one gold mina."<br>• <b>Law 199:</b> "If he put out the eye of a man's slave, he shall pay one-half of its value."<br>• <b>Law 229:</b> "If a builder builds a house for someone and does not construct it properly, and the house collapses and kills its owner, that builder shall be put to death."</div>`,
+        qc: [
+          { q: "Which item is a PRIMARY historical source?", opts: ["A 2026 history textbook", "The 1750 BCE basalt stele of Hammurabi", "A modern documentary"], a: 1, r: "Primary sources were created directly during the era studied.", w: "Look for an artifact created in 1750 BCE." },
+          { q: "In HIPP, what does the 'I' stand for?", opts: ["Imperial Army", "Intended Audience", "Industrial Trade"], a: 1, r: "HIPP = Historical Context, Intended Audience, Purpose, Point of View.", w: "Check the 4 orange HIPP boxes above." },
+          { q: "Under Laws 196–199, what happened if a noble injured a freed commoner's eye?", opts: ["The noble lost his own eye", "The noble paid one gold mina fine", "No penalty existed"], a: 1, r: "Law 198 required a fine of one gold mina.", w: "Re-read Law 198 above." }
+        ],
+        prompts: [
+          "1. Royal Judge Roleplay: A wealthy noble injures the eye of a freed artisan, while across town a negligent builder's roof collapses and kills a homeowner. Using Laws 196–229, what exact sentences must you hand down?",
+          "2. Social Hierarchy & Corroboration (6–8 sentences): Hammurabi claimed his laws existed 'so that the strong should not harm the weak.' Based on Laws 196–199, to what extent did his laws live up to that claim?",
+          "3. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Hammurabi's stele originally stood in Babylon (Iraq), but today is housed in which world-famous glass-pyramid museum in Paris?"
+        ]
       };
     }
     return {
-      why: `Why This Matters (Day ${dayNum} Honors World History): Understanding global trade routes and primary sources shows how ideas, technologies, and power spread across continents—without sanitized textbook myths.`,
-      yt: ["sohXPx_XZ6Y"],
-      reading: `TEXTBOOK READING — DAY ${dayNum}: PRIMARY-SOURCE ANALYSIS (HIPP METHOD) & ANCIENT EMPIRES:\nHonors historians interrogate every source using HIPP: Historical Context, Intended Audience, Purpose, and Point of View. Comparing official royal inscriptions with letters from merchants, farmers, and conquered peoples uncovers the full reality of ancient empires.`,
-      steps: `1. WATCH THE VIDEO BELOW: Follow how early civilizations organized trade and governance.\n2. READ THE TEXTBOOK PASSAGE ABOVE: Review the four elements of HIPP primary-source analysis.\n3. HONORS HISTORICAL ANALYSIS (8–12 sentences): Explain why relying only on a ruler’s official monument distorts history, and describe two other types of evidence historians use to verify what happened to ordinary people.\n4. CARMEN SANDIEGO GLOBAL BONUS: Which overland trade network connected Chang'an (Xi'an), China to the Mediterranean Sea?`
+      unitTitle: `UNIT 1 • LESSON 1.${dayNum}: Ancient River Valleys, Trade Networks & Primary Evidence`,
+      objectives: ["Compare governance in Ancient Egypt and the Indus Valley.", "Analyze how geography shaped early trade and writing systems."],
+      hook: "While Mesopotamia built mud-brick ziggurats along unpredictable rivers, Egypt's predictable Nile floods fostered a unified kingdom lasting 3,000 years.",
+      yt: "Z3Wvw6BivVI",
+      ytLabel: "Watch: Ancient Egypt | Crash Course World History",
+      textbookHtml: `<h4 style="color:#9a3412; margin:0 0 6px 0;">1. Comparing Nile &amp; Indus River Civilizations</h4><p>Unlike Mesopotamia's warring city-states, Ancient Egypt unified early under Pharaohs viewed as divine rulers, developing hieroglyphic script and monumental stone architecture. Meanwhile, the Indus Valley cities of Harappa and Mohenjo-Daro engineered grid-planned streets and indoor plumbing centuries before Rome.</p>`,
+      qc: [
+        { q: "How did Egypt's geography differ from Mesopotamia's?", opts: ["The Nile flooded predictably and deserts offered protection", "Egypt had no rivers", "Egypt was an island"], a: 0, r: "Predictable Nile floods and surrounding deserts gave Egypt stability.", w: "Re-read Section 1 above." },
+        { q: "Which Indus Valley innovation was centuries ahead of its time?", opts: ["Steam locomotives", "Grid-planned cities and covered drainage", "Printing presses"], a: 1, r: "Harappa and Mohenjo-Daro featured grid streets and drainage.", w: "Check Section 1 above." },
+        { q: "Why do historians corroborate royal monuments with merchant letters?", opts: ["To uncover everyday reality beyond royal propaganda", "Because monuments have no writing", "To ignore primary sources"], a: 0, r: "Comparing multiple perspectives removes single-author bias.", w: "Think about Point of View in HIPP." }
+      ],
+      prompts: [
+        "1. Comparative Analysis (8–10 sentences): Compare how geography shaped government and daily life in Ancient Egypt versus Mesopotamia.",
+        "2. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Which Rosetta Stone city in northern Egypt gave its name to the slab that unlocked hieroglyphics?"
+      ]
+    };
+  }
+  if (s.includes("literature") || s.includes("english")) {
+    const litMap = {
+      1: {
+        unitTitle: "UNIT 1 • CHAPTER 1.1: Fahrenheit 451 — Part 1: The Hearth and the Salamander (pp. 1–55)",
+        objectives: [
+          "Analyze how Ray Bradbury contrasts curiosity (Clarisse) with screen conformity (Mildred).",
+          "Evaluate dystopian foreshadowing and fire imagery in pages 1–55."
+        ],
+        hook: "In 2026, algorithms curate what you watch every second. Written in 1953, Fahrenheit 451 asks what happens when a society willingly trades deep reading for wall-sized interactive screens.",
+        yt: "YMZcp0EQO2s",
+        ytLabel: "Watch: Why should you read 'Fahrenheit 451'? | TED-Ed",
+        textbookHtml: `<h4 style="color:#1e3a8a; margin:0 0 6px 0;">1. Dystopia &amp; Bradbury's Core Warning</h4><p>Unlike Orwell's <i>1984</i> (where totalitarian force bans books), Bradbury's <b>Dystopia</b> shows citizens voluntarily abandoning books for fast cars, Seashell earbuds, and parlor-wall TV 'families.' Fireman Guy Montag assumes he is happy—until 17-year-old Clarisse McClellan asks him one simple question: <i>"Are you happy?"</i></p>`,
+        qc: [
+          { q: "What sparks Guy Montag's inner awakening in Part 1?", opts: ["A promotion from Captain Beatty", "Clarisse McClellan asking 'Are you happy?'", "Winning a parlor-wall contest"], a: 1, r: "Clarisse's simple question forces Montag to confront his emptiness.", w: "Check Section 1 above." },
+          { q: "How did books disappear in Bradbury's society?", opts: ["People stopped reading on their own due to speed and entertainment", "An alien invasion", "Paper ran out"], a: 0, r: "Bradbury warned against self-censorship driven by distraction.", w: "Re-read Section 1 above." },
+          { q: "What literary device hints early on at Montag's hidden stash of books?", opts: ["Foreshadowing", "Onomatopoeia", "Alliteration"], a: 0, r: "Montag's glances toward the ventilator grille foreshadow his secret.", w: "Think of clues hinting at future events." }
+        ],
+        prompts: [
+          "1. Reading & Honors Analysis (8–12 sentences): Tap the Fahrenheit 451 PDF button below and read pages 1–55 (40 min lesson). Compare Clarisse's curiosity with Mildred's screen obsession, citing two specific moments from pages 1–55 and connecting them to 2026 media.",
+          "2. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Name one real-world city or country where Fahrenheit 451 faced censorship or removal and explain why!"
+        ]
+      },
+      2: {
+        unitTitle: "UNIT 1 • CHAPTER 1.2: Fahrenheit 451 — Part 2: The Sieve and the Sand (pp. 66–103)",
+        objectives: [
+          "Analyze Faber's three requirements for a thoughtful society.",
+          "Examine how sensory overload (the subway jingle) prevents critical thinking."
+        ],
+        hook: "Have you ever tried studying while loud ads blare in your ears? Montag experiences that exact battle on the subway as Denham's Dentifrice jingles drown out his attempt to read.",
+        yt: "7aKItfLeso4",
+        ytLabel: "Watch: Ray Bradbury on Writing & Fahrenheit 451",
+        textbookHtml: `<h4 style="color:#1e3a8a; margin:0 0 6px 0;">1. Faber's Three Pillars of Meaningful Culture</h4><p>In Part 2 (pp. 66–103), former English professor Faber explains to Montag that books themselves are not magic; what society lacks are three essentials: <b>(1) Quality of information</b>, <b>(2) Leisure to digest it</b>, and <b>(3) The right to carry out actions</b> based on what we learn. Meanwhile, Captain Beatty visits Montag and twists literary quotes to argue that conflicting ideas only make people unhappy.</p>`,
+        qc: [
+          { q: "Which is NOT one of Faber's three requirements?", opts: ["Quality of information", "Leisure to digest it", "Wall-sized parlor screens"], a: 2, r: "Faber lists quality, leisure, and the freedom to act on what we learn.", w: "Review Section 1 above." },
+          { q: "What does the title 'The Sieve and the Sand' symbolize?", opts: ["Montag trying to retain reading while subway ads blast his mind", "A beach vacation", "Building a desert fortress"], a: 0, r: "Like sand pouring through a sieve, loud jingles wash away Montag's concentration.", w: "Think about Montag on the subway in Part 2." },
+          { q: "How does Captain Beatty surprise Montag?", opts: ["Beatty has memorized vast amounts of literature himself", "Beatty cannot read", "Beatty resigns"], a: 0, r: "Beatty knows books intimately and twists quotes to justify burning them.", w: "Check Section 1 above." }
+        ],
+        prompts: [
+          "1. Reading & Honors Analysis (8–12 sentences): Read Fahrenheit 451 Part 2 (pages 66–103). Explain Faber's three requirements and evaluate whether modern 2026 notifications create a 'sieve and the sand' effect.",
+          "2. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Where in the world did the ancient Library of Alexandria stand, and why is it famous in literary history?"
+        ]
+      }
+    };
+    return litMap[dayNum] || {
+      unitTitle: `UNIT ${Math.ceil(dayNum / 10)} • LESSON 1.${dayNum}: ${dayNum <= 5 ? "Fahrenheit 451 Part 3 (pp. 104–158) & Dystopian Synthesis" : "Classical & Global Rhetoric, Short Fiction & Poetry"}`,
+      objectives: ["Analyze authorial voice, symbolism, and rhetorical persuasion.", "Support literary claims with direct textual evidence."],
+      hook: "From Bradbury's Book People memorizing classics to global short fiction and rhetoric, great literature preserves human memory across generations.",
+      yt: "e-2Y-2-559k",
+      ytLabel: "Watch: How to Use Rhetoric to Get What You Want | TED-Ed",
+      textbookHtml: `<h4 style="color:#1e3a8a; margin:0 0 6px 0;">1. Symbolism, Rhetoric &amp; Literary Synthesis</h4><p>In Part 3 of <i>Fahrenheit 451</i> (pp. 104–158), fire shifts from a tool of destruction to a source of warmth at Granger's camp, while the Phoenix symbolizes humanity rebuilding from its ashes. In Weeks 3–9, we transition into Rhetoric (Ethos, Pathos, Logos), World Short Fiction (Chekhov, Borges, Achebe), and Global Poetry.</p>`,
+      qc: [
+        { q: "What does the Phoenix symbolize at the end of Fahrenheit 451?", opts: ["Humanity's ability to learn from its mistakes and rebuild", "Permanent extinction", "Mechanical Hounds"], a: 0, r: "Granger compares humanity to the mythical Phoenix rising from its ashes.", w: "Review Section 1 above." },
+        { q: "Which rhetorical appeal relies on logic and evidence?", opts: ["Logos", "Pathos", "Hyperbole"], a: 0, r: "Logos appeals to reason, facts, and structured evidence.", w: "Think of 'logic' -> Logos." },
+        { q: "Why do the Book People memorize whole books?", opts: ["To preserve human knowledge until society is ready to read again", "To sell them", "To win a game"], a: 0, r: "Each person becomes a living book to safeguard civilization.", w: "Check Section 1 above." }
+      ],
+      prompts: [
+        "1. Honors Literary Synthesis (8–12 sentences): Complete today's reading (pp. 104–158 if finishing Fahrenheit 451 in Week 1–2, or analyze Ethos/Pathos/Logos in the passage above) with two specific textual examples.",
+        "2. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Which European capital hosts the Nobel Prize in Literature ceremony every December?"
+      ]
+    };
+  }
+    if (s.includes("marine")) {
+    return {
+      unitTitle: dayNum === 1 ? "UNIT 1 • CHAPTER 1.1: Foundations of Oceanography, Salinity & Reef Symbiosis" : `UNIT 1 • LESSON 1.${dayNum}: Pelagic Ocean Zones, Food Webs & Marine Adaptations`,
+      objectives: ["Define ocean salinity (35 ppt) and thermohaline density currents.", "Analyze mutualistic symbiosis between corals and zooxanthellae algae."],
+      hook: "Earth's oceans cover 71% of the planet and generate over half of the oxygen you breathe—yet we have mapped less of the deep ocean floor than the surface of Mars.",
+      yt: dayNum === 1 ? "q65O3qA0-n4" : "f2Gv5M4fJ4Y",
+      ytLabel: dayNum === 1 ? "Watch: How Ocean Currents Work | TED-Ed" : "Watch: Deep Ocean Zones & Ecosystems",
+      textbookHtml: `<h4 style="color:#0369a1; margin:0 0 6px 0;">1. Ground-Zero Oceanography: Salinity (35 ppt) &amp; Reef Symbiosis</h4><p>Ocean water averages <b>35 parts per thousand (35 ppt, or 3.5%)</b> dissolved <b>Salinity</b>. Cold, salty water is denser and sinks, driving global <b>Thermohaline</b> circulation. In tropical reefs, corals share mutualistic symbiosis with photosynthetic algae called <b>Zooxanthellae</b>, which supply up to 90% of the coral's energy from sunlight.</p>`,
+      qc: [
+        { q: "What is the average salinity of Earth's oceans?", opts: ["35 parts per thousand (3.5%)", "0.5 ppt", "50% salt"], a: 0, r: "Average seawater is 35 ppt (35 g salt per 1,000 g water).", w: "Check Section 1 above." },
+        { q: "Which water mass is densest and sinks to drive thermohaline currents?", opts: ["Cold, high-salinity water", "Warm freshwater", "Warm low-salinity water"], a: 0, r: "Cold temperature and higher salt concentration increase density.", w: "Re-read Section 1 above." },
+        { q: "How do zooxanthellae algae help reef corals?", opts: ["They photosynthesize to provide up to 90% of the coral's energy", "They freeze seawater", "They eat sharks"], a: 0, r: "Zooxanthellae convert sunlight into energy for the coral.", w: "Check Section 1 above." }
+      ],
+      prompts: [
+        "1. Hands-On Lab (Coastal or Inland At-Home Seawater Simulation): Near the coast? Measure local seawater clarity, temperature, and buoyancy. Inland? Mix 3 cups: (A) 35 ppt seawater (3.5 tsp sea salt in 500 mL water), (B) 15 ppt brackish (1.5 tsp salt), and (C) 0 ppt freshwater. Test how high a grape or raw egg floats in each cup and record your measurements!",
+        "2. Honors Analysis (8–10 sentences): Explain how salinity affects buoyancy and ocean currents, and why warming water causes coral bleaching.",
+        "3. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Name the country home to the Great Barrier Reef—the largest coral reef system on Earth!"
+      ]
+    };
+  }
+  if (s.includes("biology")) {
+    return {
+      unitTitle: dayNum === 1 ? "UNIT 1 • CHAPTER 1.1: The Nature of Science & Experimental Design" : `UNIT 1 • LESSON 1.${dayNum}: Cell Membranes, Osmosis & Homeostasis`,
+      objectives: dayNum === 1
+        ? ["Distinguish qualitative vs. quantitative data and write 'If... then... because...' hypotheses.", "Identify Independent Variable (IV), Dependent Variable (DV), Control Group, and Constants."]
+        : ["Explain how the phospholipid bilayer regulates transport.", "Predict water movement in hypotonic, isotonic, and hypertonic solutions."],
+      hook: dayNum === 1
+        ? "In 1928, Alexander Fleming noticed a bacteria-free halo around blue-green mold on a culture dish—turning one careful observation into penicillin, the first antibiotic."
+        : "Your body contains ~37 trillion cells—each enclosed by a selective phospholipid bilayer membrane only two molecules thick.",
+      yt: dayNum === 1 ? "3nAETHZTObk" : "Ptmlvtei8hw",
+      ytLabel: dayNum === 1 ? "Watch: Nature of Science & Experimental Design | Amoeba Sisters" : "Watch: Cell Transport & Osmosis | Amoeba Sisters",
+      textbookHtml: dayNum === 1
+        ? `<h4 style="color:#15803d; margin:0 0 6px 0;">1. Anatomy of a Controlled Experiment &amp; Worked Example</h4><p><b>Qualitative</b> = sensory qualities (cloudy); <b>Quantitative</b> = numerical measurements (14.5 mm). <b>IV</b> = factor intentionally changed; <b>DV</b> = outcome measured; <b>Control Group</b> = baseline without treatment; <b>Constants</b> = factors held identical.<br><b>Worked Model (Oyster Study):</b> 40 oysters in Tank A (pH 8.1 normal) vs. 40 in Tank B (pH 7.6 acidic) at 18°C for 6 weeks → IV = Water pH; DV = Shell mass (g); Control = Tank A; Constants = 18°C, algae diet, 6 weeks.</p>`
+        : `<h4 style="color:#15803d; margin:0 0 6px 0;">1. Selective Permeability &amp; Osmosis</h4><p>During <b>Osmosis</b>, water diffuses across a membrane from higher water concentration (<b>hypotonic</b>) toward higher solute concentration (<b>hypertonic</b>) until reaching <b>isotonic</b> equilibrium.</p>`,
+      qc: [
+        { q: "Classify: 'The bacterial colony grew to 14.5 mm after 24 hours.'", opts: ["Quantitative (QN)", "Qualitative (QL)", "Scientific Theory"], a: 0, r: "It uses exact numerical measurements with units (14.5 mm).", w: "Check Section 1 above." },
+        { q: "In the Yeast Lab, what is the Independent Variable (IV)?", opts: ["Amount of sugar added (0, ½, or 2 tsp)", "Height of CO₂ foam (mm)", "Warm water temperature"], a: 0, r: "Sugar amount is the single factor deliberately changed across the 3 cups.", w: "Ask: What did we change on purpose?" },
+        { q: "What happens to a freshwater cell placed in 35 ppt salt water?", opts: ["Water leaves the cell and it shrinks (plasmolysis)", "It bursts open", "Nothing moves"], a: 0, r: "Water moves toward the higher salt concentration outside the cell.", w: "Think about hypertonic salt solutions." }
+      ],
+      prompts: dayNum === 1
+        ? [
+            "1. Textbook Check: Write a formal 'If... then... because...' hypothesis predicting how warmer water affects a goldfish's gill/heart rate.",
+            "2. At-Home Yeast Lab (Saccharomyces cerevisiae): Label 3 cups with ½ cup warm water (~105°F): Cup 1 Control (0 tsp sugar), Cup 2 (½ tsp sugar), Cup 3 (2 tsp sugar). Add ¾ tsp dry yeast to each, stir, and measure CO₂ foam height (mm) at 0, 10, and 20 min. (No yeast? Mix 2 tbsp baking soda + ½ cup vinegar in a balloon-topped bottle and measure gas expansion!).",
+            "3. Post-Lab CER Conclusion (6–8 sentences): Identify IV, DV, and 3 constants, explain why Cup 1 was essential, and cite your exact measurements.",
+            "4. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Louis Pasteur proved living yeast drives fermentation while working in which French capital city?"
+          ]
+        : [
+            "1. Osmosis & Homeostasis Analysis (8–10 sentences): Explain why hospitals use isotonic saline (0.9% NaCl) IV drips rather than pure distilled water, using Claim-Evidence-Reasoning.",
+            "2. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Robert Hooke coined the term 'cell' while viewing cork in which European capital city?"
+          ]
+    };
+  }
+  if (s.includes("stock") || s.includes("finance") || s.includes("invest")) {
+    return {
+      unitTitle: dayNum === 1 ? "UNIT 1 • CHAPTER 1.1: Stock Market Ground Zero — What Is a Share, Index Fund & Compound Growth?" : `UNIT 1 • LESSON 1.${dayNum}: Reading Stock Tickers, P/E Ratios & Risk Diversification`,
+      objectives: ["Explain what owning a share of stock means and how index funds reduce single-company risk.", "Calculate compound growth and interpret basic stock ticker metrics (Price, Market Cap, P/E Ratio)."],
+      hook: "If you invested $100/month starting at age 15 at an 8% average annual return, by age 65 you'd have over $790,000—having only put in $60,000 of your own cash!",
+      yt: "p7HKvqRI_Bo",
+      ytLabel: "Watch: How Does the Stock Market Work? | TED-Ed",
+      textbookHtml: `<h4 style="color:#065f46; margin:0 0 6px 0;">1. Ground-Zero Investing: Stocks, Index Funds &amp; Compound Interest</h4><p>A <b>Stock (Share)</b> is a tiny piece of ownership in a real business (like Apple, ticker <code>AAPL</code>). An <b>Index Fund (S&amp;P 500)</b> bundles 500 top U.S. companies into one basket so one bad company cannot wipe you out. <b>Compound Interest</b> happens when your investment earnings generate their own earnings year after year.</p>`,
+      qc: [
+        { q: "What does buying 1 share of stock represent?", opts: ["Partial ownership in that company", "A guaranteed loan to the government", "A bank savings account"], a: 0, r: "Shareholders are part-owners of the business.", w: "Check Section 1 above." },
+        { q: "Why do beginners use an S&P 500 Index Fund?", opts: ["Instant diversification across 500 companies", "It guarantees zero price drops", "It only buys one company"], a: 0, r: "Spreading money across 500 companies lowers single-stock risk.", w: "Re-read Section 1 above." },
+        { q: "Why does starting to invest at age 15 beat starting at age 35?", opts: ["20 extra years of compound interest", "Stocks are cheaper for teens", "Taxes don't exist"], a: 0, r: "Time in the market multiplies compound growth.", w: "Check the Real-World Hook above." }
+      ],
+      prompts: [
+        "1. Paper-Trading Starter Challenge: Pick 3 real companies you use every week, look up their stock ticker symbols, and explain in 6–8 sentences why owning a diversified S&P 500 index fund is safer than putting 100% into one stock.",
+        "2. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Which New York City street is home to the New York Stock Exchange (NYSE)?"
+      ]
     };
   }
 
   const isSpa = s.includes("spanish");
-  const isMan = s.includes("mandarin") || s.includes("chinese");
-  const isFre = s.includes("french");
-  const isHin = s.includes("hindi");
-  const langYt = isMan ? "3wV8B4bx1lM" : isHin ? "1lrz11BbqCA" : isFre ? "hd0_GZHHWeE" : "DAp_v7EH9AA";
-    const immersionCards = isSpa
-    ? `<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px; margin:10px 0;">
-        <div onclick="speakWordInline('Buenos días','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; cursor:pointer;"><b>🔊 Buenos días</b><br><small>Good morning</small></div>
-        <div onclick="speakWordInline('Quisiera un café, por favor','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; cursor:pointer;"><b>🔊 Quisiera un café, por favor</b><br><small>I would like a coffee, please</small></div>
-        <div onclick="speakWordInline('Dos tacos y agua, por favor','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; cursor:pointer;"><b>🔊 Dos tacos y agua, por favor</b><br><small>Two tacos and water, please</small></div>
-        <div onclick="speakWordInline('La cuenta, por favor. Muchas gracias','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; cursor:pointer;"><b>🔊 La cuenta, por favor. Muchas gracias</b><br><small>The bill, please. Thank you very much</small></div>
-      </div>`
-    : `<div style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; margin:10px 0;">Tap any highlighted pronunciation word in the reading below to hear native audio!</div>`;
-
   return {
-    why: `Why This Matters (Day ${dayNum} ${subject}): Learning a language works best through immersion—hearing simple, everyday phrases first, repeating them out loud, and using them in real travel conversations.`,
-    yt: [langYt],
-    reading: isSpa
-      ? `IMMERSION DIALOGUE & VOCABULARY (TAP ANY CARD TO HEAR AUDIO):\n${immersionCards}\nMINI CAFÉ DIALOGUE (READ ALOUD):\n— Mesero (Waiter): ¡Buenos días! ¿Qué desea ordenar?\n— Estudiante (Student): Buenos días. Quisiera dos tacos y agua, por favor.\n— Mesero: ¡Cómo no! Aquí tiene.\n— Estudiante: Muchas gracias. La cuenta, por favor.`
-      : `IMMERSION DIALOGUE & CORE PHRASES:\n${immersionCards}\nPractice greeting politely (Nǐ hǎo / Bonjour / Namaste), asking for what you need, and thanking your host in complete sentences.`,
-    steps: isSpa
-      ? `1. WATCH THE BASIC IMMERSION VIDEO BELOW: Listen carefully to how Spanish greetings and polite café phrases sound.\n2. TAP & REPEAT THE DUOLINGO-STYLE PHRASE CARDS ABOVE: Tap each green card to hear native pronunciation and read the mini café dialogue aloud twice.\n3. HONORS IMMERSION WRITING (8–10 sentences in Spanish): Write a complete café ordering conversation between you and a waiter using ONLY the phrases and vocabulary taught above (Buenos días, Quisiera..., dos tacos, un café, agua, por favor, La cuenta, Muchas gracias).\n4. CARMEN SANDIEGO GLOBAL BONUS: In which South American capital city at 2,850 meters elevation is Spanish spoken alongside Kichwa in the Andes Mountains?`
-      : `1. WATCH THE BASIC IMMERSION VIDEO BELOW: Listen to the beginner pronunciation and tone patterns.\n2. PRACTICE THE IMMERSION PHRASES ABOVE: Tap each highlighted word to listen and repeat aloud.\n3. HONORS IMMERSION WRITING (8–10 sentences): Write a polite greeting and travel ordering dialogue using today’s core vocabulary.\n4. CARMEN SANDIEGO GLOBAL BONUS: Name one major world city where ${subject.replace(/Honors\s*/i, "")} is an official language!`
+    unitTitle: `UNIT 1 • LESSON 1.${dayNum}: ${subject} Immersion — Everyday Greetings & Café Conversation`,
+    objectives: ["Listen to native pronunciation and repeat core survival phrases aloud.", "Write a realistic ordering conversation using taught vocabulary."],
+    hook: "The fastest way to learn a language is immersion—hearing real everyday phrases first, repeating them out loud, and using them right away.",
+    yt: isSpa ? (dayNum === 1 ? "DAp_v7EH9AA" : "lJw40EN6FXw") : "3wV8B4bx1lM",
+    ytLabel: isSpa ? "Watch: Beginner Spanish Immersion Dialogue" : "Watch: Beginner Immersion Pronunciation",
+    textbookHtml: isSpa
+      ? `<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin:8px 0;"><div onclick="speakWordInline('Buenos días','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:8px; border-radius:8px; cursor:pointer;"><b>🔊 Buenos días</b><br><small>Good morning</small></div><div onclick="speakWordInline('Quisiera dos tacos y agua, por favor','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:8px; border-radius:8px; cursor:pointer;"><b>🔊 Quisiera dos tacos y agua, por favor</b><br><small>I would like 2 tacos &amp; water, please</small></div><div onclick="speakWordInline('La cuenta, por favor. Muchas gracias','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:8px; border-radius:8px; cursor:pointer;"><b>🔊 La cuenta, por favor. Muchas gracias</b><br><small>The bill, please. Thank you very much</small></div></div>`
+      : `<p>Tap any highlighted word below to hear native audio pronunciation and practice aloud!</p>`,
+    qc: [
+      { q: "How do you politely say 'I would like... please' in Spanish?", opts: ["Quisiera..., por favor", "La cuenta", "Buenos noches"], a: 0, r: "Quisiera..., por favor is polite and natural.", w: "Tap the green phrase cards above." },
+      { q: "What does 'La cuenta, por favor' mean at a café?", opts: ["The bill/check, please", "Two tacos, please", "Good morning"], a: 0, r: "La cuenta means the bill/check.", w: "Check the third green card above." },
+      { q: "How do you say 'Thank you very much'?", opts: ["Muchas gracias", "Por favor", "Quisiera"], a: 0, r: "Muchas gracias = Thank you very much.", w: "Review the cards above." }
+    ],
+    prompts: [
+      "1. Immersion Café Dialogue (8–10 sentences): Write a polite café ordering conversation using today's phrase cards (Buenos días, Quisiera..., por favor, La cuenta, Muchas gracias).",
+      "2. 🌍 Global Explorer Bonus (+5 Extra Credit Points): Which South American capital city at 2,850 meters elevation speaks Spanish alongside Kichwa in the Andes?"
+    ]
   };
 }
-
 function renderStudentTodayPane() {
   const tabEl = document.getElementById("stuSubjectTabs");
   const paneEl = document.getElementById("stuActiveLessonPane");
   const progEl = document.getElementById("stuTodayProgress");
   if (!tabEl || !paneEl) return;
-
   if (!stuActiveAssignsCache.length) {
     tabEl.innerHTML = "";
     if (progEl) progEl.innerText = "0 / 0 Submitted";
-    paneEl.innerHTML = "<div class='card'><p class='muted'>All enrolled lessons for this term are complete—or ask your parent to enroll your courses.</p></div>";
+    paneEl.innerHTML = "<div class='card'><p class='muted'>All enrolled lessons complete—or ask your parent to enroll your courses.</p></div>";
     return;
   }
-
   if (selectedStuSubjectIdx >= stuActiveAssignsCache.length) selectedStuSubjectIdx = 0;
 
   let doneToday = 0;
@@ -1657,170 +1732,82 @@ function renderStudentTodayPane() {
       : isSub
         ? `<span style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700;">⏳ Awaiting Parent Approval</span>`
         : `<span style="background:#dbeafe; color:#1d4ed8; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700;">▶ Day ${seq.length} Ready</span>`;
-    return `<button type="button" onclick="openStudentCourse(${idx})" style="display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; padding:14px 16px; border-radius:10px; border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a; font-size:15px; font-weight:700; cursor:pointer;">
-      <span>📘 ${a.subject} <small style="font-weight:500; color:#64748b;">(Day ${seq.length})</small></span>
-      <span>${badgeHtml} &nbsp;›</span>
-    </button>`;
+    return `<button type="button" onclick="openStudentCourse(${idx})" style="display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; padding:14px 16px; border-radius:10px; border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a; font-size:15px; font-weight:700; cursor:pointer;"><span>📘 ${a.subject} <small style="font-weight:500; color:#64748b;">(Day ${seq.length})</small></span><span>${badgeHtml} &nbsp;›</span></button>`;
   }).join("");
-
   if (progEl) progEl.innerText = doneToday + " / " + stuActiveAssignsCache.length + " Submitted";
 
   const menuCard = document.getElementById("stuCourseMenuCard");
-  if (!window.stuCourseOpen) {
-    if (menuCard) menuCard.classList.remove("hidden");
-    paneEl.innerHTML = "";
-    return;
-  }
+  if (!window.stuCourseOpen) { if (menuCard) menuCard.classList.remove("hidden"); paneEl.innerHTML = ""; return; }
   if (menuCard) menuCard.classList.add("hidden");
 
-  const activeLatest = stuActiveAssignsCache[selectedStuSubjectIdx];
+  const activeLatest = stuActiveAssignsCache.at(selectedStuSubjectIdx) || stuActiveAssignsCache.at(0);
   const seq = window.stuAllBySubject[activeLatest.subject] || [activeLatest];
-  const dayIdx = typeof window.stuViewDayOffset[activeLatest.subject] === "number"
-    ? Math.max(0, Math.min(seq.length - 1, window.stuViewDayOffset[activeLatest.subject]))
-    : (seq.length - 1);
-  const a = seq[dayIdx] || activeLatest;
+  const dayIdx = typeof window.stuViewDayOffset[activeLatest.subject] === "number" ? Math.max(0, Math.min(seq.length - 1, window.stuViewDayOffset[activeLatest.subject])) : (seq.length - 1);
+  const a = seq.at(dayIdx) || activeLatest;
   const dayNum = dayIdx + 1;
-
-  const sub = stuSubsCache.find(x => String(x.assignment_id) === String(a.id));
-  const statusText = sub && (sub.status === "Graded" || sub.grade)
-    ? "✅ Graded: " + sub.grade
-    : sub && sub.status === "Submitted"
-      ? "⏳ Submitted — Awaiting Parent Approval"
-      : `Day ${dayNum} Active Lesson`;
-
-  const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
   const khan = getKhanLessonContent(a.subject, dayNum, a.description);
+    const sub = stuSubsCache.find(x => String(x.assignment_id) === String(a.id));
+  const statusText = sub && (sub.status === "Graded" || sub.grade) ? "✅ Graded: " + sub.grade : sub && sub.status === "Submitted" ? "⏳ Submitted — Awaiting Parent Approval" : `Day ${dayNum} Active Lesson`;
   const ytHost = "www." + "youtube.com";
-  const embedUrls = khan.yt.map(id => "https://" + ytHost + "/embed/" + id + "?rel=0&playsinline=1");
-  const docLinks = [];
-  const rawLinks = a.resource_url ? a.resource_url.split(/[\r\n,]+/).map(u => u.trim()).filter(Boolean) : [];
-  rawLinks.forEach(u => {
-    const cleanU = u.startsWith("pdf:") ? u.slice(4).trim() : u;
-    if (/^https?:\/\//i.test(cleanU) && !cleanU.includes("youtube.com") && !cleanU.includes("youtu.be") && !cleanU.includes("spanishdict") && !cleanU.includes("louvre.fr")) {
-      docLinks.push(cleanU);
-    }
-  });
-  const resourceLinksHtml = docLinks.length
-    ? '<div style="margin:10px 0; display:flex; flex-wrap:wrap; gap:8px;">' + docLinks.map((lnk, idx) => '<a href="' + lnk + '" target="_blank" rel="noopener" class="btn-outline" style="width:auto; display:inline-block; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700; text-decoration:none;">📖 Open Reading / Book PDF' + (docLinks.length > 1 ? ' ' + (idx + 1) : '') + ' ↗</a>').join("") + '</div>'
-    : "";
+  const vidHtml = `<div style="margin:10px 0 14px 0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px;"><div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:6px;">🎬 1. ${khan.ytLabel}</div><div style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#000;"><iframe src="https://${ytHost}/embed/${khan.yt}?rel=0&playsinline=1" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen playsinline></iframe></div></div>`;
 
-  const isMath = /algebra|geometry|calculus|math/i.test(a.subject || "");
-  const mathToolkitBtn = isMath
-    ? '<div id="mathToolkitBox" style="margin:12px 0; padding:14px; background:#eff6ff; border:2px solid #93c5fd; border-radius:12px;">' +
-        '<div style="font-weight:800; font-size:14px; color:#1e3a8a; margin-bottom:10px;">🧮 Interactive Math Toolkit (Scientific Calculator &amp; Line Grapher)</div>' +
-        '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px;">' +
-          '<div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">' +
-            '<div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Expression Calculator (+, -, *, /, ^, parentheses)</div>' +
-            '<div style="display:flex; gap:6px;">' +
-              '<input type="text" id="calcDisplay" placeholder="e.g., (24 / 3) * 2 + (5 - 8)^2" style="margin:0; flex:1;" />' +
-              '<button type="button" class="btn-primary" style="width:auto; padding:8px 14px;" onclick="runBackpackCalc()">=</button>' +
-            '</div>' +
-            '<div id="calcResult" style="margin-top:8px; font-weight:700; color:#0f172a; font-size:14px;">Result: —</div>' +
-          '</div>' +
-          '<div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">' +
-            '<div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Linear Equation Grapher (y = mx + b)</div>' +
-            '<div style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">' +
-              '<span style="font-size:12px; font-weight:700;">m:</span><input type="number" id="graphM" value="2" step="0.5" style="width:65px; margin:0;" oninput="drawBackpackLine()" />' +
-              '<span style="font-size:12px; font-weight:700;">b:</span><input type="number" id="graphB" value="1" step="1" style="width:65px; margin:0;" oninput="drawBackpackLine()" />' +
-              '<button type="button" class="btn-outline" style="width:auto; padding:6px 10px;" onclick="drawBackpackLine()">Plot</button>' +
-            '</div>' +
-            '<canvas id="slopeCanvas" width="240" height="140" style="width:100%; max-width:260px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;"></canvas>' +
-          '</div>' +
-        '</div>' +
-      '</div>'
-    : "";
+  const docLinks = (a.resource_url || "").split(/[\r\n,]+/).map(u => u.replace(/^pdf:/i, "").trim()).filter(u => /^https?:\/\//i.test(u) && !u.includes("youtube") && !u.includes("youtu.be") && !u.includes("phet") && !u.includes("spanishdict") && !u.includes("louvre.fr"));
+  const pdfBtnHtml = docLinks.length ? `<div style="margin:8px 0;">${docLinks.map(lnk => `<a href="${lnk}" target="_blank" rel="noopener" class="btn-outline" style="width:auto; display:inline-block; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700; text-decoration:none;">📖 Open Book / Reading PDF ↗</a>`).join(" ")}</div>` : "";
 
-  const makeVidBox = (src, lbl) =>
-    '<div style="margin:12px 0 16px 0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px;">' +
-      '<div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:6px;">🎬 ' + lbl + '</div>' +
-      '<div style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#000;">' +
-        '<iframe src="' + src + '" title="' + lbl + '" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline></iframe>' +
-      '</div>' +
-    '</div>';
+  const objHtml = `<div style="background:#f8fafc; border:1px solid #cbd5e1; border-left:4px solid #0f766e; padding:10px 14px; border-radius:8px; margin:10px 0;"><div style="font-weight:800; font-size:12px; color:#0f766e; text-transform:uppercase; margin-bottom:4px;">Chapter Learning Objectives</div><ul style="margin:0; padding-left:18px; font-size:13.5px; color:#1e293b;">${khan.objectives.map(o => `<li>${o}</li>`).join("")}</ul></div>`;
+  const hookHtml = `<div style="background:#fefce8; border-left:4px solid #eab308; padding:10px 14px; border-radius:8px; margin:10px 0; color:#713f12; font-size:13.5px;"><b>💡 Real-World Hook:</b> ${khan.hook}</div>`;
+  const readingSection = `<div style="margin:12px 0;"><div style="font-weight:800; font-size:14.5px; color:#0f172a; margin-bottom:6px;">📖 2. Read the Textbook Chapter</div>${pdfBtnHtml}<div style="background:#f8fafc; border:1px solid #cbd5e1; padding:14px; border-radius:10px; font-size:14px; line-height:1.65; color:#1e293b;">${injectInlinePronunciations(khan.textbookHtml, a.subject)}</div></div>`;
 
-  const videosHtml = embedUrls.map((u, idx) => makeVidBox(u, embedUrls.length > 1 ? "Watch Video " + (idx + 1) : "Watch the Lesson Video")).join("");
-
-  const formatCleanHeaders = (txt) => txt
-    .replace(/\n/g, "<br>")
-    .replace(/•\s*\[([^\]]+)\]:/g, '<div style="margin-top:10px; font-weight:800; color:#1d4ed8; font-size:14px;">$1:</div>')
-    .replace(/\[([^\]]+)\]:/g, '<div style="margin-top:10px; font-weight:800; color:#1d4ed8; font-size:14px;">$1:</div>')
-    .replace(/^(\d+\.\s[^<]+)/gm, '<strong style="color:#0f172a;">$1</strong>')
-    .replace(/\b([A-Z][A-Z0-9\s,&'’()-]{3,}:)/g, '<strong style="color:#1e3a8a;">$1</strong>');
-
-  const whyHtml = `<div style="background:#fefce8; border-left:4px solid #eab308; padding:10px 14px; border-radius:8px; margin:12px 0; color:#713f12; font-size:14px;"><b>💡 ${khan.why.replace(/^Why This Matters[^:]*:\s*/i, "Why This Matters: ")}</b></div>`;
-  const readingHtml = `<div style="background:#f8fafc; border:1px solid #cbd5e1; padding:14px; border-radius:10px; margin:12px 0; font-size:14.5px; line-height:1.65; color:#1e293b;">${injectInlinePronunciations(formatCleanHeaders(khan.reading), a.subject)}</div>`;
-
-  const normBlocks = khan.steps.replace(/\s+(?=\d+\.\s)/g, "\n\n").split(/\n\n+/).map(b => b.trim()).filter(Boolean);
-  let vidPlaced = false;
-  let step2Placed = false;
-  const stepsHtml = normBlocks.map(blk => {
-    const styled = injectInlinePronunciations(formatCleanHeaders(blk), a.subject);
-    let after = "";
-    if (!vidPlaced && (/^1\./.test(blk) || /watch/i.test(blk))) {
-      after += videosHtml;
-      vidPlaced = true;
-    }
-    if (!step2Placed && /^2\./.test(blk)) {
-      if (resourceLinksHtml) after += resourceLinksHtml;
-      if (mathToolkitBtn) after += mathToolkitBtn;
-      step2Placed = true;
-    }
-    return '<div style="margin:12px 0; font-size:14.5px; line-height:1.6;">' + styled + after + '</div>';
-  }).join("");
-
-  const isWeeklyQuiz = dayNum % 5 === 0;
-  const quizQuestions = [
-    { q: `Based on today's ${a.subject} reading & video, which approach best demonstrates Honors mastery?`, opts: ["Citing specific evidence from the reading/video and explaining cause-and-effect clearly", "Guessing without referencing the lesson text", "Skipping worked steps"], ans: 0 },
-    { q: `Which habit strengthens long-term retention in ${a.subject}?`, opts: ["Active recall, explaining concepts in your own words, and checking units/evidence", "Skimming only the title", "Rushing without reviewing feedback"], ans: 0 }
-  ];
-  const quizHtml = isWeeklyQuiz
-    ? `<div style="background:#fffbeb; border:2px solid #f59e0b; padding:14px; border-radius:10px; margin:14px 0;">
-        <div style="font-weight:800; color:#92400e; font-size:15px; margin-bottom:8px;">📝 Day ${dayNum} Weekly Auto-Graded Mastery Quiz (Counts Toward Quarter GPA)</div>
-        ${quizQuestions.map((qz, qi) => `<div style="margin:10px 0;"><div style="font-weight:700; font-size:14px;">${qi + 1}. ${qz.q}</div>${qz.opts.map((o, oi) => `<label style="display:block; margin:4px 0; font-weight:500;"><input type="radio" name="wquiz_${a.id}_${qi}" value="${oi}" /> ${o}</label>`).join("")}</div>`).join("")}
-        <button type="button" class="btn-primary" style="width:auto; background:#d97706;" onclick="submitAutoWeeklyQuiz('${a.id}', ${quizQuestions.length})">✅ Submit &amp; Auto-Grade Weekly Quiz</button>
-      </div>`
-    : "";
-
-  const fbHtml = sub && sub.parent_feedback
-    ? `<div style="background:#ecfdf5; border:1px solid #86efac; padding:10px; border-radius:8px; margin-top:10px; color:#065f46;"><b>💬 Parent Feedback:</b> ${sub.parent_feedback}</div>`
-    : "";
-
-  const safeSubjAttr = a.subject.replace(/'/g, "\\'");
-  const navBar = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #e2e8f0;">
-    <button type="button" class="btn-outline" style="width:auto; color:#0f172a; font-weight:700;" onclick="closeStudentCourseMenu()">← All Courses</button>
-    <div style="display:flex; align-items:center; gap:8px;">
-      <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a;" ${dayIdx === 0 ? "disabled" : ""} onclick="shiftStudentDay('${safeSubjAttr}', -1, ${seq.length})">◀ Day ${Math.max(1, dayNum - 1)}</button>
-      <span class="badge" style="background:#1e3a8a; color:#ffffff; font-size:13px;">Day ${dayNum} of ${seq.length}</span>
-      <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a;" ${dayIdx >= seq.length - 1 ? "disabled" : ""} onclick="shiftStudentDay('${safeSubjAttr}', 1, ${seq.length})">Day ${Math.min(seq.length, dayNum + 1)} ▶</button>
-    </div>
-  </div>`;
-
-  paneEl.innerHTML = `<div class="card">
-    ${navBar}
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
-      <div>
-        <span class="badge">Q1 • Day ${dayNum}</span>
-        <strong style="font-size:18px; color:#0f172a;"> ${a.subject}: ${cleanTitle}</strong>
-        <div class="muted" style="margin-top:2px;">${a.course_level || "Honors"} (${a.credits || 1} cr)</div>
-      </div>
-      <span class="badge" style="background:#eff6ff; color:#1e3a8a; font-weight:700;">${statusText}</span>
-    </div>
-    ${whyHtml}
-    ${readingHtml}
-    ${stepsHtml}
-    ${quizHtml}
-    <div style="margin-top:16px; padding-top:14px; border-top:1px solid #e2e8f0;">
-      <label style="font-weight:700; color:#0f172a;">✍️ Your Written Work / Honors Analysis &amp; Carmen Sandiego Bonus:</label>
-      <textarea id="subnote-${a.id}" rows="5" placeholder="Write your complete response here (you can return to any day and edit/resubmit anytime)...">${sub && sub.student_notes ? sub.student_notes : ""}</textarea>
-      <label style="font-weight:700; color:#0f172a;">📸 Upload Photo of Paper Work / Lab Setup (Optional):</label>
-      <input type="file" id="subphoto-${a.id}" accept="image/*" />
-      <button type="button" class="btn-primary" style="margin-top:10px;" onclick="submitWork('${a.id}')">${sub ? "🔄 Update & Re-Submit Work" : "✅ Submit Work for Parent Approval"}</button>
-      ${fbHtml}
-    </div>
-  </div>`;
-
-  if (isMath && typeof drawBackpackLine === "function") setTimeout(drawBackpackLine, 50);
+  const qcHtml = `<div style="background:#f0fdf4; border:1px solid #86efac; padding:12px 14px; border-radius:10px; margin:14px 0;"><div style="font-weight:800; color:#15803d; font-size:14px; margin-bottom:6px;">⚡ Instant Quick Check (Ungraded Self-Check)</div>${khan.qc.map((qItem, qi) => {
+    const safeR = qItem.r.replace(/'/g, "\\'");
+    const safeW = qItem.w.replace(/'/g, "\\'");
+    return `<div style="margin:8px 0; padding:8px; background:#fff; border-radius:8px; border:1px solid #dcfce7;"><div style="font-weight:700; font-size:13.5px; color:#0f172a;">${qi + 1}. ${qItem.q}</div>${qItem.opts.map((opt, oi) => `<label style="display:block; margin:4px 0; font-size:13px; cursor:pointer;"><input type="radio" name="qc_${a.id}_${qi}" onclick="checkInstantQC('${a.id}', ${qi}, ${oi}, ${qItem.a}, '${safeR}', '${safeW}')" /> ${opt}</label>`).join("")}<div id="qc_fb_${a.id}_${qi}" style="margin-top:4px; padding:4px 8px; border-radius:6px; font-size:12.5px;"></div></div>`;
+  }).join("")}</div>`;
+function handleGridTap(ev, assignId) {
+  const c = ev.target;
+  const r = c.getBoundingClientRect();
+  const px = (ev.clientX - r.left) * (c.width / r.width);
+  const py = (ev.clientY - r.top) * (c.height / r.height);
+  const gx = Math.round((px - c.width / 2) / 12);
+  const gy = Math.round((c.height / 2 - py) / 12);
+  if (!window.stuGridPoints[assignId]) window.stuGridPoints[assignId] = [];
+  window.stuGridPoints[assignId].push({ x: gx, y: gy });
+  drawInteractiveGrid(assignId);
 }
+
+function drawInteractiveGrid(assignId) {
+  const c = document.getElementById("slopeCanvas");
+  if (!c) return;
+  const ctx = c.getContext("2d");
+  const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = "#e2e8f0";
+  for (let x = cx % 12; x < w; x += 12) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = cy % 12; y < h; y += 12) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  ctx.strokeStyle = "#64748b";
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+  const pts = window.stuGridPoints[assignId] || [];
+  ctx.fillStyle = "#dc2626";
+  pts.forEach(p => { ctx.beginPath(); ctx.arc(cx + p.x * 12, cy - p.y * 12, 4, 0, Math.PI * 2); ctx.fill(); });
+  if (pts.length >= 2) {
+    ctx.strokeStyle = "#2563eb"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx + pts.at(0).x * 12, cy - pts.at(0).y * 12); ctx.lineTo(cx + pts.at(-1).x * 12, cy - pts.at(-1).y * 12); ctx.stroke();
+  }
+  const lbl = document.getElementById("gridCoords-" + assignId);
+  if (lbl) lbl.innerText = pts.length ? "Plotted Points: " + pts.map(p => `(${p.x}, ${p.y})`).join(", ") : "Plotted Points: None (tap grid to plot)";
+}
+
+function collectAndSubmitWork(assignId) {
+  const boxes = Array.from(document.querySelectorAll(".wb-ans-" + assignId));
+  const lines = boxes.map(b => (b.getAttribute("data-q") || "Prompt") + "\nAnswer: " + (b.value.trim() || "(Left blank)"));
+  const pts = window.stuGridPoints[assignId] || [];
+  if (pts.length) lines.push("Plotted Graph Coordinates: " + pts.map(p => `(${p.x}, ${p.y})`).join(" -> "));
+  const target = document.getElementById("subnote-" + assignId);
+  if (target) target.value = lines.join("\n\n");
+  submitWork(assignId);
+}
+
+
 
 async function loadStudentDashboard(isPreview = false) {
   if (!isPreview) saveSession("student");
