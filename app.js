@@ -678,10 +678,14 @@ function setGradingStudentFilter(stuId) {
   renderGradingQueue();
 }
 
-function getParentTextSnippet(subject, dayNum) {
+function getParentTextSnippet(subject, dayNum, studentId, quarter) {
+  const stu = Array.isArray(studentsCache) ? studentsCache.find(x => String(x.id) === String(studentId)) : null;
+  if (typeof window.buildFullHonorsLesson === "function") {
+    const built = window.buildFullHonorsLesson(subject, dayNum || 1, stu && stu.grade_level, quarter);
+    if (built && built.parentKey) return built.parentKey;
+  }
   const s = (subject || "").toLowerCase();
   const d = dayNum || 1;
-  if (s.includes("algebra") || s.includes("math")) {
     return d === 1
       ? `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">🌱 Recommended Extension &amp; Dinner-Table Prompt:</div><div style="margin-bottom:8px;">Compare two real-world cell phone or gym membership plans ($30/mo + $5/day vs. $50/mo flat) and ask your student at what day they cost the exact same amount.</div><div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Step-by-Step Model Answer Key (Day 1):</div>• <b>Problem 1:</b> 24 ÷ 3 · 2 + (5 − 8)² = 8 · 2 + (−3)² = 16 + 9 = <b>25</b> (Watch out: dividing before multiplying left-to-right, and (−3)² = +9).<br>• <b>Problem 2:</b> 3(−2)² − 2(4) + 1 = 3(4) − 8 + 1 = 12 − 8 + 1 = <b>5</b>.<br>• <b>Problem 3:</b> 5(3x − 2) − 2(4x − 7) = 15x − 10 − 8x + 14 = <b>7x + 4</b>.<br>• <b>Problem 4:</b> 6x − 11 = 37 → 6x = 48 → <b>x = 8</b> (Check: 6(8) − 11 = 37 ✓).<br>• <b>Problem 5:</b> 18v + 35 = 179 → 18v = 144 → <b>v = 8 visits</b>.<br>• <b>Global Explorer Bonus (+5%):</b> t = 450 ÷ 320 = <b>1.40625 hrs (1 hr 24 min)</b>.`
       : `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Step-by-Step Model Answer Key (Day ${d} — Slope &amp; y = mx + b):</div>• <b>Problem 1:</b> m = (1900 − 400) ÷ (6 − 0) = 1500 ÷ 6 = <b>250 ft per mile</b> (steepness of climb).<br>• <b>Problem 2:</b> m = (−3 − 5) ÷ (6 − 2) = −8 ÷ 4 = <b>−2</b>.<br>• <b>Problem 3:</b> <b>y = 4x − 3</b>.<br>• <b>Problem 4:</b> <b>y = 8x + 25</b>; for 15 shirts: 8(15) + 25 = <b>$145</b>.<br>• <b>Problem 5 (Grid):</b> Plotted points (1, 2) and (4, 8) → m = 2, b = 0 → <b>y = 2x</b>.<br>• <b>Global Explorer Bonus (+5%):</b> <b>h = 6t</b> (passes through origin (0, 0)).`;
@@ -815,9 +819,8 @@ function renderGradingQueue() {
         ${statusPill}
       </div>
       <details style="margin-top:8px; border:1px solid #86efac; border-radius:8px; overflow:hidden;" ${revIdx === 0 ? "open" : ""}>
-        <summary style="cursor:pointer; background:#14532d; color:#ffffff; padding:8px 12px; font-weight:700; font-size:13px;">🔑 Parent &amp; Instructor Companion Guide + Step-by-Step Answer Key (Day ${dayNum})</summary>
-        <div style="padding:12px; background:#f0fdf4; font-size:13px; line-height:1.6; color:#1e293b;">${getParentTextSnippet(a.subject, dayNum)}</div>
-      </details>
+                <summary style="cursor:pointer; background:#14532d; color:#ffffff; padding:8px 12px; font-weight:700; font-size:13px;">📖 Parent &amp; Instructor Companion Guide + Verbatim Answer Key (Day ${dayNum})</summary>
+        <div style="padding:12px; background:#f0fdf4; font-size:13px; line-height:1.6; color:#1e293b;">${getParentTextSnippet(a.subject, dayNum, a.student_id, a.quarter)}</div>
       ${subWork}
       <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; align-items:center;">
         <input type="text" id="grade-${a.id}" value="${gradeVal}" placeholder="Score (e.g., 95 or 100)" style="width:130px; margin:0;" />
@@ -1768,11 +1771,13 @@ function renderStudentTodayPane() {
   const dayIdx = typeof window.stuViewDayOffset[activeLatest.subject] === "number" ? Math.max(0, Math.min(seq.length - 1, window.stuViewDayOffset[activeLatest.subject])) : (seq.length - 1);
   const a = seq.at(dayIdx) || activeLatest;
   const dayNum = dayIdx + 1;
-  const khan = getKhanLessonContent(a.subject, dayNum, a.description);
-    const sub = stuSubsCache.find(x => String(x.assignment_id) === String(a.id));
-  const statusText = sub && (sub.status === "Graded" || sub.grade) ? "✅ Graded: " + sub.grade : sub && sub.status === "Submitted" ? "⏳ Submitted — Awaiting Parent Approval" : `Day ${dayNum} Active Lesson`;
-  const ytHost = "www." + "youtube.com";
-  const vidHtml = `<div style="margin:10px 0 14px 0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px;"><div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:6px;">🎬 1. ${khan.ytLabel}</div><div style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#000;"><iframe src="https://${ytHost}/embed/${khan.yt}?rel=0&playsinline=1" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen playsinline></iframe></div></div>`;
+    const khan = typeof window.buildFullHonorsLesson === "function"
+    ? window.buildFullHonorsLesson(a.subject, dayNum, currentUser && currentUser.grade_level, a.quarter)
+    : getKhanLessonContent(a.subject, dayNum, a.description);
+  const sub = stuSubsCache.find(x => String(x.assignment_id) === String(a.id));
+  const statusText = sub && (sub.status === "Graded" || sub.grade) ? "✅ Graded: " + sub.grade : sub && sub.status === "Submitted" ? "⏳ Submitted" : "📝 Ready";
+  const ytUrl = `https://youtube.com{khan.yt}`;
+  const vidHtml = `<div style="margin:10px 0 14px 0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px;"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:6px;"><span style="font-size:12.5px; font-weight:800; color:#1e3a8a;">🎬 ${khan.ytLabel}</span><a href="${ytUrl}" target="_blank" rel="noopener" style="font-size:12px; font-weight:700; color:#1d4ed8; text-decoration:underline;">↗ Open on YouTube</a></div><div style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#0f172a;"><iframe src="https://youtube-nocookie.com{khan.yt}?rel=0&modestbranding=1&playsinline=1" title="${khan.ytLabel}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>`;
 
   const docLinks = (a.resource_url || "").split(/[\r\n,]+/).map(u => u.replace(/^pdf:/i, "").trim()).filter(u => /^https?:\/\//i.test(u) && !u.includes("youtube") && !u.includes("youtu.be") && !u.includes("phet") && !u.includes("spanishdict") && !u.includes("louvre.fr"));
   const pdfBtnHtml = docLinks.length ? `<div style="margin:8px 0;">${docLinks.map(lnk => `<a href="${lnk}" target="_blank" rel="noopener" class="btn-outline" style="width:auto; display:inline-block; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-weight:700; text-decoration:none;">📖 Open Book / Reading PDF ↗</a>`).join(" ")}</div>` : "";
