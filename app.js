@@ -678,36 +678,34 @@ function setGradingStudentFilter(stuId) {
   renderGradingQueue();
 }
 
-function getParentTextSnippet(subject) {
+function getParentTextSnippet(subject, dayNum) {
   const s = (subject || "").toLowerCase();
-  if (s.includes("geometry")) {
-    return "<b>📘 Parent Geometry Concept Refresher &amp; Worked Example:</b><br>• <b>Slope &amp; Parallel/Perpendicular Lines:</b> Slope <code>m = (y2 - y1) / (x2 - x1)</code>. Parallel lines share the <b>exact same slope</b>; perpendicular lines have <b>negative reciprocal slopes</b> (e.g., <code>2/3</code> &amp; <code>-3/2</code>).<br>• <b>Worked Example:</b> Find the slope through <code>(2, 5)</code> and <code>(6, 13)</code> &rarr; Step 1: <code>m = (13 - 5) / (6 - 2)</code> &rarr; Step 2: <code>m = 8 / 4 = 2</code>. A perpendicular line has slope <b><code>-1/2</code></b>.<br>• <i>Check student's uploaded paper photo to verify every formula and intermediate step is written out!</i>";
+  const d = dayNum || 1;
+  if (s.includes("algebra") || s.includes("math")) {
+    return d === 1
+      ? `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">🌱 Recommended Extension &amp; Dinner-Table Prompt:</div><div style="margin-bottom:8px;">Compare two real-world cell phone or gym membership plans ($30/mo + $5/day vs. $50/mo flat) and ask your student at what day they cost the exact same amount.</div><div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Step-by-Step Model Answer Key (Day 1):</div>• <b>Problem 1:</b> 24 ÷ 3 · 2 + (5 − 8)² = 8 · 2 + (−3)² = 16 + 9 = <b>25</b> (Watch out: dividing before multiplying left-to-right, and (−3)² = +9).<br>• <b>Problem 2:</b> 3(−2)² − 2(4) + 1 = 3(4) − 8 + 1 = 12 − 8 + 1 = <b>5</b>.<br>• <b>Problem 3:</b> 5(3x − 2) − 2(4x − 7) = 15x − 10 − 8x + 14 = <b>7x + 4</b>.<br>• <b>Problem 4:</b> 6x − 11 = 37 → 6x = 48 → <b>x = 8</b> (Check: 6(8) − 11 = 37 ✓).<br>• <b>Problem 5:</b> 18v + 35 = 179 → 18v = 144 → <b>v = 8 visits</b>.<br>• <b>Global Explorer Bonus (+5%):</b> t = 450 ÷ 320 = <b>1.40625 hrs (1 hr 24 min)</b>.`
+      : `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Step-by-Step Model Answer Key (Day ${d} — Slope &amp; y = mx + b):</div>• <b>Problem 1:</b> m = (1900 − 400) ÷ (6 − 0) = 1500 ÷ 6 = <b>250 ft per mile</b> (steepness of climb).<br>• <b>Problem 2:</b> m = (−3 − 5) ÷ (6 − 2) = −8 ÷ 4 = <b>−2</b>.<br>• <b>Problem 3:</b> <b>y = 4x − 3</b>.<br>• <b>Problem 4:</b> <b>y = 8x + 25</b>; for 15 shirts: 8(15) + 25 = <b>$145</b>.<br>• <b>Problem 5 (Grid):</b> Plotted points (1, 2) and (4, 8) → m = 2, b = 0 → <b>y = 2x</b>.<br>• <b>Global Explorer Bonus (+5%):</b> <b>h = 6t</b> (passes through origin (0, 0)).`;
   }
-  if (s.includes("algebra") || s.includes("calculus") || s.includes("math")) {
-    return "<b>📘 Parent Algebra Concept Refresher &amp; Worked Example:</b><br>• <b>Multi-Step Linear Equations:</b> Distribute first, combine like terms on each side, then isolate the variable using inverse operations.<br>• <b>Worked Example:</b> Solve <code>3(x - 4) + 2 = 17</code> &rarr; Step 1 (Distribute): <code>3x - 12 + 2 = 17</code> &rarr; Step 2 (Combine): <code>3x - 10 = 17</code> &rarr; Step 3 (Add 10): <code>3x = 27</code> &rarr; Step 4 (Divide by 3): <b><code>x = 9</code></b>.<br>• <i>Check student's uploaded paper photo to verify every intermediate line is shown!</i>";
+  if (s.includes("biology")) {
+    return d === 1
+      ? `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">🌱 Dinner-Table Discussion &amp; Lab Safety Check:</div><div style="margin-bottom:8px;">Ask: "Why did Alexander Fleming's contaminated petri dish lead to penicillin instead of the trash bin?" Ensure water for yeast is warm (~105°F), not boiling.</div><div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Step-by-Step Model Answer Key (Day 1):</div>• <b>1. Hypothesis:</b> Must follow <i>"If water temperature increases, then goldfish gill/heart rate will increase because fish are ectothermic (cold-blooded) and metabolic enzyme rates rise with temperature."</i><br>• <b>2–3. Yeast Lab &amp; CER:</b> <b>IV:</b> Sugar amount (0, ½, 2 tsp) | <b>DV:</b> CO₂ foam height (mm) | <b>Control:</b> Cup 1 (0 tsp sugar, proves yeast needs sugar to produce significant CO₂) | <b>Constants:</b> Water volume (½ cup), temperature (~105°F), yeast amount (¾ tsp), cup size.<br>• <b>Global Explorer Bonus (+5%):</b> <b>Paris, France</b>.`
+      : `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Model Answer Key (Day ${d} — Cell Transport &amp; Osmosis):</div>• <b>CER Rubric:</b> Pure distilled water is <b>hypotonic</b> relative to red blood cells, causing water to rush inward via osmosis and burst cells (hemolysis). Isotonic 0.9% NaCl maintains osmotic equilibrium.<br>• <b>Global Explorer Bonus (+5%):</b> <b>London, England</b>.`;
   }
-  if (s.includes("english") || s.includes("literature")) {
-    return "<b>📘 Parent Literature &amp; Composition Refresher:</b><br>• <b>Thesis &amp; Textual Evidence Standard:</b> A strong Honors response opens with a specific debatable claim, embeds a direct quote or concrete scene detail, and explains <i>how</i> the author's word choice or structure supports the theme (not just plot summary).";
+  if (s.includes("history")) {
+    return d === 1
+      ? `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">🌱 Recommended Extension &amp; Dinner-Table Prompt:</div><div style="margin-bottom:8px;">Ask: "Why would a king carve laws onto a 7-foot stone in a public plaza if most citizens couldn't read cuneiform?" (Visual deterrence &amp; priestly/scribal public readings!).</div><div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Step-by-Step Model Answer Key (Day 1):</div>• <b>1. Royal Judge Roleplay:</b> Noble vs. Freed Artisan → <b>Law 198: Noble pays 1 gold mina fine</b> (NOT eye-for-eye, which only applied between equals under Law 196!). Negligent Builder → <b>Law 229: Builder is put to death</b>.<br>• <b>2. Social Hierarchy Evaluation:</b> Strong Honors responses cite Laws 196–199 directly to show punishments protected class hierarchy (Awilum &gt; Mushkenum &gt; Wardum) while still introducing early consumer protection (Law 229).<br>• <b>Global Explorer Bonus (+5%):</b> <b>The Louvre Museum</b> (Paris, France).`
+      : `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Model Answer Key (Day ${d} — Nile &amp; Indus Civilizations):</div>• <b>Rubric:</b> Contrast predictable Nile flooding &amp; centralized Pharaoh rule with Mesopotamia's unpredictable floods &amp; independent city-states, plus Indus urban grid planning.<br>• <b>Global Explorer Bonus (+5%):</b> <b>Rosetta (Rashid), Egypt</b>.`;
   }
-  if (s.includes("chemistry") || s.includes("biology") || s.includes("physics") || s.includes("science")) {
-    return "<b>📘 Parent Science Concept Refresher &amp; Lab Key:</b><br>• <b>Lab Analysis Standard:</b> Confirm the student identifies the independent variable (what changed), dependent variable (what was measured), and explains how trapped <code>CO2</code> gas or molecular energy caused the observed change.";
+  if (s.includes("literature") || s.includes("english")) {
+    return `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Honors Literature Grading Rubric (Day ${d}):</div>• <b>Strong Honors Mastery (95–100%):</b> Directly answers the prompt in 8–12 well-crafted sentences, cites at least 2 concrete textual details (e.g., Clarisse's dandelion/curiosity vs. Mildred's Seashells &amp; parlor walls, or Faber's 3 pillars), and connects Bradbury's 1953 warning to modern 2026 media.<br>• <b>Global Explorer Bonus (+5%):</b> Day 1: Real censorship examples (e.g., 1967 Ballantine expurgated edition, apartheid South Africa, or local U.S. school board challenges) | Day 2: <b>Alexandria, Egypt</b> | Day 3+: <b>Stockholm, Sweden</b>.`;
   }
-  if (s.includes("history") || s.includes("government") || s.includes("economics")) {
-    return "<b>📘 Parent Concept Refresher — Code of Hammurabi &amp; Louvre Context:</b><br>• <b>Pronunciation:</b> <i>Hammurabi</i> (<b>hah-moo-RAH-bee</b>) &bull; <i>Louvre</i> (<b>LOOV-ruh</b>).<br>• <b>Key Historical Takeaway:</b> Carved onto a 7.4-foot basalt steel in Babylon (c. 1754 BCE) and housed today in the Louvre Museum in Paris, Hammurabi's 282 laws established written public legal standards and social-class-based restitution (<i>lex talionis</i>).";
+  if (s.includes("marine")) {
+    return `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Marine Biology Answer Key &amp; Lab Rubric (Day ${d}):</div>• <b>35 ppt Seawater Lab:</b> Higher dissolved salt increases water density, causing the egg/grape to float highest in 35 ppt seawater, moderately in 15 ppt brackish water, and sink in 0 ppt freshwater.<br>• <b>Coral Bleaching:</b> Warming ocean temperatures stress corals into expelling photosynthetic <b>zooxanthellae</b> algae, depriving corals of up to 90% of their energy.<br>• <b>Global Explorer Bonus (+5%):</b> Day 1: <b>Australia</b> (Great Barrier Reef) | Day 2+: <b>Mariana Trench</b>.`;
   }
-  if (s.includes("mandarin") || s.includes("chinese")) {
-    return "<b>📘 Parent Concept Refresher — Mandarin Tones &amp; Greetings:</b><br>• <b>4 Mandarin Tones:</b> 1st tone (high flat: <code>mā</code> = mother), 2nd tone (rising: <code>má</code> = hemp), 3rd tone (dipping: <code>mǎ</code> = horse), 4th tone (sharp falling: <code>mà</code> = scold).<br>• <b>Key Phrases:</b> <i>Nǐ hǎo</i> (<b>nee HOW</b> = Hello) &bull; <i>Xièxie</i> (<b>SHYEH-shyeh</b> = Thank you) &bull; <i>Zàijiàn</i> (<b>DZAI-jyen</b> = Goodbye).";
+  if (s.includes("stock") || s.includes("finance")) {
+    return `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Stock Market &amp; Investing Answer Key (Day ${d}):</div>• <b>Rubric:</b> Student correctly identifies 3 real stock ticker symbols (e.g., AAPL, MSFT, COST) and explains that an <b>S&amp;P 500 Index Fund</b> diversifies across 500 companies so one company's drop cannot wipe out their portfolio.<br>• <b>Global Explorer Bonus (+5%):</b> <b>Wall Street</b> (Lower Manhattan, New York City).`;
   }
-  if (s.includes("spanish") || s.includes("french") || s.includes("hindi")) {
-    return "<b>📘 Parent Concept Refresher — World Language Mastery:</b><br>• Listen for clear vowel pronunciation, accurate gender/number agreement on nouns and adjectives, and complete conversational responses rather than single-word answers.";
-  }
-  if (s.includes("stock") || s.includes("financial") || s.includes("entrepreneurship")) {
-    return "<b>📘 Parent Concept Refresher — Equities, P/E Ratio &amp; Compound Growth:</b><br>• <b>Key Terms:</b> <b>Stock/Equity</b> = fractional ownership in a company; <b>Dividend</b> = cash profit shared per share; <b>P/E Ratio</b> = Share Price &divide; Earnings Per Share; <b>Diversification</b> = spreading capital across sectors to reduce risk.";
-  }
-  if (s.includes("automotive") || s.includes("engineering")) {
-    return "<b>📘 Parent Concept Refresher — 4-Stroke Engine &amp; Vehicle Systems:</b><br>• <b>4-Stroke Cycle:</b> 1. <b>Intake</b> (air-fuel enters) &rarr; 2. <b>Compression</b> (piston compresses mixture) &rarr; 3. <b>Power</b> (spark plug ignites mixture) &rarr; 4. <b>Exhaust</b> (spent gases exit).";
-  }
-  return "<b>📘 Parent Concept Refresher &amp; Grading Standard:</b><br>• Look for a clear topic sentence/claim, at least 2 specific facts or examples from today's video lesson, and complete, well-reasoned sentences.";
+  return `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ World Language Immersion Rubric (Day ${d}):</div>• <b>Rubric:</b> Complete 8–10 line dialogue using taught greetings, polite requests (<i>Quisiera..., por favor</i>), food/drink nouns, and closing thanks (<i>La cuenta, por favor. Muchas gracias</i>).<br>• <b>Global Explorer Bonus (+5%):</b> <b>Quito, Ecuador</b> (2,850 m elevation in the Andes).`;
 }
 
 function renderGradingQueue() {
@@ -1252,11 +1250,10 @@ function getYouTubeEmbed(url) {
   if (!url) return null;
   if (url.startsWith("yt:")) return base + url.slice(3).trim();
   const m = url.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
-  return m ? base + m[1] : null;
+  return m ? base + m.at(1) : null;
 }
 
 function switchStudentTab(tabName, btn) {
-  document.querySelectorAll("#studentDashboard .pill").forEach(b => {
     b.classList.remove("active");
     b.style.background = "#ffffff";
     b.style.color = "#0f172a";
