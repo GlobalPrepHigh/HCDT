@@ -684,10 +684,12 @@ function getParentTextSnippet(subject, dayNum, studentId, quarter) {
     const built = window.buildFullHonorsLesson(subject, dayNum || 1, stu && stu.grade_level, quarter);
     if (built && built.parentKey) return built.parentKey;
   }
-  const s = (subject || "").toLowerCase();
+    const s = (subject || "").toLowerCase();
   const d = dayNum || 1;
+  if (s.includes("algebra") || s.includes("math")) {
     return d === 1
-      ? `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">🌱 Recommended Extension &amp; Dinner-Table Prompt:</div><div style="margin-bottom:8px;">Compare two real-world cell phone or gym membership plans ($30/mo + $5/day vs. $50/mo flat) and ask your student at what day they cost the exact same amount.</div><div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Step-by-Step Model Answer Key (Day 1):</div>• <b>Problem 1:</b> 24 ÷ 3 · 2 + (5 − 8)² = 8 · 2 + (−3)² = 16 + 9 = <b>25</b> (Watch out: dividing before multiplying left-to-right, and (−3)² = +9).<br>• <b>Problem 2:</b> 3(−2)² − 2(4) + 1 = 3(4) − 8 + 1 = 12 − 8 + 1 = <b>5</b>.<br>• <b>Problem 3:</b> 5(3x − 2) − 2(4x − 7) = 15x − 10 − 8x + 14 = <b>7x + 4</b>.<br>• <b>Problem 4:</b> 6x − 11 = 37 → 6x = 48 → <b>x = 8</b> (Check: 6(8) − 11 = 37 ✓).<br>• <b>Problem 5:</b> 18v + 35 = 179 → 18v = 144 → <b>v = 8 visits</b>.<br>• <b>Global Explorer Bonus (+5%):</b> t = 450 ÷ 320 = <b>1.40625 hrs (1 hr 24 min)</b>.`
+      ? `<div style="font-weight:800;
+
       : `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Step-by-Step Model Answer Key (Day ${d} — Slope &amp; y = mx + b):</div>• <b>Problem 1:</b> m = (1900 − 400) ÷ (6 − 0) = 1500 ÷ 6 = <b>250 ft per mile</b> (steepness of climb).<br>• <b>Problem 2:</b> m = (−3 − 5) ÷ (6 − 2) = −8 ÷ 4 = <b>−2</b>.<br>• <b>Problem 3:</b> <b>y = 4x − 3</b>.<br>• <b>Problem 4:</b> <b>y = 8x + 25</b>; for 15 shirts: 8(15) + 25 = <b>$145</b>.<br>• <b>Problem 5 (Grid):</b> Plotted points (1, 2) and (4, 8) → m = 2, b = 0 → <b>y = 2x</b>.<br>• <b>Global Explorer Bonus (+5%):</b> <b>h = 6t</b> (passes through origin (0, 0)).`;
   }
   if (s.includes("biology")) {
