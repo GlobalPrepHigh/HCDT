@@ -286,17 +286,26 @@
     </section>
 
         <section id="studentDashboard" class="hidden">
-      <div class="banner no-print" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
-        <div>
-          <h2 id="stuDashWelcome">Welcome, Student!</h2>
-          <p id="stuDashMeta" class="muted">Grade &bull; Cohort</p>
-                </div>
-        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-          <span id="stuStudyDaysBadge" style="background:rgba(255,255,255,0.16); color:#ffffff; border:1px solid rgba(255,255,255,0.35); padding:8px 14px; border-radius:999px; font-weight:700; font-size:13px;">🔥 1 Day Studied</span>
-          <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:999px; font-weight:700; cursor:pointer;" onclick="triggerBrainBreak()">🧠 Brain Break</button>
-        </div>
+    <div class="banner no-print" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
+      <div>
+        <h2 id="stuDashWelcome" style="margin-bottom:4px;">Welcome, Student!</h2>
+        <p id="stuDashMeta" class="muted" style="margin:0 0 8px 0;">Grade &bull; Cohort</p>
+        <span id="stuStudyDaysBadge" style="display:inline-block; background:rgba(255,255,255,0.16); color:#ffffff; border:1px solid rgba(255,255,255,0.35); padding:5px 12px; border-radius:999px; font-weight:700; font-size:12.5px;">🔥 1 Day Studied</span>
       </div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+        <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:999px; font-weight:700; cursor:pointer;" onclick="triggerBrainBreak()">🧠 Brain Break</button>
+      </div>
+    </div>
 
+    <div id="photoLightboxModal" class="hidden" onclick="if(event.target===this)this.classList.add('hidden')" style="position:fixed; inset:0; background:rgba(15,23,42,0.85); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px;">
+      <div style="max-width:760px; width:100%; background:#ffffff; border-radius:12px; padding:14px; text-align:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <strong style="color:#0f172a;">📸 Student Uploaded Work</strong>
+          <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a;" onclick="document.getElementById('photoLightboxModal').classList.add('hidden')">✕ Close</button>
+        </div>
+        <img id="photoLightboxImg" src="" alt="Student Uploaded Work" style="max-width:100%; max-height:72vh; border-radius:8px; border:1px solid #cbd5e1;" />
+      </div>
+    </div>
       <div id="brainBreakBox" class="card hidden" style="margin-bottom:16px; border:2px solid #93c5fd; background:#eff6ff;"></div>
 
       <div class="nav-pills no-print" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px;">
