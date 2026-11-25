@@ -1609,13 +1609,27 @@ function getKhanLessonContent(subject, dayNum, baseDesc) {
   const isFre = s.includes("french");
   const isHin = s.includes("hindi");
   const langYt = isMan ? "3wV8B4bx1lM" : isHin ? "1lrz11BbqCA" : isFre ? "hd0_GZHHWeE" : "DAp_v7EH9AA";
-  const immersionCards = isSpa
+    const immersionCards = isSpa
     ? `<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px; margin:10px 0;">
         <div onclick="speakWordInline('Buenos días','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; cursor:pointer;"><b>🔊 Buenos días</b><br><small>Good morning</small></div>
         <div onclick="speakWordInline('Quisiera un café, por favor','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; cursor:pointer;"><b>🔊 Quisiera un café, por favor</b><br><small>I would like a coffee, please</small></div>
         <div onclick="speakWordInline('Dos tacos y agua, por favor','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; cursor:pointer;"><b>🔊 Dos tacos y agua, por favor</b><br><small>Two tacos and water, please</small></div>
         <div onclick="speakWordInline('La cuenta, por favor. Muchas gracias','es-ES')" style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; cursor:pointer;"><b>🔊 La cuenta, por favor. Muchas gracias</b><br><small>The bill, please. Thank you very much</small></div>
       </div>`
+    : `<div style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:8px; margin:10px 0;">Tap any highlighted pronunciation word in the reading below to hear native audio!</div>`;
+
+  return {
+    why: `Why This Matters (Day ${dayNum} ${subject}): Learning a language works best through immersion—hearing simple, everyday phrases first, repeating them out loud, and using them in real travel conversations.`,
+    yt: [langYt],
+    reading: isSpa
+      ? `IMMERSION DIALOGUE & VOCABULARY (TAP ANY CARD TO HEAR AUDIO):\n${immersionCards}\nMINI CAFÉ DIALOGUE (READ ALOUD):\n— Mesero (Waiter): ¡Buenos días! ¿Qué desea ordenar?\n— Estudiante (Student): Buenos días. Quisiera dos tacos y agua, por favor.\n— Mesero: ¡Cómo no! Aquí tiene.\n— Estudiante: Muchas gracias. La cuenta, por favor.`
+      : `IMMERSION DIALOGUE & CORE PHRASES:\n${immersionCards}\nPractice greeting politely (Nǐ hǎo / Bonjour / Namaste), asking for what you need, and thanking your host in complete sentences.`,
+    steps: isSpa
+      ? `1. WATCH THE BASIC IMMERSION VIDEO BELOW: Listen carefully to how Spanish greetings and polite café phrases sound.\n2. TAP & REPEAT THE DUOLINGO-STYLE PHRASE CARDS ABOVE: Tap each green card to hear native pronunciation and read the mini café dialogue aloud twice.\n3. HONORS IMMERSION WRITING (8–10 sentences in Spanish): Write a complete café ordering conversation between you and a waiter using ONLY the phrases and vocabulary taught above (Buenos días, Quisiera..., dos tacos, un café, agua, por favor, La cuenta, Muchas gracias).\n4. CARMEN SANDIEGO GLOBAL BONUS: In which South American capital city at 2,850 meters elevation is Spanish spoken alongside Kichwa in the Andes Mountains?`
+      : `1. WATCH THE BASIC IMMERSION VIDEO BELOW: Listen to the beginner pronunciation and tone patterns.\n2. PRACTICE THE IMMERSION PHRASES ABOVE: Tap each highlighted word to listen and repeat aloud.\n3. HONORS IMMERSION WRITING (8–10 sentences): Write a polite greeting and travel ordering dialogue using today’s core vocabulary.\n4. CARMEN SANDIEGO GLOBAL BONUS: Name one major world city where ${subject.replace(/Honors\s*/i, "")} is an official language!`
+  };
+}
+
 function renderStudentTodayPane() {
   const tabEl = document.getElementById("stuSubjectTabs");
   const paneEl = document.getElementById("stuActiveLessonPane");
