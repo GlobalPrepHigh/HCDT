@@ -956,36 +956,6 @@ async function editCourseAssignment(id, oldSubject, oldLevel, oldCredits) {
   }
 }
 
-  const student_id = document.getElementById("achStudentSelect").value;
-  const type = document.getElementById("achType").value;
-  const title = document.getElementById("achTitle").value.trim();
-  const location = document.getElementById("achLocation").value.trim();
-  const metric = document.getElementById("achMetric").value.trim();
-
-  if (!student_id || !title) return alert("Select a student and enter a title.");
-
-  try {
-    await sbQuery("achievements", {
-      method: "POST",
-      body: {
-        family_id: currentFamily.id,
-        student_id,
-        type,
-        title,
-        location,
-        metric,
-        date_completed: new Date().toISOString().split("T")[0]
-      }
-    });
-    document.getElementById("achTitle").value = "";
-    document.getElementById("achLocation").value = "";
-    document.getElementById("achMetric").value = "";
-    await refreshFamilyData();
-  } catch (err) {
-    alert(err.message);
-  }
-}
-
 function renderAchievements() {
   const container = document.getElementById("parentAchievementList");
   container.innerHTML = achievementsCache.map(ac => {
