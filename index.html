@@ -292,39 +292,33 @@
         <p id="stuDashMeta" class="muted" style="margin:0 0 8px 0;">Grade &bull; Cohort</p>
         <span id="stuStudyDaysBadge" style="display:inline-block; background:rgba(255,255,255,0.16); color:#ffffff; border:1px solid rgba(255,255,255,0.35); padding:5px 12px; border-radius:999px; font-weight:700; font-size:12.5px;">🔥 1 Day Studied</span>
       </div>
-      <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-        <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:999px; font-weight:700; cursor:pointer;" onclick="triggerBrainBreak()">🧠 Brain Break</button>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+        <button type="button" style="width:auto; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; padding:8px 14px; border-radius:8px; font-weight:700; cursor:pointer;" onclick="logoutUser()">Sign Out</button>
       </div>
     </div>
 
-    <div id="photoLightboxModal" class="hidden" onclick="if(event.target===this)this.classList.add('hidden')" style="position:fixed; inset:0; background:rgba(15,23,42,0.85); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px;">
-      <div style="max-width:760px; width:100%; background:#ffffff; border-radius:12px; padding:14px; text-align:center;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <strong style="color:#0f172a;">📸 Student Uploaded Work</strong>
-          <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a;" onclick="document.getElementById('photoLightboxModal').classList.add('hidden')">✕ Close</button>
-        </div>
-        <img id="photoLightboxImg" src="" alt="Student Uploaded Work" style="max-width:100%; max-height:72vh; border-radius:8px; border:1px solid #cbd5e1;" />
-      </div>
+    <div class="nav-pills no-print" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px;">
+      <button type="button" class="pill active" style="padding:12px 18px; font-size:15px; font-weight:700; background:#1e3a8a; color:#ffffff; border:1px solid #1e3a8a; border-radius:10px;" onclick="switchStudentTab('today', this)">📚 Today's Lessons</button>
+      <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; border-radius:10px;" onclick="switchStudentTab('syllabus', this)">🗓️ Quarter Syllabus</button>
+      <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; border-radius:10px;" onclick="switchStudentTab('grades', this)">📊 Grades &amp; GPA</button>
+      <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; border-radius:10px;" onclick="switchStudentTab('certs', this)">🎓 Official Transcript &amp; Certs</button>
     </div>
-      <div id="brainBreakBox" class="card hidden" style="margin-bottom:16px; border:2px solid #93c5fd; background:#eff6ff;"></div>
 
-      <div class="nav-pills no-print" style="margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px;">
-        <button type="button" class="pill active" style="padding:12px 18px; font-size:15px; font-weight:700; background:#1e3a8a; color:#ffffff;" onclick="switchStudentTab('today', this)">📚 Courses &amp; Lessons</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1;" onclick="switchStudentTab('syllabus', this)">📖 Quarter Syllabus</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1;" onclick="switchStudentTab('grades', this)">📊 Grades &amp; GPA</button>
-        <button type="button" class="pill" style="padding:12px 18px; font-size:15px; font-weight:700; background:#ffffff; color:#0f172a; border:1px solid #cbd5e1;" onclick="switchStudentTab('certs', this)">🏅 Certs &amp; Portfolio</button>
-      </div>
-
-      <div id="sView-today" class="s-view">
-        <div id="stuCourseMenuCard" class="card" style="margin-bottom:14px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-            <h3 style="margin:0; color:#0f172a;">📚 My Enrolled Honors Courses (Tap a Course to Open Lesson)</h3>
-            <span id="stuTodayProgress" class="badge">0 / 0 Submitted</span>
-          </div>
-          <div id="stuSubjectTabs" style="display:flex; flex-direction:column; gap:10px;"></div>
+    <div id="sView-today" class="s-view">
+      <div id="stuCourseMenuCard" class="card" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <h3 style="margin:0; color:#0f172a;">📚 My Enrolled Honors Courses (Tap a Course to Open Lesson)</h3>
+          <span id="stuTodayProgress" class="badge">0 / 0 Submitted</span>
         </div>
-        <div id="stuActiveLessonPane"></div>
+        <div id="stuSubjectTabs" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span class="muted" style="font-size:13px;">Need a 2-minute mental reset between classes?</span>
+          <button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1e3a8a; border-color:#93c5fd; font-weight:700;" onclick="triggerBrainBreak()">🧠 Take a 2-Minute Brain Break</button>
+        </div>
+        <div id="brainBreakBox" class="card hidden" style="margin-top:12px; border:2px solid #93c5fd; background:#eff6ff;"></div>
       </div>
+      <div id="stuActiveLessonPane"></div>
+    </div>
 
       <div id="sView-syllabus" class="s-view hidden">
         <div class="card">
@@ -359,7 +353,17 @@
 
   </main>
 
-  <div id="accountModal" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:999; display:none; align-items:center; justify-content:center; padding:16px;">
+  <div id="photoLightboxModal" class="hidden" onclick="if(event.target===this){this.classList.add('hidden');this.style.display='none';}" style="position:fixed; inset:0; background:rgba(15,23,42,0.82); z-index:1000; display:none; align-items:center; justify-content:center; padding:16px;">
+    <div style="max-width:768px; width:100%; background:#ffffff; border-radius:12px; padding:14px; text-align:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <strong style="color:#0f172a;">📸 Student Uploaded Work</strong>
+        <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; color:#0f172a;" onclick="const m=document.getElementById('photoLightboxModal');m.classList.add('hidden');m.style.display='none';">✕ Close</button>
+      </div>
+      <img id="photoLightboxImg" src="" alt="Student Uploaded Work" style="max-width:100%; max-height:72vh; border-radius:8px; border:1px solid #cbd5e1;" />
+    </div>
+  </div>
+
+  <div id="accountModal"
     <div class="card" style="max-width:440px; width:100%; position:relative;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h3 style="margin:0;">👤 Account &amp; Login Settings</h3>
