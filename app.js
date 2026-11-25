@@ -687,12 +687,6 @@ function getParentTextSnippet(subject, dayNum, studentId, quarter) {
   return `<div style="font-weight:800; color:#14532d;">✅ Companion Guide &amp; Rubric: Full credit (95–100%) for thorough, complete sentences addressing all prompts.</div>`;
 }
 
-  if (s.includes("stock") || s.includes("finance")) {
-    return `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ Stock Market &amp; Investing Answer Key (Day ${d}):</div>• <b>Rubric:</b> Student correctly identifies 3 real stock ticker symbols (e.g., AAPL, MSFT, COST) and explains that an <b>S&amp;P 500 Index Fund</b> diversifies across 500 companies so one company's drop cannot wipe out their portfolio.<br>• <b>Global Explorer Bonus (+5%):</b> <b>Wall Street</b> (Lower Manhattan, New York City).`;
-  }
-  return `<div style="font-weight:800; color:#14532d; margin-bottom:4px;">✅ World Language Immersion Rubric (Day ${d}):</div>• <b>Rubric:</b> Complete 8–10 line dialogue using taught greetings, polite requests (<i>Quisiera..., por favor</i>), food/drink nouns, and closing thanks (<i>La cuenta, por favor. Muchas gracias</i>).<br>• <b>Global Explorer Bonus (+5%):</b> <b>Quito, Ecuador</b> (2,850 m elevation in the Andes).`;
-}
-
 function renderGradingQueue() {
   const pillsEl = document.getElementById("gradingStudentPills");
   if (pillsEl) {
