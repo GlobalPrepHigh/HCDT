@@ -726,141 +726,151 @@ function renderGradingQueue() {
     }).join("") + (studentsCache.length > 1 ? '<button type="button" style="border-radius:8px; cursor:pointer; ' + (activeGradingStudentId === 'ALL' ? 'width:auto; padding:10px 16px; font-size:16px; font-weight:800; background:#1e3a8a; color:#ffffff; border:2px solid #0f172a;' : 'width:auto; padding:8px 13px; font-size:14px; font-weight:600; background:#f8fafc; color:#1e293b; border:1px solid #cbd5e1;') + '" onclick="setGradingStudentFilter(\'ALL\')">All</button>' : '');
   }
 
-    const container = document.getElementById("parentAssignmentList");
-  let filtered = activeGradingStudentId === "ALL" || !activeGradingStudentId
+      const container = document.getElementById("parentAssignmentList");
+  const baseList = activeGradingStudentId === "ALL" || !activeGradingStudentId
     ? assignmentsCache
     : assignmentsCache.filter(a => String(a.student_id) === String(activeGradingStudentId));
 
-  if (window.parentGradeFilter === "needs") {
-    filtered = filtered.filter(a => {
-      const s = submissionsCache.find(x => String(x.assignment_id) === String(a.id));
-      return !(s && (s.status === "Graded" || (s.grade && String(s.grade).trim() !== "")));
-    });
-  } else if (window.parentGradeFilter === "graded") {
-    filtered = filtered.filter(a => {
-      const s = submissionsCache.find(x => String(x.assignment_id) === String(a.id));
-      return !!(s && (s.status === "Graded" || (s.grade && String(s.grade).trim() !== "")));
-    });
-  }
+  const byCourse = {};
+  baseList.forEach(a => {
+    const key = (a.student_id || "") + "::" + (a.subject || "Course");
+    if (!byCourse[key]) byCourse[key] = [];
+    byCourse[key].push(a);
+  });
 
-  if (!filtered.length) {
-    container.innerHTML = "<p class='muted'>No assignments in this filter view.</p>";
+  if (!Object.keys(byCourse).length) {
+    container.innerHTML = "<p class='muted'>No courses or assignments found for this student yet.</p>";
     return;
   }
 
-  container.innerHTML = filtered.map(a => {
-    const stu = studentsCache.find(s => String(s.id) === String(a.student_id));
+  if (!window.activeParentCourseKey || !byCourse[window.activeParentCourseKey]) {
+    container.style.display = "grid";
+    container.style.gridTemplateColumns = "repeat(auto-fit, minmax(300px, 1fr))";
+    container.innerHTML = Object.keys(byCourse).map(k => {
+      const list = byCourse[k];
+      const latest = list.at(-1) || list.at(0);
+      const stu = studentsCache.find(s => String(s.id) === String(latest.student_id));
+      const needsCount = list.filter(item => {
+        const s = submissionsCache.find(x => String(x.assignment_id) === String(item.id));
+        return s && s.status === "Submitted" && !s.grade;
+      }).length;
+      const safeK = k.replace(/'/g, "\\'");
+      const safeSubj = (latest.subject || "").replace(/'/g, "\\'");
+      const badge = needsCount > 0
+        ? `<span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800;">⏳ ${needsCount} Ready to Grade</span>`
+        : `<span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">Day ${list.length} Active</span>`;
+      return `<div class="item-card" style="display:flex; flex-direction:column; justify-content:space-between; gap:10px; border-left:4px solid #1e3a8a;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+            <strong style="font-size:16px; color:#0f172a;">📘 ${latest.subject}</strong>
+            ${badge}
+          </div>
+          <div class="muted" style="font-size:12.5px; margin-top:4px;">Student: <b>${stu ? stu.full_name : "Student"}</b> • ${latest.course_level || "Honors"} (${latest.credits || 1} cr) • ${list.length} Day(s)</div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn-primary" style="flex:1;" onclick="window.activeParentCourseKey='${safeK}'; renderGradingQueue();">📂 Open Assignments &amp; Keys (${list.length})</button>
+          <button type="button" class="btn-outline" style="width:auto; color:#b91c1c; border-color:#fecaca;" onclick="deleteParentCourse('${latest.student_id}', '${safeSubj}')">Delete Course</button>
+        </div>
+      </div>`;
+    }).join("");
+    return;
+  }
+    const courseList = byCourse[window.activeParentCourseKey].slice().reverse();
+  const sampleItem = courseList.at(0);
+  container.style.display = "block";
+  const headerBar = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #cbd5e1;">
+    <button type="button" class="btn-outline" style="width:auto; color:#0f172a; font-weight:700;" onclick="window.activeParentCourseKey=null; renderGradingQueue();">← All Courses</button>
+    <strong style="font-size:16px; color:#1e3a8a;">📘 ${sampleItem.subject} — Assignments (Newest First)</strong>
+  </div>`;
+
+  container.innerHTML = headerBar + courseList.map((a, revIdx) => {
+    const dayNum = courseList.length - revIdx;
     const sub = submissionsCache.find(s => String(s.assignment_id) === String(a.id));
     const gradeVal = sub && sub.grade ? sub.grade : "";
     const fbVal = sub && sub.parent_feedback ? sub.parent_feedback : "";
     const isGraded = !!(sub && (sub.status === "Graded" || String(gradeVal).trim() !== ""));
     const isSubmitted = !!(sub && sub.status === "Submitted" && !isGraded);
     const cleanTitle = a.title.replace(/^\[[^\]]+\]\s*/, "");
-    const snippetHtml = getParentTextSnippet(a.subject);
-
     const statusPill = isGraded
-      ? `<span style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800;">✅ Graded: ${gradeVal}</span>`
+      ? `<span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800;">✅ Graded: ${gradeVal}</span>`
       : isSubmitted
-        ? `<span style="background:#fef3c7; color:#b45309; border:1px solid #fcd34d; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800;">⏳ Submitted — Ready to Grade</span>`
-        : `<span style="background:#f1f5f9; color:#475569; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">Not Submitted Yet</span>`;
-
+        ? `<span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800;">⏳ Submitted — Ready to Grade</span>`
+        : `<span style="background:#f1f5f9; color:#475569; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">Day ${dayNum} Active</span>`;
     const photoHtml = sub && sub.submission_link
-      ? `<div style="margin-top:6px;"><a href="${sub.submission_link}" target="_blank" style="font-size:12px; color:#1d4ed8; font-weight:700;">📸 View Student Uploaded Photo ↗</a></div>`
+      ? `<div style="margin-top:8px;"><button type="button" class="btn-outline" style="width:auto; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; font-size:12px; font-weight:700;" onclick="openStudentPhotoModal('${sub.id}')">📸 Open Student Uploaded Photo</button></div>`
       : "";
-
     const subWork = sub && (sub.student_notes || sub.submission_link)
-      ? `<div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:8px; font-size:13px;"><b>Student Work:</b> ${sub.student_notes || "(Photo attached)"}${photoHtml}</div>`
-      : `<div class="muted" style="font-size:12.5px; margin-top:8px;">Awaiting student submission (you can still pre-enter or edit a grade anytime).</div>`;
+      ? `<div style="background:#f8fafc; border:1px solid #cbd5e1; padding:10px; border-radius:8px; margin-top:8px; font-size:13px; white-space:pre-line;"><b>Student Submitted Work:</b>\n${sub.student_notes || "(Photo attached)"}${photoHtml}</div>`
+      : `<div class="muted" style="font-size:12.5px; margin-top:8px;">Awaiting student submission.</div>`;
+    const safeSubj = (a.subject || "").replace(/'/g, "\\'");
 
-    return `<div class="item-card" style="border-left:4px solid ${isGraded ? "#16a34a" : isSubmitted ? "#f59e0b" : "#cbd5e1"};">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap;">
-        <div>
-          <span class="badge">${a.quarter || "Q1"}</span> <strong>${a.subject}: ${cleanTitle}</strong>
-          <div class="muted" style="font-size:12.5px;">Student: <b>${stu ? stu.full_name : "Student"}</b> • ${a.course_level || "Honors"} (${a.credits || 1} cr)</div>
-        </div>
-        <div style="display:flex; gap:6px; align-items:center;">
-          ${statusPill}
-          <button type="button" class="btn-outline" style="width:auto; padding:4px 8px; font-size:11px; color:#b91c1c; border-color:#fecaca;" onclick="deleteAssignment('${a.id}')">Remove</button>
-        </div>
+    return `<div class="item-card" style="margin-bottom:12px; border-left:4px solid ${isGraded ? "#16a34a" : isSubmitted ? "#f59e0b" : "#94a3b8"};">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+        <div><span class="badge">Day ${dayNum}</span> <strong>${cleanTitle}</strong></div>
+        ${statusPill}
       </div>
-      <details style="background:#fef9c3; border:1px solid #fde047; padding:8px 10px; border-radius:6px; margin-top:8px;">
-        <summary style="cursor:pointer; font-weight:700; font-size:12.5px; color:#854d0e;">🔑 Parent Answer Key &amp; Grading Rubric</summary>
-        <div style="margin-top:6px; font-size:12.5px; line-height:1.5;">${snippetHtml}</div>
+      <details style="margin-top:8px; border:1px solid #86efac; border-radius:8px; overflow:hidden;" ${revIdx === 0 ? "open" : ""}>
+        <summary style="cursor:pointer; background:#14532d; color:#ffffff; padding:8px 12px; font-weight:700; font-size:13px;">🔑 Parent &amp; Instructor Companion Guide + Step-by-Step Answer Key (Day ${dayNum})</summary>
+        <div style="padding:12px; background:#f0fdf4; font-size:13px; line-height:1.6; color:#1e293b;">${getParentTextSnippet(a.subject, dayNum)}</div>
       </details>
       ${subWork}
-      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
-        <input type="text" id="grade-${a.id}" value="${gradeVal}" placeholder="Grade (e.g., 100% or A)" style="flex:1; min-width:120px; margin:0;" />
-        <input type="text" id="fb-${a.id}" value="${fbVal}" placeholder="Parent feedback..." style="flex:2; min-width:160px; margin:0;" />
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; align-items:center;">
+        <input type="text" id="grade-${a.id}" value="${gradeVal}" placeholder="Score (e.g., 95 or 100)" style="width:130px; margin:0;" />
+        <label style="font-size:12.5px; font-weight:700; color:#15803d; display:flex; align-items:center; gap:4px; margin:0;"><input type="checkbox" id="bonus-${a.id}" /> +5% Global Explorer Bonus</label>
+        <input type="text" id="fb-${a.id}" value="${fbVal}" placeholder="Parent feedback..." style="flex:1; min-width:180px; margin:0;" />
       </div>
       <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
-        <button type="button" class="btn-primary" style="width:auto;" onclick="saveGrade('${a.id}', '${a.student_id}')">${isGraded ? "🔄 Update Grade & Feedback" : "✅ Save Grade"}</button>
-        <span id="grade-saved-msg-${a.id}" style="font-size:13px; font-weight:700; color:#15803d;"></span>
+        <button type="button" class="btn-primary" style="width:auto;" onclick="saveGrade('${a.id}', '${a.student_id}', '${safeSubj}', ${dayNum})">${isGraded ? "🔄 Update Grade & Feedback" : "✅ Save Grade & Unlock Next Day"}</button>
+        <span id="grade-saved-msg-${a.id}" style="font-size:13px; font-weight:800; color:#15803d;"></span>
       </div>
     </div>`;
   }).join("");
 }
-
-async function submitAutoWeeklyQuiz(assignment_id, totalQ) {
-  let correct = 0;
-  for (let i = 0; i < totalQ; i++) {
-    const picked = document.querySelector(`input[name="wquiz_${assignment_id}_${i}"]:checked`);
-    if (!picked) return alert("Please answer all quiz questions before submitting!");
-    if (String(picked.value) === "0") correct++;
-  }
-  const pct = Math.round((correct / totalQ) * 100);
-  const gradeStr = pct + "%";
-  const note = `Weekly Auto-Graded Mastery Quiz Score: ${correct}/${totalQ} (${gradeStr})`;
-  try {
-    const existing = await sbQuery("submissions", {
-      query: `assignment_id=eq.${assignment_id}&student_id=eq.${currentUser.id}&select=*`,
-      single: true
-    });
-    if (existing) {
-      await sbQuery("submissions", {
-        method: "PATCH",
-        query: `id=eq.${existing.id}`,
-        body: { student_notes: note, grade: gradeStr, parent_feedback: "Auto-graded Weekly Mastery Quiz", status: "Graded" }
-      });
-    } else {
-      await sbQuery("submissions", {
-        method: "POST",
-        body: { assignment_id, student_id: currentUser.id, student_notes: note, grade: gradeStr, parent_feedback: "Auto-graded Weekly Mastery Quiz", status: "Graded" }
-      });
-    }
-    const keepIdx = typeof selectedStuSubjectIdx === "number" ? selectedStuSubjectIdx : 0;
-    await loadStudentDashboard(false);
-    selectedStuSubjectIdx = keepIdx;
-    renderStudentTodayPane();
-    alert(`🎉 Weekly Quiz Auto-Graded: ${gradeStr}! Your score has been posted directly to your Quarter Gradebook & GPA.`);
-  } catch (err) {
-    alert(err.message);
-  }
+function openStudentPhotoModal(subId) {
+  const sub = submissionsCache.find(s => String(s.id) === String(subId));
+  const modal = document.getElementById("photoLightboxModal");
+  const img = document.getElementById("photoLightboxImg");
+  if (!sub || !sub.submission_link || !modal || !img) return alert("Photo not found.");
+  img.src = sub.submission_link;
+  modal.classList.remove("hidden");
 }
 
-async function saveGrade(assignment_id, student_id) {
-  const grade = document.getElementById("grade-" + assignment_id).value.trim().toUpperCase();
+async function deleteParentCourse(studentId, subject) {
+  if (!confirm(`Delete "${subject}" and all its lessons for this student?`)) return;
+  try {
+    const matching = assignmentsCache.filter(a => String(a.student_id) === String(studentId) && a.subject === subject);
+    for (const a of matching) {
+      await sbQuery("submissions", { method: "DELETE", query: `assignment_id=eq.${a.id}` }).catch(() => null);
+      await sbQuery("assignments", { method: "DELETE", query: `id=eq.${a.id}` });
+    }
+    window.activeParentCourseKey = null;
+    await loadParentDashboard();
+  } catch (err) { alert(err.message); }
+}
+
+async function saveGrade(assignment_id, student_id, subject, dayNum) {
+  let rawGrade = document.getElementById("grade-" + assignment_id).value.trim().toUpperCase();
   const parent_feedback = document.getElementById("fb-" + assignment_id).value.trim();
-  if (!grade) return alert("Enter a grade first.");
+  const bonusChecked = document.getElementById("bonus-" + assignment_id) && document.getElementById("bonus-" + assignment_id).checked;
+  if (!rawGrade) return alert("Enter a score first (e.g., 95 or 100).");
+  const numMatch = rawGrade.match(/^(\d+(?:\.\d+)?)/);
+  const grade = (bonusChecked && numMatch) ? Math.min(105, parseFloat(numMatch.at(1)) + 5) + "%" : rawGrade;
   try {
     const existing = submissionsCache.find(s => String(s.assignment_id) === String(assignment_id));
     if (existing) {
-      await sbQuery("submissions", {
-        method: "PATCH",
-        query: `id=eq.${existing.id}`,
-        body: { grade, parent_feedback, status: "Graded" }
-      });
+      await sbQuery("submissions", { method: "PATCH", query: `id=eq.${existing.id}`, body: { grade, parent_feedback, status: "Graded" } });
     } else {
-      await sbQuery("submissions", {
-        method: "POST",
-        body: { assignment_id, student_id, grade, parent_feedback, status: "Graded" }
-      });
+      await sbQuery("submissions", { method: "POST", body: { assignment_id, student_id, grade, parent_feedback, status: "Graded" } });
     }
-    alert("✅ Grade (" + grade + ") & feedback saved! The student's gradebook and next day's lesson are updated.");
+    const subjRows = assignmentsCache.filter(a => String(a.student_id) === String(student_id) && a.subject === subject);
+    if (subjRows.length <= (dayNum || 1) && subjRows.length < 45) {
+      const nextDay = subjRows.length + 1;
+      const tmpl = subjRows.at(0) || {};
+      const topicHint = getKhanLessonContent(subject, nextDay, "").unitTitle.replace(/^UNIT\s*\d+\s*•\s*(?:CHAPTER|LESSON)\s*[\d.]+:\s*/i, "");
+      await sbQuery("assignments", { method: "POST", body: { family_id: currentFamily.id, student_id, quarter: tmpl.quarter || "Q1", subject, course_level: tmpl.course_level || "Honors", credits: tmpl.credits || 1.0, title: `[Q1 • Day ${nextDay}] ${topicHint}`, description: `DAY ${nextDay} HONORS LESSON: Complete the textbook reading, video, instant quick check, and workbook prompts.`, resource_url: tmpl.resource_url || "" } }).catch(() => null);
+    }
+    alert("✅ Grade (" + grade + ") & feedback saved! Next day's lesson & answer key are now unlocked.");
 
-  } catch (err) {
-    alert(err.message);
-  }
-}
 
 async function addAchievement() {
   async function deleteAchievement(id) {
@@ -1869,25 +1879,25 @@ async function loadStudentDashboard(isPreview = false) {
       const s = subs.find(x => String(x.assignment_id) === String(item.id));
       return !(s && (s.status === "Submitted" || s.status === "Graded" || (s.grade && String(s.grade).trim() !== "")));
     });
-    if (!nextItem && seq.length > 0 && seq.length < 45) {
-      const nextDayNum = seq.length + 1;
-      const isWeeklyQuiz = nextDayNum % 5 === 0;
-      const template = seq[0];
-      const newTitle = `[Q1 • Day ${nextDayNum}] ${subj} — ${isWeeklyQuiz ? "Weekly Auto-Graded Mastery Quiz" : "Honors Lesson & Application"}`;
-      const created = await sbQuery("assignments", {
-        method: "POST",
-        body: {
-          family_id: currentFamily.id,
-          student_id: template.student_id || currentUser.id,
-          quarter: template.quarter || "Q1",
-          subject: subj,
-          course_level: template.course_level || "Honors",
-          credits: template.credits || 1.0,
-          title: newTitle,
-          description: isWeeklyQuiz
-            ? `WEEKLY AUTO-GRADED QUIZ (DAY ${nextDayNum}): Complete the 5-question Honors Mastery Quiz below. Your score is automatically calculated and posted directly to your Quarter Gradebook.`
-            : `DAY ${nextDayNum} HONORS LESSON: Read the self-contained lesson chapter, watch the embedded video below, and complete the Honors analytical exercises & Carmen Sandiego Global Bonus.`,
-          resource_url: template.resource_url || ""
+      if (!nextItem && seq.length > 0 && seq.length < 45) {
+    const nextDayNum = seq.length + 1;
+    const isWeeklyQuiz = nextDayNum % 5 === 0;
+    const template = seq.at(0) || {};
+    const topicHint = getKhanLessonContent(subj, nextDayNum, "").unitTitle.replace(/^UNIT\s*\d+\s*•\s*(?:CHAPTER|LESSON)\s*[\d.]+:\s*/i, "");
+    const newTitle = `[Q1 • Day ${nextDayNum}] ${isWeeklyQuiz ? "Weekly Auto-Graded Mastery Quiz" : topicHint}`;
+    const created = await sbQuery("assignments", {
+      method: "POST",
+      body: {
+        family_id: currentFamily.id,
+        student_id: template.student_id || currentUser.id,
+        quarter: template.quarter || "Q1",
+        subject: subj,
+        course_level: template.course_level || "Honors",
+        credits: template.credits || 1.0,
+        title: newTitle,
+        description: `DAY ${nextDayNum} HONORS LESSON: Complete the textbook reading, video, instant quick check, and workbook prompts.`,
+        resource_url: template.resource_url || ""
+
         }
       }).catch(() => null);
       if (created && created.id) {
@@ -1992,7 +2002,7 @@ async function loadStudentDashboard(isPreview = false) {
   if (syllabusEl) {
     syllabusEl.innerHTML = Object.keys(bySubject).map(subj => {
       const items = bySubject[subj];
-      const first = items || {};
+          const first = items.at(0) || {};
       const weekListHtml = getDetailedSyllabusHtml(subj, items);
       return '<div class="item-card">' +
         '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">' +
@@ -2037,7 +2047,7 @@ async function loadStudentDashboard(isPreview = false) {
 
     gradesEl.innerHTML = Object.keys(bySubject).map(subj => {
       const items = bySubject[subj];
-      const first = items || {};
+          const first = items.at(0) || {};
       const gradedItems = [];
       let subjScoreSum = 0;
       items.forEach((item, idx) => {
@@ -2174,15 +2184,15 @@ function revealBrainBreak() {
 
 function triggerBrainBreak() {
   const box = document.getElementById("brainBreakBox");
-  const item = BRAIN_BREAKS[Math.floor(Math.random() * BRAIN_BREAKS.length)];
+  const item = BRAIN_BREAKS.at(Math.floor(Math.random() * BRAIN_BREAKS.length));
   box.classList.remove("hidden");
+  const revealBtn = item.reveal && String(item.reveal).trim()
+    ? '<button type="button" class="btn-outline" style="width:auto; color:#1e293b; font-size:12px;" onclick="revealBrainBreak()">👀 Show Punchline / Answer</button><p id="bbReveal" class="hidden" style="margin-top:8px; font-weight:700; color:#15803d;">' + item.reveal + '</p>'
+    : '';
   box.innerHTML =
-    '<div style="display:flex; justify-content:space-between; align-items:center;"><strong>' + item.type + '</strong><button type="button" style="background:none; border:none; font-size:16px; cursor:pointer;" onclick="this.closest(\'#brainBreakBox\').classList.add(\'hidden\')">✕</button></div>' +
-    '<p style="margin:8px 0;">' + item.prompt + '</p>' +
-    '<button type="button" class="btn-outline" style="width:auto; color:#1e293b; font-size:12px;" onclick="revealBrainBreak()">👀 Show Punchline / Answer</button>' +
-    '<p id="bbReveal" class="hidden" style="margin-top:8px; font-weight:700; color:#15803d;">' + item.reveal + '</p>';
+    '<div style="display:flex; justify-content:space-between; align-items:center;"><strong>' + item.type + '</strong><button type="button" style="width:auto; background:transparent; border:none; font-weight:700; cursor:pointer;" onclick="document.getElementById(\'brainBreakBox\').classList.add(\'hidden\')">✕</button></div>' +
+    '<p style="margin:8px 0;">' + item.prompt + '</p>' + revealBtn;
 }
-
 
 function toggleMathToolkit() {
   const box = document.getElementById("mathToolkitBox");
