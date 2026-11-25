@@ -867,12 +867,35 @@ async function saveGrade(assignment_id, student_id, subject, dayNum) {
       const topicHint = getKhanLessonContent(subject, nextDay, "").unitTitle.replace(/^UNIT\s*\d+\s*•\s*(?:CHAPTER|LESSON)\s*[\d.]+:\s*/i, "");
       await sbQuery("assignments", { method: "POST", body: { family_id: currentFamily.id, student_id, quarter: tmpl.quarter || "Q1", subject, course_level: tmpl.course_level || "Honors", credits: tmpl.credits || 1.0, title: `[Q1 • Day ${nextDay}] ${topicHint}`, description: `DAY ${nextDay} HONORS LESSON: Complete the textbook reading, video, instant quick check, and workbook prompts.`, resource_url: tmpl.resource_url || "" } }).catch(() => null);
     }
-    alert("✅ Grade (" + grade + ") & feedback saved! Next day's lesson & answer key are now unlocked.");
-
+     alert("✅ Grade (" + grade + ") & feedback saved! Next day's lesson & answer key are now unlocked.");
+    await loadParentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
 
 async function addAchievement() {
-  async function deleteAchievement(id) {
+  const student_id = document.getElementById("achStudentSelect").value;
+  const title = document.getElementById("achTitle").value.trim();
+  const location = document.getElementById("achLocation").value.trim();
+  const metric = document.getElementById("achMetric").value.trim();
+  const notes = document.getElementById("achNotes").value.trim();
+  if (!student_id || !title) return alert("Select a student and enter a title.");
+  try {
+    await sbQuery("achievements", { method: "POST", body: { family_id: currentFamily.id, student_id, title, location, metric, notes } });
+    document.getElementById("achTitle").value = "";
+    document.getElementById("achLocation").value = "";
+    document.getElementById("achMetric").value = "";
+    document.getElementById("achNotes").value = "";
+    await loadParentDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function deleteAchievement(id) {
   if (!confirm("Remove this certification/milestone from the student's record?")) return;
+
   try {
     await sbQuery("achievements", { method: "DELETE", query: `id=eq.${id}` });
     await loadParentDashboard();
