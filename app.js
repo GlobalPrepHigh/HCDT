@@ -1254,6 +1254,7 @@ function getYouTubeEmbed(url) {
 }
 
 function switchStudentTab(tabName, btn) {
+  document.querySelectorAll(".stu-tab-btn").forEach(b => {
     b.classList.remove("active");
     b.style.background = "#ffffff";
     b.style.color = "#0f172a";
