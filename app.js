@@ -1149,7 +1149,7 @@ function renderOfficialRecords() {
         scores: []
       };
     }
-    const sub = submissionsCache.find(s => s.assignment_id === a.id);
+    const sub = submissionsCache.find(s => String(s.assignment_id) === String(a.id));
     const pct = sub && sub.grade ? parseGradePercent(sub.grade) : null;
     if (pct !== null) courseMap[key].scores.push(pct);
   });
@@ -1160,14 +1160,14 @@ function renderOfficialRecords() {
 
   const courseRank = (sub) => {
     const s = (sub || "").toLowerCase();
-    if (s.includes("english") || s.includes("literature") || s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("biology") || s.includes("chemistry") || s.includes("physics") || s.includes("history") || s.includes("government") || s.includes("economics")) return 1;
-    if (s.includes("mandarin") || s.includes("chinese") || s.includes("hindi") || s.includes("spanish") || s.includes("french") || s.includes("japanese")) return 2;
+    if (s.includes("english") || s.includes("literature") || s.includes("algebra") || s.includes("geometry") || s.includes("calculus") || s.includes("biology") || s.includes("marine") || s.includes("chemistry") || s.includes("physics") || s.includes("history")) return 1;
+    if (s.includes("mandarin") || s.includes("chinese") || s.includes("hindi") || s.includes("spanish") || s.includes("french")) return 2;
     return 3;
   };
   const sortedCourses = Object.values(courseMap).sort((a, b) => courseRank(a.subject) - courseRank(b.subject));
   const rows = sortedCourses.map(c => {
     let gradeDisplay = "In Progress";
-    let crEarned = "-";
+    let crEarned = "0.00 (In Progress)";
     if (c.scores.length > 0) {
       const avgPct = c.scores.reduce((sum, v) => sum + v, 0) / c.scores.length;
       const { letter, pts } = percentToLetterAndPoints(avgPct);
@@ -1175,21 +1175,21 @@ function renderOfficialRecords() {
       totalCredits += c.credits;
       unweightedPoints += pts * c.credits;
       weightedPoints += (pts + boost) * c.credits;
-      gradeDisplay = letter + " (" + avgPct.toFixed(0) + "%)";
-      crEarned = c.credits.toFixed(2);
+      gradeDisplay = "In Progress — " + avgPct.toFixed(0) + "% (" + letter + ")";
+      crEarned = c.scores.length >= 45 ? c.credits.toFixed(2) : "0.00 (In Progress)";
     }
     const safeSub = (c.subject || "").replace(/'/g, "\\'");
     const safeLvl = (c.course_level || "Honors").replace(/'/g, "\\'");
-    const stdTag = getCourseStandardTag(c.subject);
-    const actionBtns = '<span class="no-print" style="margin-left:6px; display:inline-flex; gap:4px;"><button type="button" class="btn-outline" style="width:auto; padding:1px 6px; font-size:11px; color:#1e293b;" onclick="editTranscriptCourse(\'' + stu.id + '\',\'' + c.quarter + '\',\'' + safeSub + '\',\'' + safeLvl + '\',' + c.credits + ')">✏️</button><button type="button" class="btn-outline" style="width:auto; padding:1px 6px; font-size:11px; color:#b91c1c;" onclick="deleteTranscriptCourse(\'' + stu.id + '\',\'' + c.quarter + '\',\'' + safeSub + '\')">🗑️</button></span>';
-    return '<tr><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.quarter + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;"><strong>' + c.subject + '</strong> <span style="font-size:10px; background:#f1f5f9; border:1px solid #cbd5e1; padding:1px 5px; border-radius:4px; color:#475569;">' + stdTag + '</span>' + actionBtns + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.course_level + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center;">' + c.credits.toFixed(2) + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center;">' + crEarned + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1; text-align:center;"><strong>' + gradeDisplay + '</strong></td></tr>';
+    const stdTag = "";
+    const actionBtns = '<span class="no-print" style="margin-left:6px; display:inline-flex; gap:4px;"><button type="button" class="btn-outline" style="width:auto; padding:2px 6px; font-size:11px; color:#1e293b;" onclick="editCourseRow(\'' + safeSub + '\',\'' + safeLvl + '\')">Edit</button><button type="button" class="btn-outline" style="width:auto; padding:2px 6px; font-size:11px; color:#b91c1c;" onclick="deleteCourseRow(\'' + safeSub + '\')">Delete</button></span>';
+    return '<tr><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.quarter + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;"><strong>' + c.subject + '</strong>' + actionBtns + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.course_level + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;"><strong>' + gradeDisplay + '</strong></td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + c.credits.toFixed(2) + '</td><td style="padding:8px 10px; border-bottom:1px solid #cbd5e1;">' + crEarned + '</td></tr>';
   }).join("");
   const weightedGpa = totalCredits > 0 ? (weightedPoints / totalCredits).toFixed(2) : "N/A";
   const unweightedGpa = totalCredits > 0 ? (unweightedPoints / totalCredits).toFixed(2) : "N/A";
   const globeSeal = buildGoldGlobeSealSvg();
 
-  const achSection = stuAchs.length
-    ? '<div style="margin-top:18px; border-top:1px solid #94a3b8; padding-top:12px;"><div style="font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#1e293b; margin-bottom:6px;">Verified Honors Certifications, Field Studies &amp; Service</div><ul style="margin:0; padding-left:18px; font-size:12px; line-height:1.6;">' + stuAchs.map(x => '<li><strong>' + x.title + '</strong> (' + x.category + (x.hours_logged ? ' &bull; ' + x.hours_logged + ' hrs' : '') + ') — ' + (x.description || '') + '</li>').join("") + '</ul></div>'
+    const achSection = stuAchs.length
+    ? '<div style="margin-top:18px; border-top:1px solid #94a3b8; padding-top:12px;"><div style="font-size:12px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:#1e293b; margin-bottom:6px;">Verified Certifications, Expeditions &amp; Honors</div>' + stuAchs.map(a => '<div style="font-size:12.5px; margin-bottom:4px;">• <strong>' + a.title + '</strong>' + (a.metric ? ' (' + a.metric + ')' : '') + (a.notes ? ' — ' + a.notes : '') + '</div>').join("") + '</div>'
     : "";
 
   const legalNotice = '<div style="margin-top:14px; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; font-size:10px; color:#475569; line-height:1.5;"><strong>Home-Education Legal &amp; Curriculum Disclosure:</strong> GlobalPrep High is a homeschool curriculum, gradebook, and academic recordkeeping platform and is not an accredited brick-and-mortar school. This transcript is issued directly by the Parent/Guardian Home-Education Administrator pursuant to applicable state homeschool laws. Curriculum benchmarks align with U.S. CCSS, NGSS, and C3 college-preparatory standards. Open educational reference streams provided via YouTube EDU, OpenStax (CC BY 4.0), PhET, Desmos, and Khan Academy.</div>';
